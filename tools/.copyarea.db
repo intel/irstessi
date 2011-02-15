@@ -1,0 +1,7 @@
+ClearCase CopyAreaDB|4
+vobs/trelliscruzbay_mgmt/management/RAID_API/tools
+2
+3
+8:ssimsg.c|1|12e29089e10|bc4|43cc9dca|65a675ef344011e08b4d78e7d1f7676c|0
+9:ssimsgd.c|1|12e29089e10|2158|8444c97a|65b675f3344011e08b4d78e7d1f7676c|0
+b:Makefile.am|1|12e29089e10|206|f0d4812a|65a675eb344011e08b4d78e7d1f7676c|0

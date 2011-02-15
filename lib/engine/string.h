@@ -1,0 +1,420 @@
+/*
+ * IMPORTANT - READ BEFORE COPYING, INSTALLING OR USING.
+ * BY LOADING OR USING THIS SOFTWARE, YOU AGREE TO THE TERMS OF THIS INTEL
+ * SOFTWARE LICENSE AGREEMENT.  IF YOU DO NOT WISH TO SO AGREE, DO NOT COPY,
+ * INSTALL OR USE THIS SOFTWARE.
+ *
+ * INTEL CONFIDENTIAL
+ *
+ * Copyright (C) 2010 Intel Corporation. All Rights Reserved.
+ *
+ * The source code contained or described herein and all documents related to
+ * the source code ("Material") are owned by Intel Corporation or its
+ * suppliers or licensors.
+ *
+ * Title to the Material remains with Intel Corporation or its suppliers and
+ * licensors. The Material contains trade secrets and proprietary and
+ * confidential information of Intel or its suppliers and licensors.
+ * The Material is protected by worldwide copyright and trade secret laws and
+ * treaty provisions. No part of the Material may be used, copied, reproduced,
+ * modified, published, uploaded, posted, transmitted, distributed,
+ * or disclosed in any way without Intel's prior express written permission.
+ *
+ * No license under any patent, copyright, trade secret or other intellectual
+ * property right is granted to or conferred upon you by disclosure
+ * or delivery of the Materials, either expressly, by implication, inducement,
+ * estoppel or otherwise. Any license under such intellectual property rights
+ * must be express and approved by Intel in writing.
+ */
+
+#if __GNUC_PREREQ(3, 4)
+#pragma once
+#endif /* __GNUC_PREREQ */
+
+#ifndef __STRING_H__INCLUDED__
+#define __STRING_H__INCLUDED__
+
+/**
+ */
+class String {
+public:
+    String()
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign("");
+    }
+    String(unsigned long long value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(long long value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(unsigned char value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(char value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(unsigned int value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(int value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(unsigned short value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(short value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(const String &s, unsigned int count = -1U)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(s, count);
+    }
+    String(const char *s, unsigned int count = -1U)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(s, count);
+    }
+    virtual ~String() {
+        delete [] m_buffer; m_length = m_size = m_capacity = 0;
+    }
+
+public:
+    String & operator = (const String &s) {
+        assign(s); return *this;
+    }
+    String & operator = (const char *buf) {
+        assign(buf); return *this;
+    }
+    String & operator = (unsigned long long value) {
+        assign(value); return *this;
+    }
+    String & operator = (long long value) {
+        assign(value); return *this;
+    }
+    String & operator = (unsigned int value) {
+        assign(value); return *this;
+    }
+    String & operator = (int value) {
+        assign(value); return *this;
+    }
+    String & operator = (unsigned short value) {
+        assign(value); return *this;
+    }
+    String & operator = (short value) {
+        assign(value); return *this;
+    }
+    String & operator = (unsigned char value) {
+        assign(value); return *this;
+    }
+    String & operator = (char value) {
+        assign(value); return *this;
+    }
+
+public:
+    String & operator += (const String &s) {
+        append(s); return *this;
+    }
+    String & operator += (const char *buf) {
+        append(buf); return *this;
+    }
+    String & operator += (unsigned long long value) {
+        append(value); return *this;
+    }
+    String & operator += (long long value) {
+        append(value); return *this;
+    }
+    String & operator += (unsigned int value) {
+        append(value); return *this;
+    }
+    String & operator += (int value) {
+        append(value); return *this;
+    }
+    String & operator += (unsigned short value) {
+        append(value); return *this;
+    }
+    String & operator += (short value) {
+        append(value); return *this;
+    }
+    String & operator += (unsigned char value ) {
+        append(value); return *this;
+    }
+    String & operator += (char value) {
+        append(value); return *this;
+    }
+
+public:
+    operator const char * () const {
+        return m_buffer;
+    }
+#if 0 /* APW */
+    const char & operator [] (unsigned int offset) const {
+        return at(offset);
+    }
+#endif /* APW */
+    operator bool () const {
+        return isEmpty() == false;
+    }
+#if 0 /* APW */
+    char & operator [] (unsigned int offset) {
+        return at(offset);
+    }
+#endif /* APW */
+
+public:
+    const char * get(unsigned int offset = 0) const {
+        if (offset > m_length) {
+            throw E_INVALID_OFFSET;
+        }
+        return __offset(offset);
+    }
+    void get(char *dest, unsigned int size, unsigned int offset = 0) const {
+        if (size == 0) {
+            throw E_BUFFER_TOO_SMALL;
+        }
+        if (dest == 0) {
+            throw E_NULL_POINTER;
+        }
+        if (size < m_length) {
+            throw E_BUFFER_TOO_SMALL;
+        }
+        __get(dest, size, offset);
+    }
+#if 0 /* APW */
+    char & at(unsigned int offset) {
+        if (offset > m_length) {
+            throw E_INVALID_OFFSET;
+        }
+        return __at(offset);
+    }
+    const char & at(unsigned int offset) const {
+        if (offset > m_length) {
+            throw E_INVALID_OFFSET;
+        }
+        return __at(offset);
+    }
+#endif /* APW */
+    unsigned int length() const {
+        return m_length;
+    }
+    unsigned int size() const {
+        return m_size;
+    }
+    unsigned int capacity() const {
+        return m_capacity;
+    }
+    bool isEmpty() const {
+        return *m_buffer == '\0' || m_length == 0;
+    }
+
+public:
+    void assign(const char *buf, unsigned int count = -1U);
+    void assign(long long value);
+    void assign(unsigned long long value);
+
+    void assign(const String &s, unsigned int count = -1U) {
+        if (&s != this) {
+            assign(s.get(), count);
+        }
+    }
+    void assign(char value) {
+        assign(static_cast<long long>(value));
+    }
+    void assign(unsigned char value) {
+        assign(static_cast<unsigned long long>(value));
+    }
+    void assign(int value) {
+        assign(static_cast<long long>(value));
+    }
+    void assign(unsigned int value) {
+        assign(static_cast<unsigned long long>(value));
+    }
+    void assign(short value) {
+        assign(static_cast<long long>(value));
+    }
+    void assign(unsigned short value) {
+        assign(static_cast<unsigned long long>(value));
+    }
+
+    void append(const String &s, unsigned int count = -1U);
+
+    void append(const char *buf) {
+        append(String(buf));
+    }
+    void append(unsigned long long value) {
+        append(String(value));
+    }
+    void append(long long value) {
+        append(String(value));
+    }
+    void append(unsigned int value) {
+        append(String(value));
+    }
+    void append(int value) {
+        append(String(value));
+    }
+    void append(unsigned short value) {
+        append(String(value));
+    }
+    void append(short value) {
+        append(String(value));
+    }
+    void append(unsigned char value) {
+        append(String(value));
+    }
+    void append(char value) {
+        append(String(value));
+    }
+
+public:
+    unsigned int find(const char *buf, unsigned int offset = 0) const;
+
+    unsigned int find(const String &s, unsigned int offset = 0) const {
+        return find(s.get(), offset);
+    }
+    String left(const String &s) const {
+        try {
+            return left(find(s));
+        } catch (...) {
+            return String("");
+        }
+    }
+    String left(const char *buf) const {
+        return left(String(buf));
+    }
+    String left(unsigned int pos) const {
+        return mid(0, pos);
+    }
+    String right(const String &s) const {
+        try {
+            return right(find(s));
+        } catch (...) {
+            return String("");
+        }
+    }
+    String right(const char *buf) const {
+        return right(String(buf));
+    }
+    String right(unsigned int pos) const {
+        return mid(pos);
+    }
+    String mid(unsigned int start = 0, unsigned int end = -1U) const {
+        try {
+            if (start < end) {
+                return String(get(start), end - start);
+            }
+        } catch (...) {
+            // intentionally left blank
+        }
+        return String("");
+    }
+    String mid(const char *start, const char *end) const {
+        return mid(String(start), String(end));
+    }
+    String mid(const String &start, const String &end) const {
+        try {
+            unsigned int t = find(start) + start.length();
+            return mid(t, find(end, t));
+        } catch (...) {
+            return String("");
+        }
+    }
+    String mid(const String &start, const char *end) const {
+        return mid(start, String(end));
+    }
+    String mid(const char *start, const String &end) const {
+        return mid(String(start), end);
+    }
+
+public:
+    bool equal(const String &s) const {
+        return this == &s || __compare(s.get()) == 0;
+    }
+    bool equal(const char *buf) const {
+        return buf != 0 && __compare(buf) == 0;
+    }
+    bool different(const String &s) const {
+        return this != &s && __compare(s.get()) != 0;
+    }
+    bool different(const char *buf) const {
+        return buf != 0 && __compare(buf) != 0;
+    }
+
+public:
+    void clear() {
+        assign("");
+    }
+
+protected:
+    char *m_buffer;
+    unsigned int m_length;
+    unsigned int m_size;
+    unsigned int m_capacity;
+
+private:
+#if 0 /* APW */
+    const Char & __at(unsigned int offset) const {
+        return *__offset(offset);
+    }
+    Char & __at(unsigned int offset) {
+        return *__offset(offset);
+    }
+#endif /* APW */
+
+    void __append(const char *buf, unsigned int count = -1U) {
+        __copy(buf, m_length, count);
+    }
+    char * __find(const char *buf, unsigned int offset = 0) const;
+    void __duplicate(char *buf) const;
+    void __realloc(unsigned int buf_size, bool buf_copy = false);
+    void __copy(const char *buf, unsigned int offset, unsigned int count);
+    int __compare(const String &s, unsigned int offset = 0) const;
+    void __get(char *buf, unsigned int size, unsigned int offset) const;
+    char * __offset(unsigned int offset) const;
+};
+
+/* */
+inline bool operator == (const String &left, const String &right) {
+    return left.equal(right);
+}
+inline bool operator == (const String &left, const char *right) {
+    return left.equal(right);
+}
+inline bool operator == (const char *left, const String &right) {
+    String s(left);
+    return s.equal(right);
+}
+
+/* */
+inline bool operator != (const String &left, const String &right) {
+    return left.different(right);
+}
+inline bool operator != (const String &left, const char *right) {
+    return left.different(right);
+}
+inline bool operator != (const char *left, const String &right) {
+    String s(left);
+    return s.different(right);
+}
+
+/* */
+inline String operator + (const String &left, const String &right) {
+    return String(left) += right;
+}
+inline String operator + (const String &left, const char *right) {
+    return String(left) += right;
+}
+inline String operator + (const char *left, const String &right) {
+    return String(left) += right;
+}
+
+#endif /* __STRING_H__INCLUDED__ */
+
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -1,0 +1,9 @@
+PKG=ssi
+NAME=Standard Storage Interface library
+DESC=Standard Storage Interface library
+VENDOR=Intel Corporation
+VERSION=@VERSION@
+CLASSES=none
+CATEGORY=library
+EMAIL=artur.wojcik@intel.com
+PSTAMP=20100616

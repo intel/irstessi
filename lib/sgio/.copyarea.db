@@ -1,0 +1,7 @@
+ClearCase CopyAreaDB|4
+vobs/trelliscruzbay_mgmt/management/RAID_API/lib/sgio
+2
+3
+6:sgio.c|1|12e29089640|280f|519821bc|f6053d91343e11e089a378e7d1f7676c|0
+6:sgio.h|1|12e29089640|1a41|4da1fd69|f6153d95343e11e089a378e7d1f7676c|0
+b:Makefile.am|1|12e29089640|ad|e2fb30be|f6053d8d343e11e089a378e7d1f7676c|0

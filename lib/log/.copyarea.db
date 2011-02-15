@@ -1,0 +1,7 @@
+ClearCase CopyAreaDB|4
+vobs/trelliscruzbay_mgmt/management/RAID_API/lib/log
+2
+3
+5:log.c|1|12e29089640|c89|569a048b|0aab4266343e11e088d378e7d1f7676c|0
+5:log.h|1|12e29089640|971|ea76fb7c|0aab426a343e11e088d378e7d1f7676c|0
+b:Makefile.am|1|12e29089640|9b|87702d3e|cf7b88cfe8d511df92ce00145efc352c|0

@@ -1,0 +1,12 @@
+ClearCase CopyAreaDB|4
+vobs/trelliscruzbay_mgmt/management/RAID_API/ut
+2
+8
+d:ut_string.cpp|1|12e29089e10|14c5|27bc74f3|cca72e9a344011e08c9978e7d1f7676c|0
+1c:ut_scope_controller_direct.c|1|12e29089e10|c2d6|23d8fe20|a0d043e21a6a11e09fa000145efc352c|0
+10:Makefile.session|1|12e29089e10|2c2|4d86c8f0|cc072e3a344011e08c9978e7d1f7676c|0
+b:ut_volume.c|1|12e29089e10|766|46e36fed|872043d21a6a11e09fa000145efc352c|0
+a:string.cpp|1|12e29089e10|1bae|c2574e60|cc572e6a344011e08c9978e7d1f7676c|0
+f:Makefile.string|1|12e29089e10|2f6|e150d900|cc272e52344011e08c9978e7d1f7676c|0
+e:ut_session.cpp|1|12e29089e10|3b4|5d3e1beb|cc872e82344011e08c9978e7d1f7676c|0
+b:Makefile.am|1|12e29089e10|21e|23a6aba0|a0b043de1a6a11e09fa000145efc352c|0

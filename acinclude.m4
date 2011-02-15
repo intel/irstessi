@@ -1,0 +1,1 @@
+m4_include([m4/ssi-check-sgutils.m4])
