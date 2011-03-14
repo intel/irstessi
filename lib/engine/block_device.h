@@ -40,14 +40,36 @@ class Array;
 /* */
 class BlockDevice : public EndDevice {
 public:
-    BlockDevice(const String &path)
-        : EndDevice(path), m_pArray(0) {
+    BlockDevice(const String &path);
+
+    // EndDevice
+
+public:
+    SSI_EndDeviceType getDeviceType() const {
+        return SSI_EndDeviceTypeDisk;
+    }
+    bool isSystemDisk() const {
+        return m_IsSystem;
+    }
+    SSI_DiskUsage getDiskUsage() const {
+        return m_DiskUsage;
+    }
+    SSI_DiskState getDiskState() const {
+        return m_DiskState;
+    }
+    unsigned char getStoragePoolId() const {
+        return m_StoragePoolId;
     }
 
-protected:
-    Array *m_pArray;
+    // BlockDevice
 
-    void attachArray(Object *pArray);
+protected:
+    Container m_Volumes;
+    Array *m_pArray;
+    SSI_DiskUsage m_DiskUsage;
+    SSI_DiskState m_DiskState;
+    bool m_IsSystem;
+    unsigned char m_StoragePoolId;
 
 public:
     SSI_Status unlock(SSI_DiskUnlockInfo *pInfo);
@@ -57,10 +79,19 @@ public:
     SSI_Status writeStorageArea(void *pBuffer, unsigned int bufferSize);
     SSI_Status  readStorageArea(void *pBuffer, unsigned int bufferSize);
 
+    void attachArray(Object *pArray);
+    void attachVolume(Object *pVolume);
+
 public:
     Array * getArray() const {
         return m_pArray;
     }
+    void setWriteCache(bool enable);
+
+private:
+    void __internal_determine_disk_usage();
+    void __internal_determine_disk_state();
+    void __internal_determine_disk_is_system();
 };
 
 #endif /* __BLOCK_DEVICE_H__INCLUDED__ */

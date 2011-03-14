@@ -40,32 +40,47 @@ class Controller;
 /* */
 class RaidInfo : public ScopeObject {
 public:
-    RaidInfo(const RaidInfo &);
-    RaidInfo(Controller *pController);
-    ~RaidInfo();
+    virtual ~RaidInfo() {
+    }
+    RaidInfo(int disksPerArray, int toatalRaidDisks, int volsPerArray,
+        int volsPerHBA, unsigned short supportedChunkSize);
+
+    // Object
 
 public:
-    Controller *m_pController;
-
-public:
-    SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *info) const;
-    void getControllers(Container &) const;
-    SSI_Status getInfo(SSI_RaidInfo *info) const;
-
     ObjectType getType() const {
         return ObjectType_RaidInfo;
     }
+
+    // ScopeObject
+
+public:
+    void getControllers(Container &) const;
+
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRaidInfo;
     }
-};
 
-/* */
-class AHCI_RaidInfo : public RaidInfo {
-};
+    // RaidInfo
 
-/* */
-class ISCI_RaidInfo : public RaidInfo {
+protected:
+    Container m_Controllers;
+    int m_DisksPerArray;
+    int m_RaidDisksSupported;
+    int m_VolumesPerHBA;
+    int m_VolumesPerArray;
+    short m_SupportedStripSizes;
+
+    void attachController(Object *pController) {
+        m_Controllers.add(pController);
+    }
+
+public:
+    void acquireId(Session *pSession);
+
+    virtual SSI_ControllerType getControllerType() const = 0;
+    virtual SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const = 0;
+    virtual SSI_Status getInfo(SSI_RaidInfo *info) const;
 };
 
 #endif /* __RAID_INFO_H__INCLUDED__ */

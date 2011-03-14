@@ -36,13 +36,13 @@
 
 /**
  */
-class StreamDevice : public EndDevice {
+class StreamDevice : public NonDiskDevice {
 public:
     StreamDevice(const String &path)
-        : EndDevice(path) {
+        : NonDiskDevice(path) {
     }
 };
 
 #endif /* __STREAM_DEVICE_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -34,6 +34,10 @@
 #ifndef __ROUTING_DEVICE_H__INCLUDED__
 #define __ROUTING_DEVICE_H__INCLUDED__
 
+// Forward declaration
+class Port;
+class Enclosure;
+
 /* */
 class RoutingDevice : public StorageObject {
  public:
@@ -50,9 +54,10 @@ class RoutingDevice : public StorageObject {
     // ScopeObject
 
  public:
-    void getPhys(Container &) const;
-    void getEndDevices(Container &, bool all = false) const;
+    virtual void getPhys(Container &) const;
+    void getRoutingDevices(Container &, bool all) const;
     void getPorts(Container &) const;
+    void getEndDevices(Container &, bool all) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRoutingDevice;
@@ -61,12 +66,12 @@ class RoutingDevice : public StorageObject {
     // StorageObject
 
 public:
-    void getAddress(SSI_Address *pAddress) const;
-
-    void attachRoutingDevice(Object *pRoutingDevice, bool direct);
+    void attachEndDevice(Object *pEndDevice);
+    void attachVolume(Object *pVolume);
     void attachPhy(Object *pPhy);
-    void attachEndDevice(Object *pEndDevice, bool direct);
+    void attachRoutingDevice(Object *pRoutingDevice);
     void attachPort(Object *pPort);
+    void attachArray(Object *pArray);
 
     virtual void acquireId(Session *pSession);
 
@@ -79,12 +84,33 @@ protected:
     Container m_Ports;
     Container m_RoutingDevices;
     Container m_RoutingDevices_Direct;
+    Port *m_pSubtractivePort;
+    String m_ProductId;
+    String m_Vendor;
+    String m_ProductRev;
+    String m_ComponentVendorId;
+    String m_ComponentId;
+    String m_ComponentRev;
 
 public:
+    virtual Enclosure * getEnclosure() const {
+        return 0;
+    }
+    Object * getPort() const {
+        return reinterpret_cast<Object *>(m_pSubtractivePort);
+    }
+    virtual SSI_ExpanderType getExpanderType() const {
+        return SSI_ExpanderTypeUnknown;
+    }
     virtual SSI_RoutingDeviceType getRoutingDeviceType() const {
         return SSI_RoutingDeviceTypeUnknown;
     }
+    virtual unsigned int getNumberOfPhys() const {
+        return m_Phys;
+    }
+    RaidInfo * getRaidInfo() const;
     SSI_Status getInfo(SSI_RoutingDeviceInfo *pInfo) const;
+
 };
 
 #endif /* __ROUTING_DEVICE_H__INCLUDED__ */

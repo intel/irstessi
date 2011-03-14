@@ -32,35 +32,67 @@
 #endif /* __GNUC_PREREQ */
 
 // Forward declarations
-class EndDevice;
 class Array;
+class EndDevice;
 
 /* */
 class Volume : public RaidDevice {
 public:
-    Volume(StorageObject *pParent, const String &path, Session *pSession);
+    Volume(Array *pParent);
+    Volume(Array *pParent, const String &path, unsigned int orginal);
     ~Volume();
 
-protected:
-    Container m_EndDevices;
+    // Object
 
 public:
-    void attachEndDevice(Object *, bool direct = false);
+    ObjectType getType() const {
+        return ObjectType_Volume;
+    }
+
+    // ScopeObject
+
+public:
+    void getEndDevices(Container &, bool all) const;
+
+    // StorageObject
+
+public:
+    void attachEndDevice(Object *pEndDevice);
+    void acquireId(Session *pSession);
+
+    // StorageDevice
 
 public:
     SSI_Status writeStorageArea(void *pBuffer, unsigned int bufferSize);
     SSI_Status  readStorageArea(void *pBuffer, unsigned int bufferSize);
 
-    ObjectType getType() const {
-        return ObjectType_Volume;
-    }
+    // RaidDevice
+
+public:
+    SSI_Status remove();
+    void create();
+
+    // Volume
+
+protected:
+    unsigned int m_Ordinal;
+    unsigned long long m_TotalSize;
+    unsigned int m_RaidLevel;
+    unsigned int m_MigrationProgress;
+    bool m_WriteThrough;
+    bool m_CachingEnabled;
+    bool m_SystemVolume;
+    unsigned int m_MismatchCount;
+    unsigned int m_StripSize;
+    unsigned long long m_ComponentSize;
+    SSI_VolumeState m_State;
+    BlockDevice *m_pSourceDisk;
 
 public:
     SSI_Status initialize();
     SSI_Status getInfo(SSI_VolumeInfo *pInfo);
     SSI_Status markAsNormal();
     SSI_Status rename(const String &newName);
-    SSI_Status remove();
     SSI_Status rebuild(EndDevice *pEndDevice);
     SSI_Status setCachePolicy(bool off);
     SSI_Status expand(unsigned long long newSize);
@@ -68,6 +100,24 @@ public:
     SSI_Status verify(bool repair);
     SSI_Status modify(SSI_StripSize chunkSize, SSI_RaidLevel raidLevel,
         unsigned long long newSize, const Container &disks);
+
+    void setComponentSize(unsigned long long size) {
+        m_ComponentSize = size;
+    }
+
+    void setStripSize(SSI_StripSize stripSize);
+    void setSourceDisk(EndDevice *pEndDevice);
+    void setRaidLevel(SSI_RaidLevel raidLevel);
+
+    SSI_VolumeState getState() const {
+        return m_State;
+    }
+    unsigned long long getComponentSize() const {
+        return m_ComponentSize;
+    }
+
+private:
+    void __internal_initialize();
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

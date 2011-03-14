@@ -100,9 +100,8 @@ public:
 private:
     NoneScopeObject *m_pNoneScopeObj;
 
-    void __discoverControllers();
-    void __discoverRaidDevices();
-    void __releaseIds(Container &) const;
+    void __internal_attach_imsm_array(const String &path);
+    void __internal_attach_imsm_device(const String &path);
 
 public:
     ScopeObject * getObject(unsigned int id) const;

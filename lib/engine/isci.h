@@ -39,8 +39,22 @@ class ISCI : public Controller {
 public:
     ISCI(const String &path);
 
+    // StorageObject
+
+public:
+    void getAddress(SSI_Address &address) const;
+
+    // Controller
+
 protected:
-    void readRaidInfo();
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeSCU;
+    }
+
+    // ISCI
+
+private:
+    void __internal_initialize();
 };
 
 #endif /* __ISCI_H__INCLUDED__ */

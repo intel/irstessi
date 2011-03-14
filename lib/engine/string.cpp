@@ -35,6 +35,8 @@
 
 #include <cstdio>
 #include <cstring>
+#include <cctype>
+#include <cstdlib>
 
 #include "exception.h"
 #include "string.h"
@@ -86,17 +88,33 @@ static unsigned char * __utf8_skip_bytes(unsigned char *buf, int seqType)
 }
 
 /* */
+inline static unsigned char * __utf8_skip_invalid_sequence(unsigned char *buf)
+{
+    while (*buf != '\0') {
+        if (__utf8_sequence_type(buf) != 0) {
+            break;
+        }
+        ++buf;
+    }
+    return buf;
+}
+
+/* */
 inline static unsigned char * __utf8_skip_sequence(unsigned char *buf)
 {
     return __utf8_skip_bytes(buf, __utf8_sequence_type(buf));
 }
 
 /* */
-static char * __utf8_offset(unsigned char *buf, unsigned int offset)
+static char * __utf8_offset(unsigned char *buf, unsigned int offset = -1U)
 {
     try {
-        while (*buf != '\0' && offset-- > 0) {
+        while (*buf != '\0') {
+            if (offset == 0) {
+                break;
+            }
             buf = __utf8_skip_sequence(buf);
+            --offset;
         }
     } catch (...) {
         // intentionally left blank
@@ -105,19 +123,19 @@ static char * __utf8_offset(unsigned char *buf, unsigned int offset)
 }
 
 /* */
-inline static char * __utf8_offset(char *buf, unsigned int offset)
+inline static char * __utf8_offset(char *buf, unsigned int offset = -1U)
 {
     return __utf8_offset(reinterpret_cast<unsigned char *>(buf), offset);
 }
 
 /* */
-inline static char * __utf8_offset(const char *buf, unsigned int offset)
+inline static char * __utf8_offset(const char *buf, unsigned int offset = -1U)
 {
     return __utf8_offset(const_cast<char *>(buf), offset);
 }
 
 /* */
-static unsigned int __utf8_length(unsigned char *buf, unsigned int count)
+static unsigned int __utf8_length(unsigned char *buf, unsigned int count = -1U)
 {
     unsigned int result = 0, t;
     try {
@@ -139,6 +157,66 @@ static unsigned int __utf8_length(unsigned char *buf, unsigned int count)
 inline static unsigned int __utf8_length(char *buf, unsigned int count = -1U)
 {
     return __utf8_length(reinterpret_cast<unsigned char *>(buf), count);
+}
+
+/* */
+static char * __utf8_trim_left(char *buf)
+{
+    unsigned char *p = reinterpret_cast<unsigned char *>(buf);
+    while (*p != '\0') {
+        int type = __utf8_sequence_type(p);
+        if (type == 1) {
+            if (isspace(*p) == 0 && isprint(*p)) {
+                break;
+            }
+        } else if (type != 0) {
+            break;
+        }
+        try {
+            p = __utf8_skip_bytes(p, type);
+        } catch (...) {
+            p = __utf8_skip_invalid_sequence(p);
+        }
+    }
+    return reinterpret_cast<char *>(p);
+}
+
+/* */
+static char * __utf8_trim_right(unsigned char *buf)
+{
+    int count = 0;
+    unsigned char *p = reinterpret_cast<unsigned char *>(__utf8_offset(buf) - 1);
+    while (p > buf) {
+        if (*p < 0x7f) {
+            if (isspace(*p) == 0 && isprint(*p)) {
+                break;
+            }
+        } else
+        if ((*p >> 6) == 0x02) {
+            count++;
+        } else
+        if (((*p >> 5) == 0x06 && count == 1) ||
+            ((*p >> 4) == 0x0e && count == 2) ||
+            ((*p >> 3) == 0x1e && count == 3)) {
+            break;
+        } else {
+            count = 0;
+        }
+        if (p > buf) {
+            --p;
+        }
+    }
+    try {
+        return reinterpret_cast<char *>(__utf8_skip_sequence(p));
+    } catch (...) {
+        return reinterpret_cast<char *>(buf);
+    }
+}
+
+/* */
+static char * __utf8_trim_right(char *buf)
+{
+    return __utf8_trim_right(reinterpret_cast<unsigned char *>(buf));
 }
 
 /* */
@@ -194,11 +272,34 @@ void String::append(const String &s, unsigned int count)
 }
 
 /* */
-unsigned int String::find(const char *buf, unsigned int offset) const {
+unsigned int String::find(const char *buf, unsigned int offset) const
+{
     char *p = __utf8_offset(m_buffer, offset);
     offset = p - m_buffer;
-    if (buf != 0 && offset < m_size) {
+    if (buf != 0) {
         if ((p = __find(buf, offset)) != 0) {
+            return __utf8_length(m_buffer, p - m_buffer);
+        }
+    }
+    throw E_NOT_FOUND;
+}
+
+/* */
+void String::trim()
+{
+   char *p = __utf8_trim_left (m_buffer);
+   char *t = __utf8_trim_right(m_buffer);
+
+   assign(String(p, __utf8_length(p, t - p)));
+}
+
+/* */
+unsigned int String::reverse_find(const char *buf, unsigned int offset) const
+{
+    char *p = __utf8_offset(m_buffer, offset);
+    offset = p - m_buffer;
+    if (buf != 0) {
+        if ((p = __reverse_find(buf, offset)) != 0) {
             return __utf8_length(m_buffer, p - m_buffer);
         }
     }
@@ -250,13 +351,18 @@ void String::__copy(const char *buf, unsigned int offset, unsigned int count)
 void String::__get(char *buf, unsigned int size, unsigned int offset) const
 {
     offset = __utf8_offset(m_buffer, offset) - m_buffer;
-    if (size < m_size - offset) {
-        throw E_BUFFER_TOO_SMALL;
+    unsigned int i;
+    if (size > (m_size - offset) + 1) {
+        size = (m_size - offset) + 1;
+    } else {
+        if (size > 0) {
+            --size;
+        }
     }
-    for (unsigned int i = 0; i < m_size - offset; ++i) {
+    for (i = 0; i < size; ++i) {
         buf[i] = m_buffer[i + offset];
     }
-    buf[m_size - offset] = '\0';
+    buf[i] = '\0';
 }
 
 /* */
@@ -273,20 +379,87 @@ int String::__compare(const String &s, unsigned int offset) const
 }
 
 /* */
-char * String::__find(const char *buf, unsigned int offset) const
+char * String::__reverse_find(const char *buf, unsigned int offset) const
 {
     unsigned int i, j = 0;
-    i = __utf8_offset(buf, offset) - buf;
-    while ((i + j) <= m_size) {
+    i = __utf8_offset(buf) - buf;
+    if (offset < i) {
+        return 0;
+    }
+    offset -= i;
+    while (true) {
         if (buf[j] == '\0') {
-            return m_buffer + i;
+            return m_buffer + offset;
         }
-        if (m_buffer[i + j] == buf[j]) {
+        if (m_buffer[offset + j] == buf[j]) {
             j++;
         } else {
-            i++; j = 0;
+            if (offset == 0) {
+                break;
+            }
+            offset--; j = 0;
         }
     }
     return 0;
 }
+
+/* */
+char * String::__find(const char *buf, unsigned int offset) const
+{
+    unsigned int j = 0;
+    while ((offset + j) <= m_size) {
+        if (buf[j] == '\0') {
+            return m_buffer + offset;
+        }
+        if (m_buffer[offset + j] == buf[j]) {
+            j++;
+        } else {
+            offset++; j = 0;
+        }
+    }
+    return 0;
+}
+
+/* */
+unsigned long long String::__internal_to_ulonglong() const
+{
+    return strtoull(m_buffer, NULL, 0);
+}
+
+/* */
+long long String::__internal_to_longlong() const
+{
+    return strtoll(m_buffer, NULL, 0);
+}
+
+/* */
+unsigned int String::__internal_to_uint() const
+{
+    return static_cast<unsigned int>(strtoul(m_buffer, NULL, 0));
+}
+
+/* */
+int String::__internal_to_int() const
+{
+    return atoi(m_buffer);
+}
+
+/* */
+unsigned short String::__internal_to_ushort() const
+{
+    return static_cast<unsigned short>(strtoul(m_buffer, NULL, 0));
+}
+
+/* */
+short String::__internal_to_short() const
+{
+    return static_cast<short>(atoi(m_buffer));
+}
+
+/* */
+unsigned char String::__internal_to_uchar() const
+{
+    return static_cast<unsigned char>(strtoul(m_buffer, NULL, 0));
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -173,9 +173,9 @@ bool Id::operator != (const Object *pObject) const
 unsigned int IdCache::__findId() const {
     unsigned int id = 0;
     Iterator<Id *> i;
-    while (++id <= 0xffffff) {
+    while (++id <= 0x0fffffff) {
         for (i = first(); *i != 0; ++i) {
-            if (((*i)->getId() & 0xffffff) == id) {
+            if (((*i)->getId() & 0x0fffffff) == id) {
                 break;
             }
         }
@@ -183,7 +183,7 @@ unsigned int IdCache::__findId() const {
             break;
         }
     }
-    return (id & 0xffffff);
+    return (id & 0x0fffffff);
 }
 
 /* */

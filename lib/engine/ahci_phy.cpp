@@ -45,6 +45,7 @@
 #include "string.h"
 #include "filesystem.h"
 #include "object.h"
+#include "raid_info.h"
 #include "cache.h"
 #include "controller.h"
 #include "phy.h"
@@ -53,6 +54,7 @@
 #include "ahci.h"
 #include "storage_device.h"
 #include "end_device.h"
+#include "nondisk_device.h"
 #include "block_device.h"
 #include "multimedia_device.h"
 #include "stream_device.h"
@@ -64,6 +66,9 @@
 #include "ahci_multiplier.h"
 
 /* */
+#define EM_MSG_WAIT     1500
+
+/* */
 AHCI_Phy::AHCI_Phy(AHCI *pParent, const String &path, unsigned int number)
     : Phy(pParent, "", number)
 {
@@ -73,7 +78,7 @@ AHCI_Phy::AHCI_Phy(AHCI *pParent, const String &path, unsigned int number)
         m_pPort = new Port(pParent, path);
         m_pPort->attachPhy(this);
         if (dir.count() == 1) {
-            EndDevice *pEndDevice = __attachEndDevice(dir);
+            EndDevice *pEndDevice = __internal_attach_end_device(dir);
             if (pEndDevice != 0) {
                 m_pPort->attachPort(pEndDevice->getPort());
             }
@@ -88,32 +93,38 @@ AHCI_Phy::AHCI_Phy(AHCI *pParent, const String &path, unsigned int number)
 /* */
 SSI_Status AHCI_Phy::locate(bool mode) const
 {
-#if 0 /* APW */
     SysfsAttr em_message(m_Path + "/em_message");
-    if (mode) {
-        em_message << "1";
-    } else {
-        em_message << "0";
+    try {
+        usleep(EM_MSG_WAIT);
+        if (mode) {
+            em_message << 0x00080000;
+        } else {
+            em_message << 0x00080000;
+        }
+        return SSI_StatusOk;
+    } catch (...) {
+        return SSI_StatusFailed;
     }
-#else /* APW */
-    (void)mode;
-#endif /* APW */
-    return SSI_StatusOk;
 }
 
 /* */
-EndDevice * AHCI_Phy::__attachEndDevice(const Path &path)
+EndDevice * AHCI_Phy::__internal_attach_end_device(Iterator<Directory *> i)
 {
-    CanonicalPath temp = path + "driver";
     EndDevice *pEndDevice = 0;
-    if (temp = "/sys/bus/scsi/drivers/sd") {
-        pEndDevice = new AHCI_Disk(path);
-    } else
-    if (temp = "/sys/bus/scsi/drivers/sr") {
-        pEndDevice = new AHCI_CDROM(path);
-    } else
-    if (temp = "/sys/bus/scsi/drivers/st") {
-        pEndDevice = new AHCI_Tape(path);
+    for (Iterator<Directory *> j = *(*i); *j != 0; ++j) {
+        CanonicalPath temp = *(*j) + "driver";
+        if (temp == "/sys/bus/scsi/drivers/sd") {
+            pEndDevice = new AHCI_Disk(*(*j));
+            break;
+        } else
+        if (temp == "/sys/bus/scsi/drivers/sr") {
+            pEndDevice = new AHCI_CDROM(*(*j));
+            break;
+        } else
+        if (temp == "/sys/bus/scsi/drivers/st") {
+            pEndDevice = new AHCI_Tape(*(*j));
+            break;
+        }
     }
     return pEndDevice;
 }

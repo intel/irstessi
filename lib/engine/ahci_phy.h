@@ -41,7 +41,7 @@ public:
     SSI_Status locate(bool mode) const;
 
 private:
-    EndDevice * __attachEndDevice(const Path &path);
+    EndDevice * __internal_attach_end_device(Iterator<Directory *> i);
 };
 
 #endif /* __AHCI_PHY_H__INCLUDED__ */

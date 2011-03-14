@@ -65,7 +65,7 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->portHandle = getId();
-    m_pParent->getAddress(&pInfo->portAddress);
+    m_pParent->getAddress(pInfo->portAddress);
     pInfo->numPhys = m_Phys.count();
     switch (m_pParent->getType()) {
     case ObjectType_Controller:
@@ -104,15 +104,27 @@ bool Port::equal(const Object *pObject) const
 }
 
 /* */
-void Port::attachEndDevice(Object *pEndDevice, bool direct)
+void Port::attachArray(Object *pArray)
 {
-    m_pParent->attachEndDevice(pEndDevice, direct);
+    m_pParent->attachArray(pArray);
 }
 
 /* */
-void Port::attachRoutingDevice(Object *pRoutingDevice, bool direct)
+void Port::attachVolume(Object *pVolume)
 {
-    m_pParent->attachRoutingDevice(pRoutingDevice, direct);
+    m_pParent->attachVolume(pVolume);
+}
+
+/* */
+void Port::attachEndDevice(Object *pEndDevice)
+{
+    m_pParent->attachEndDevice(pEndDevice);
+}
+
+/* */
+void Port::attachRoutingDevice(Object *pRoutingDevice)
+{
+    m_pParent->attachRoutingDevice(pRoutingDevice);
 }
 
 /* */
@@ -136,6 +148,12 @@ void Port::attachPort(Object *pPort)
 void Port::acquireId(Session *pSession)
 {
     pSession->addPort(this);
+}
+
+/* */
+RaidInfo * Port::getRaidInfo() const
+{
+    return m_pParent->getRaidInfo();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

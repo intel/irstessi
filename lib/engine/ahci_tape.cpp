@@ -44,6 +44,7 @@
 #include "storage_device.h"
 #include "phy.h"
 #include "end_device.h"
+#include "nondisk_device.h"
 #include "stream_device.h"
 #include "ahci_tape.h"
 

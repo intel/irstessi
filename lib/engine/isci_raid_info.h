@@ -31,18 +31,23 @@
 #pragma once
 #endif /* __GNUC_PREREQ */
 
-#ifndef __MULTIMEDIA_DEVICE_H__INCLUDED__
-#define __MULTIMEDIA_DEVICE_H__INCLUDED__
+#ifndef __ISCI_RAID_INFO_H__INCLUDED__
+#define __ISCI_RAID_INFO_H__INCLUDED__
 
-/**
- */
-class MultimediaDevice : public NonDiskDevice {
+/* */
+class ISCI_RaidInfo : public RaidInfo {
 public:
-    MultimediaDevice(const String &path)
-        : NonDiskDevice(path) {
+    ISCI_RaidInfo(ISCI *pISCI);
+
+    // RaidInfo
+
+public:
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeSCU;
     }
+    SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *info) const;
 };
 
-#endif /* __MULTIMEDIA_DEVICE_H__INCLUDED__ */
+#endif /* __ISCI_RAID_INFO_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

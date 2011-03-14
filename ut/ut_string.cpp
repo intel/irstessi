@@ -181,6 +181,50 @@ int main(int argc, char *argv[])
     l = r.right("ęto");
     cout << "r.right('ęto') = '" << l.get() << "'" << endl;
 
+    String t1("internal:imsm");
+    String t2("internal:/md127/0");
+    String t3("/sys/block/pci0000:00/0000:00:1f.2");
+    String t4("Ślad/ółwś/zaginął/niepor-ówi=/nywalnie=/głęboko/ółwś");
+    String t5(" \n\t\rŚkoda\n$test\n\t\v     ");
+    String t6("  \t Śkoda słów...ęł\n\t    \t");
+    String t7("3.0\n");
+
+    cout << endl << "---- t1 = '" << t1.get() << "'" << endl;
+    cout << "t1.left(':') = '" << t1.left(":").get() << "' [internal]" << endl;
+    cout << "t1.reverse_left(':') = '" << t1.reverse_left(":").get() << "' [internal]" << endl;
+
+    cout << endl << "---- t2 = '" << t2.get() << "'" << endl;
+    cout << "t2.right('/') = '" << t2.right("/").get() << "' [/md127/0]" << endl;
+    cout << "t2.reverse_right('/') = '" << t2.reverse_right("/").get() << "' [/0]" << endl;
+    cout << "t2.after('/') = '" << t2.after("/").get() << "' [md127/0]" << endl;
+    cout << "t2.reverse_after('/') = '" << t2.reverse_after("/").get() << "' [0]" << endl;
+
+    cout << endl << "---- t3 = '" << t3.get() << "'" << endl;
+    cout << "t3.reverse_after('/') = " << t3.reverse_after("/").get() << "'" << endl;
+    cout << "t3.right('0000:') = '" << t3.right("0000:").get() << "'" << endl;
+    cout << "t3.reverse_right('0000:') = '" << t3.reverse_right("0000:").get() << "'" << endl;
+
+    cout << endl << "---- t4 = '" << t4.get() << "'" << endl;
+    cout << "t4.left('=/') = '" << t4.left("=/").get() << "' [Ślad/ółwś/zaginął/niepor-ówi]" << endl;
+    cout << "t4.right('=/') = '" << t4.right("=/").get() << "' [=/nywalnie=/głęboko/ółwś]" << endl;
+    cout << "t4.reverse_left('=/') = '" << t4.reverse_left("=/").get() << "' [Ślad/ółwś/zaginął/niepor-ówi=/nywalnie]" << endl;
+    cout << "t4.reverse_right('=/') = '" << t4.reverse_right("=/").get() << "' [=/głęboko/ółwś]" << endl;
+
+    cout << "t4.length() = '" << t4.length() << "'" << endl;
+    cout << "t4.size() = '" << t4.size() << "'" << endl;
+
+    cout << endl << "---- t5 = '" << t5.get() << "'" << endl;
+    t5.trim();
+    cout << "t5.trim() = '" << t5.get() << "'" << endl;
+
+    cout << endl << "---- t6 = '" << t6.get() << "'" << endl;
+    t6.trim();
+    cout << "t6.trim() = '" << t6.get() << "'" << endl;
+
+    cout << endl << "---- t7 = '" << t7.get() << "'" << endl;
+    t7.trim();
+    cout << "t7.trim() = '" << t7.get() << "'" << endl;
+
     cout << endl;
     return 0;
 }

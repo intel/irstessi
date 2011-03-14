@@ -62,6 +62,8 @@
 #include "ahci.h"
 #include "isci.h"
 #include "context_manager.h"
+#include "array.h"
+#include "volume.h"
 
 /* */
 Session::Session() : m_pNoneScopeObj(0)
@@ -84,7 +86,12 @@ Session::Session() : m_pNoneScopeObj(0)
             pISCI->acquireId(this);
         }
     }
-
+    if (m_EndDevices > 0) {
+        dir = "/sys/devices/virtual/block";
+        for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+            __internal_attach_imsm_device(*(*i));
+        }
+    }
     m_pNoneScopeObj = new NoneScopeObject(this);
 }
 
@@ -93,15 +100,33 @@ Session::~Session()
 {
     delete m_pNoneScopeObj;
 
-    __releaseIds(m_EndDevices);
-    __releaseIds(m_Arrays);
-    __releaseIds(m_Enclosures);
-    __releaseIds(m_RaidInfo);
-    __releaseIds(m_Phys);
-    __releaseIds(m_Volumes);
-    __releaseIds(m_Ports);
-    __releaseIds(m_RoutingDevices);
-    __releaseIds(m_Controllers);
+    for (Iterator<Object *> i = m_EndDevices; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_Arrays; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_Enclosures; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_RaidInfo; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_Phys; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_Volumes; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_Ports; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_RoutingDevices; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
+    for (Iterator<Object *> i = m_Controllers; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
 }
 
 /* */
@@ -134,6 +159,9 @@ ScopeObject * Session::getObject(unsigned int id) const
         case ObjectType_RoutingDevice:
             pObject = m_RoutingDevices.find(id);
             break;
+        case ObjectType_RaidInfo:
+            pObject = m_RaidInfo.find(id);
+            break;
         case ObjectType_Controller:
             pObject = m_Controllers.find(id);
             break;
@@ -151,11 +179,7 @@ RaidInfo * Session::getRaidInfo(unsigned int id) const
 {
     RaidInfo *pResult = 0;
     if (getTypeOfId(id) == ObjectType_RaidInfo) {
-        try {
-            pResult = dynamic_cast<RaidInfo *>(m_RaidInfo.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<RaidInfo *>(m_RaidInfo.find(id));
     }
     return pResult;
 }
@@ -165,11 +189,7 @@ Array * Session::getArray(unsigned int id) const
 {
     Array *pResult = 0;
     if (getTypeOfId(id) == ObjectType_Array) {
-        try {
-            pResult = dynamic_cast<Array *>(m_Arrays.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<Array *>(m_Arrays.find(id));
     }
     return pResult;
 }
@@ -179,11 +199,7 @@ Controller * Session::getController(unsigned int id) const
 {
     Controller *pResult = 0;
     if (getTypeOfId(id) == ObjectType_Controller) {
-        try {
-            pResult = dynamic_cast<Controller *>(m_Controllers.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<Controller *>(m_Controllers.find(id));
     }
     return pResult;
 }
@@ -192,21 +208,17 @@ Controller * Session::getController(unsigned int id) const
 StorageDevice * Session::getDevice(unsigned int id) const
 {
     StorageDevice *pResult = 0;
-    try {
-        switch (getTypeOfId(id)) {
-        case ObjectType_Array:
-            pResult = dynamic_cast<StorageDevice *>(m_Arrays.find(id));
-            break;
-        case ObjectType_EndDevice:
-            pResult = dynamic_cast<StorageDevice *>(m_EndDevices.find(id));
-            break;
-        case ObjectType_Volume:
-            pResult = dynamic_cast<StorageDevice *>(m_Volumes.find(id));
-            break;
-        default:
-            pResult = 0;
-        }
-    } catch (...) {
+    switch (getTypeOfId(id)) {
+    case ObjectType_Array:
+        pResult = dynamic_cast<StorageDevice *>(m_Arrays.find(id));
+        break;
+    case ObjectType_EndDevice:
+        pResult = dynamic_cast<StorageDevice *>(m_EndDevices.find(id));
+        break;
+    case ObjectType_Volume:
+        pResult = dynamic_cast<StorageDevice *>(m_Volumes.find(id));
+        break;
+    default:
         pResult = 0;
     }
     return pResult;
@@ -217,11 +229,7 @@ Phy * Session::getPhy(unsigned int id) const
 {
     Phy *pResult = 0;
     if (getTypeOfId(id) == ObjectType_Phy) {
-        try {
-            pResult = dynamic_cast<Phy *>(m_Phys.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<Phy *>(m_Phys.find(id));
     }
     return pResult;
 }
@@ -231,11 +239,7 @@ Port * Session::getPort(unsigned int id) const
 {
     Port *pResult = 0;
     if (getTypeOfId(id) == ObjectType_Port) {
-        try {
-            pResult = dynamic_cast<Port *>(m_Ports.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<Port *>(m_Ports.find(id));
     }
     return pResult;
 }
@@ -245,11 +249,7 @@ RoutingDevice * Session::getRoutingDevice(unsigned int id) const
 {
     RoutingDevice *pResult = 0;
     if (getTypeOfId(id) == ObjectType_RoutingDevice) {
-        try {
-            pResult = dynamic_cast<RoutingDevice *>(m_RoutingDevices.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<RoutingDevice *>(m_RoutingDevices.find(id));
     }
     return pResult;
 }
@@ -259,11 +259,7 @@ Volume * Session::getVolume(unsigned int id) const
 {
     Volume *pResult = 0;
     if (getTypeOfId(id) == ObjectType_Volume) {
-        try {
-            pResult = dynamic_cast<Volume *>(m_Volumes.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<Volume *>(m_Volumes.find(id));
     }
     return pResult;
 }
@@ -273,11 +269,7 @@ Enclosure * Session::getEnclosure(unsigned int id) const
 {
     Enclosure *pResult = 0;
     if (getTypeOfId(id) == ObjectType_Enclosure) {
-        try {
-            pResult = dynamic_cast<Enclosure *>(m_Enclosures.find(id));
-        } catch(...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<Enclosure *>(m_Enclosures.find(id));
     }
     return pResult;
 }
@@ -287,21 +279,9 @@ EndDevice * Session::getEndDevice(unsigned int id) const
 {
     EndDevice *pResult = 0;
     if (getTypeOfId(id) == ObjectType_EndDevice) {
-        try {
-            pResult = dynamic_cast<EndDevice *>(m_EndDevices.find(id));
-        } catch (...) {
-            pResult = 0;
-        }
+        pResult = dynamic_cast<EndDevice *>(m_EndDevices.find(id));
     }
     return pResult;
-}
-
-/* */
-void Session::__releaseIds(Container &container) const
-{
-    for (Iterator<Object *> i = container; *i != 0; ++i) {
-        pContextMgr->releaseId(*i);
-    }
 }
 
 /* */
@@ -392,6 +372,39 @@ void Session::addRaidInfo(RaidInfo *pRaidInfo)
     }
     pContextMgr->acquireId(pRaidInfo);
     m_RaidInfo.add(pRaidInfo);
+}
+
+/* */
+void Session::__internal_attach_imsm_device(const String &path)
+{
+    CanonicalPath temp = path + "/md/metadata_version";
+    if (temp) {
+        String metadata;
+        try {
+            SysfsAttr attr = temp;
+            attr >> metadata;
+        } catch (...) {
+        }
+        if (metadata == "external:imsm") {
+            __internal_attach_imsm_array(path);
+        }
+    }
+}
+
+/* */
+void Session::__internal_attach_imsm_array(const String &path)
+{
+    Array *pArray;
+    try {
+        pArray = new Array(path);
+        pArray->acquireId(this);
+    } catch (Exception ex) {
+        if (ex == E_INVALID_OBJECT) {
+            delete pArray;
+        }
+    } catch (...) {
+        /* TODO: log that there's not enough resources in the system. */
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

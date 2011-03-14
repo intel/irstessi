@@ -34,24 +34,53 @@
 #ifndef __RAID_DEVICE_H__INCLUDED__
 #define __RAID_DEVICE_H__INCLUDED__
 
+// Forward declaration
+class Session;
+class BlockDevice;
+
 /**
  */
 class RaidDevice : public StorageDevice {
 public:
-    RaidDevice(StorageObject *pParent, const String &path);
+    RaidDevice(StorageDevice *pParent);
+    RaidDevice(StorageDevice *pParent, const String &path);
     virtual ~RaidDevice();
 
+    // Object
+
+public:
+    bool equal(const Object *pObject) const;
+
+    // StorageObject
+
+public:
+    virtual void acquireId(Session *pSession);
+
+    // RaidDevice
+
 protected:
-    Container m_EndDevices;
     String m_Name;
     String m_Uuid;
+    List<BlockDevice *> m_BlockDevices;
+    List<String *> m_Components;
+
+    void attachComponent(const Container &endDevices, const String &devName);
 
 public:
     String getUuid() const {
         return m_Uuid;
-    };
+    }
 
-    bool equal(const Object *pObject) const;
+    void update();
+    virtual SSI_Status remove() = 0;
+    virtual void create() = 0;
+
+    void setEndDevices(const Container &endDevices);
+    void setName(const String &prefix);
+    void determineDeviceName(const String &prefix);
+
+private:
+    void __internal_initialize();
 };
 
 #endif /* __RAID_DEVICE_H__INCLUDED__ */

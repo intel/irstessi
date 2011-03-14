@@ -63,14 +63,32 @@ void RemotePort::attachPort(Object *pPort)
     m_pRemotePort = dynamic_cast<Port *>(pPort);
     switch (m_pParent->getType()) {
     case ObjectType_RoutingDevice:
-        m_pRemotePort->attachRoutingDevice(m_pParent, true);
+        m_pRemotePort->attachRoutingDevice(m_pParent);
         break;
     case ObjectType_EndDevice:
-        m_pRemotePort->attachEndDevice(m_pParent, true);
+        m_pRemotePort->attachEndDevice(m_pParent);
         break;
     default:
         break;
     }
+}
+
+/* */
+RaidInfo * RemotePort::getRaidInfo() const
+{
+    return m_pRemotePort->getRaidInfo();
+}
+
+/* */
+void RemotePort::attachArray(Object *pArray)
+{
+    m_pRemotePort->attachArray(pArray);
+}
+
+/* */
+void RemotePort::attachVolume(Object *pVolume)
+{
+    m_pRemotePort->attachVolume(pVolume);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

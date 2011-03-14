@@ -538,9 +538,9 @@ typedef struct _SSI_ControllerInfo
     /** If true, OROM/EFI has been loaded */
     SSI_Bool prebootManagerLoaded;
     /** If true, OROM supports system volumes greater than 2 TB */
-    SSI_Bool twoTbPrebootSupport;
-    /** If true, OROM supports drives behind a port multiplier */
-    SSI_Bool portMultiplierPrebootSupport;
+    SSI_Bool twoTbVolumePrebootSupport;
+    /** If true, OROM supports system disks greater than 2TB */
+    SSI_Bool twoTbDiskPrebootSupport;
     /** If true, arrays may not be created with a mix of internal/external disks */
     SSI_Bool disableESataSpanning;
 
@@ -577,6 +577,8 @@ typedef struct _SSI_ControllerInfo
     SSI_Bool readPatrolSupport;
     /** If true, Read Patrol is enabled for this controller */
     SSI_Bool readPatrolEnabled;
+    /** If true, H/W XOR is enabled for this controller */
+    SSI_Bool xorEnabled;
 
 } SSI_ControllerInfo;
 
@@ -853,17 +855,21 @@ typedef struct _SSI_EndDeviceInfo
     /** Size of storage device in Bytes */
     SSI_Uint64 totalSize;
     /** Size of the storage device in blocks */
-    SSI_Uint32 blockSize;
+    SSI_Uint64 blockSize;
     /** Total blocks of storage device in bytes */
-    SSI_Uint32 blocksTotal;
+    SSI_Uint64 blocksTotal;
     /** Total blocks free in the storage device in bytes */
-    SSI_Uint32 blocksFree;
+    SSI_Uint64 blocksFree;
     /** Write cache policy */
     SSI_WriteCachePolicy writeCachePolicy;
     /** If true, disk contains files that the system requires to boot */
     SSI_Bool systemDisk;
     /** If disk part of an enclosure and enclosure provides slot information, the slot number of the disk */
     SSI_Uint32 slotNumber;
+    /** If true, disk is blinkable via SGPIO */
+    SSI_Bool locateLEDSupport;
+    /** If true, disk is visible to PreBoot OROM or EFI */
+    SSI_Bool isPreBootVisible;
 } SSI_EndDeviceInfo;
 
 /**
@@ -1113,8 +1119,6 @@ typedef struct _SSI_CreateFromDisksParams
     SSI_RaidLevel  raidLevel;
     /** Size in bytes of new volume */
     SSI_Uint64     sizeInBytes;
-    /** Handle to the new volume created */
-    SSI_Handle  *volumeHandle;
 } SSI_CreateFromDisksParams;
 
 /**
@@ -1664,16 +1668,17 @@ SSI_API SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHand
 SSI_API SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle);
 
 /**
- * @fn  SSI_API SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params)
+ * @fn  SSI_API SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle* volumeHandle)
  *
  * @brief   Creates a new volume.
  *
  * @param   params  Parameters for Create from disks.
+ * @param   volumeHandle [out] The resulting volume handle.
  *
  * @return  #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusInvalidStripeSize, #SSI_StatusInvalidString,
  * @return  #SSI_StatusInvalidSize, #SSI_StatusInvalidRaidLevel, #SSI_StatusDataExceedsLimits, #SSI_StatusFailed, #SSI_StatusNotSupported.
 **/
-SSI_API SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params);
+SSI_API SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle* volumeHandle);
 
 /**
  * @fn  SSI_API SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)

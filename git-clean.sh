@@ -31,10 +31,6 @@ echo "** Cleaning the build files..."
 if [ -f Makefile ]; then
     make clean
 fi
-cd ut
-make -f Makefile.session clean
-make -f Makefile.string clean
-cd -
 remove_dir lib/efi/.deps
 remove_dir lib/efi/.libs
 remove_dir lib/engine/.deps
@@ -117,4 +113,4 @@ remove_slink m4/ltversion.m4
 remove_slink m4/lt~obsolete.m4
 
 echo "** Cleaning up the backup files..."
-find . \( -name "*~" -or -name "*.swp" -or -name "#*#" \) -delete -printf "--> %f"
+find . \( -name "*~" -or -name "*.swp" -or -name "#*#" -or -name ssi.log \) -delete -printf "--> %f"

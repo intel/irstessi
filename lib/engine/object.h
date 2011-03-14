@@ -59,6 +59,7 @@ inline ObjectType getTypeOfId(unsigned int id) {
 
 // Forward declaration
 class Session;
+class RaidInfo;
 
 /* */
 class Object {
@@ -156,7 +157,9 @@ public:
     virtual void getEnclosures(Container &, bool) const {
         throw E_INVALID_SCOPE;
     }
-    virtual bool scopeTypeMatches(SSI_ScopeType) const = 0;
+    virtual bool scopeTypeMatches(SSI_ScopeType) const {
+        return false;
+    }
 };
 
 /* */
@@ -211,6 +214,9 @@ class StorageObject : public ScopeObject {
 public:
     virtual ~StorageObject() {
     }
+    StorageObject(StorageObject *pParent)
+        : m_pParent(pParent) {
+    }
     StorageObject(StorageObject *pParent, const String &path)
         : m_pParent(pParent), m_Path(path) {
     }
@@ -220,10 +226,10 @@ protected:
     String m_Path;
 
 public:
-    virtual void attachEndDevice(Object *, bool) {
+    virtual void attachEndDevice(Object *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachRoutingDevice(Object *, bool) {
+    virtual void attachRoutingDevice(Object *) {
         throw E_INVALID_OPERATION;
     }
     virtual void attachPort(Object *) {
@@ -238,7 +244,7 @@ public:
     virtual void attachPhy(Object *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachEnclosure(Object *, bool) {
+    virtual void attachEnclosure(Object *) {
         throw E_INVALID_OPERATION;
     }
     StorageObject * getParent() const {
@@ -247,7 +253,10 @@ public:
     virtual void setParent(StorageObject *pParent) {
         m_pParent = pParent;
     }
-    virtual void getAddress(SSI_Address *) const {
+    virtual RaidInfo * getRaidInfo() const {
+        return 0;
+    }
+    virtual void getAddress(SSI_Address &) const {
         throw E_INVALID_OPERATION;
     }
 

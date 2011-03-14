@@ -37,6 +37,7 @@
 // Forward declarations
 class EndDevice;
 class RoutingDevice;
+class RaidInfo;
 
 /* */
 class Port : public StorageObject {
@@ -64,9 +65,11 @@ public:
     // StorageObject
 
 public:
+    virtual void attachArray(Object *pArray);
     virtual void attachPort(Object *pPort);
-    virtual void attachRoutingDevice(Object *pRoutingDevice, bool direct);
-    virtual void attachEndDevice(Object *pEndDevice, bool direct);
+    virtual void attachVolume(Object *pVolume);
+    virtual void attachRoutingDevice(Object *pRoutingDevice);
+    virtual void attachEndDevice(Object *pEndDevice);
     void attachPhy(Object *pPhy);
 
     void acquireId(Session *pSession);
@@ -75,6 +78,7 @@ public:
 
 public:
     SSI_Status getInfo(SSI_PortInfo *pInfo) const;
+    virtual RaidInfo * getRaidInfo() const;
 
 protected:
     Port *m_pRemotePort;

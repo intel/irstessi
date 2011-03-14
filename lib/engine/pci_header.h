@@ -31,18 +31,34 @@
 #pragma once
 #endif /* __GNUC_PREREQ */
 
-#ifndef __MULTIMEDIA_DEVICE_H__INCLUDED__
-#define __MULTIMEDIA_DEVICE_H__INCLUDED__
+#ifndef __PCI_HEADER_H__INCLUDED__
+#define __PCI_HEADER_H__INCLUDED__
 
-/**
- */
-class MultimediaDevice : public NonDiskDevice {
-public:
-    MultimediaDevice(const String &path)
-        : NonDiskDevice(path) {
-    }
+/* */
+struct PCIHeader {
+    __u16 vendorId;
+    __u16 deviceId;
+    __u16 command;
+    __u16 status;
+    __u8 revisionId;
+    __u8 prgIface;
+    __u8 subClassId;
+    __u8 classId;
+    __u8 bist;
+    __u8 headerType;
+    __u8 latency;
+    __u8 cacheLineSize;
+    __u32 bar0;
+    __u32 bar1;
+    __u32 bar2;
+    __u32 bar3;
+    __u32 bar4;
+    __u32 bar5;
+    __u32 cardBusPtr;
+    __u16 subSystemVendorId;
+    __u16 subSystemId;
 };
 
-#endif /* __MULTIMEDIA_DEVICE_H__INCLUDED__ */
+#endif /* __PCI_HEADER_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

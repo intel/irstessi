@@ -38,6 +38,10 @@
 class AHCI_Disk : public BlockDevice {
 public:
     AHCI_Disk(const String &path);
+
+    SSI_DiskType getDiskType() const {
+        return SSI_DiskTypeSATA;
+    }
 };
 
 #endif /* __AHCI_DISK_H__INCLUDED__ */

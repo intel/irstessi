@@ -37,10 +37,22 @@
 /* */
 class StorageDevice : public StorageObject {
 public:
+    StorageDevice(StorageObject *pParent)
+        : StorageObject(pParent) {
+    }
     StorageDevice(StorageObject *pParent, const String &path);
     virtual ~StorageDevice();
 
+protected:
+    String m_DevName;
+
 public:
+    void setDevName(const String &devName) {
+        m_DevName = devName;
+    }
+    String getDevName() const {
+        return m_DevName;
+    }
     virtual SSI_Status writeStorageArea(void *, unsigned int) {
         return SSI_StatusNotSupported;
     }

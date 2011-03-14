@@ -39,16 +39,31 @@
 #include "list.h"
 #include "container.h"
 #include "string.h"
-#include "cache.h"
 #include "object.h"
+#include "raid_info.h"
+#include "cache.h"
 #include "controller.h"
 #include "session.h"
 
 /* */
 Controller::Controller(const String &path)
-    : StorageObject(0, path)
+    : StorageObject(0, path),
+      m_PciVendorId(0),
+      m_PciDeviceId(0),
+      m_SubSystemId(0),
+      m_HardwareRevisionId(0),
+      m_SubClassCode(0),
+      m_SubVendorId(0),
+      m_pRaidInfo(0),
+      m_twoTbVolumePrebootSupported(false),
+      m_twoTbDiskPrebootSupported(false),
+      m_ESATASpanning(false),
+      m_NVSRAMSupported(false),
+      m_HWXORSupported(false),
+      m_PhyLocate(false),
+      m_DiskUnlock(false),
+      m_PatrolReadSupport(false)
 {
-    readRaidInfo();
 }
 
 /* */
@@ -63,6 +78,59 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->controllerHandle = getId();
+    getAddress(pInfo->controllerAddress);
+
+    m_Name.get(pInfo->controllerName, sizeof(pInfo->controllerName));
+
+    pInfo->controllerType = getControllerType();
+    if (m_pRaidInfo != 0) {
+        pInfo->raidInfoHandle = m_pRaidInfo->getId();
+    } else {
+        pInfo->raidInfoHandle = SSI_NULL_HANDLE;
+    }
+
+    m_DriverVersion.get(pInfo->driverVer,
+        sizeof(pInfo->driverVer));
+
+    m_PrebootMgrVersion.get(pInfo->prebootManagerVer,
+        sizeof(pInfo->prebootManagerVer));
+
+    pInfo->hardwareVer.vendorId = m_PciVendorId;
+    pInfo->hardwareVer.deviceId = m_PciDeviceId;
+    pInfo->hardwareVer.subSystemId = m_SubSystemId;
+    pInfo->hardwareVer.hardwareRevisionId = m_HardwareRevisionId;
+    pInfo->hardwareVer.subClassCode = m_SubClassCode;
+    pInfo->hardwareVer.subVendorId = m_SubVendorId;
+
+    pInfo->prebootManagerLoaded =
+        m_PrebootMgrVersion ? SSI_TRUE : SSI_FALSE;
+    pInfo->twoTbVolumePrebootSupport =
+        m_twoTbVolumePrebootSupported ? SSI_TRUE : SSI_FALSE;
+    pInfo->twoTbDiskPrebootSupport =
+        m_twoTbDiskPrebootSupported ? SSI_TRUE : SSI_FALSE;
+    pInfo->disableESataSpanning =
+        m_ESATASpanning ? SSI_TRUE : SSI_FALSE;
+    pInfo->xorSupported =
+        m_HWXORSupported ? SSI_TRUE : SSI_FALSE;
+    pInfo->nvsramSupported =
+        m_NVSRAMSupported ? SSI_FALSE : SSI_FALSE;
+    pInfo->phyLocateSupport =
+        m_PhyLocate ? SSI_TRUE : SSI_FALSE;
+    pInfo->diskUnlockSupport =
+        m_DiskUnlock ? SSI_TRUE : SSI_FALSE;
+    pInfo->assignStoragePoolSupport = SSI_FALSE;
+    pInfo->markAsNormalSupport = SSI_FALSE;
+    pInfo->volumeDeleteSupport = SSI_TRUE;
+    pInfo->arrayCreateSupport = SSI_TRUE;
+    pInfo->volumeModifySupport = SSI_TRUE;
+    pInfo->volumeRenameSupport = SSI_TRUE;
+    pInfo->addDisksToArraySupport = SSI_TRUE;
+    pInfo->volumeCancelVerifySupport = SSI_TRUE;
+    pInfo->markAsSpareSupport = SSI_TRUE;
+    pInfo->readPatrolEnabled = SSI_TRUE;
+    pInfo->readPatrolSupport =
+        m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
+
     return SSI_StatusOk;
 }
 
@@ -75,10 +143,9 @@ void Controller::getPhys(Container &container) const
 /* */
 void Controller::getEnclosures(Container &container, bool all) const
 {
+    container = m_Enclosures_Direct;
     if (all) {
-        container = m_Enclosures;
-    } else {
-        container = m_Enclosures_Direct;
+        container.add(m_Enclosures);
     }
 }
 
@@ -91,20 +158,18 @@ void Controller::getPorts(Container &container) const
 /* */
 void Controller::getEndDevices(Container &container, bool all) const
 {
+    container = m_EndDevices_Direct;
     if (all) {
-        container = m_EndDevices;
-    } else {
-        container = m_EndDevices_Direct;
+        container.add(m_EndDevices);
     }
 }
 
 /* */
 void Controller::getRoutingDevices(Container &container, bool all) const
 {
+    container = m_RoutingDevices_Direct;
     if (all) {
-        container = m_RoutingDevices;
-    } else {
-        container = m_RoutingDevices_Direct;
+        container.add(m_RoutingDevices);
     }
 }
 
@@ -135,89 +200,77 @@ bool Controller::equal(const Object *pObject) const
 }
 
 /* */
-void Controller::attachEndDevice(Object *pEndDevice, bool direct)
+void Controller::attachEndDevice(Object *pEndDevice)
 {
-    if (pEndDevice == 0) {
-        throw E_NULL_POINTER;
-    }
-    if (direct) {
-        m_EndDevices_Direct.add(pEndDevice);
-    }
-    m_EndDevices.add(pEndDevice);
+    m_EndDevices_Direct.add(pEndDevice);
 }
 
 /* */
-void Controller::attachRoutingDevice(Object *pRoutingDevice, bool direct)
+void Controller::attachRoutingDevice(Object *pRoutingDevice)
 {
-    if (pRoutingDevice == 0) {
-        throw E_NULL_POINTER;
-    }
-    if (direct) {
-        m_RoutingDevices_Direct.add(pRoutingDevice);
-    }
-    m_RoutingDevices.add(pRoutingDevice);
+    m_RoutingDevices_Direct.add(pRoutingDevice);
+    ScopeObject *pScopeObject = dynamic_cast<ScopeObject *>(pRoutingDevice);
+    Container container;
+    pScopeObject->getEndDevices(container, true);
+    m_EndDevices.add(container);
+    pScopeObject->getRoutingDevices(container, true);
+    m_RoutingDevices.add(container);
 }
 
 /* */
 void Controller::attachPort(Object *pPort)
 {
-    if (pPort == 0) {
-        throw E_NULL_POINTER;
-    }
     m_Ports.add(pPort);
 }
 
 /* */
 void Controller::attachVolume(Object *pVolume)
 {
-    if (pVolume == 0) {
-        throw E_NULL_POINTER;
+    Iterator<Object *> i;
+    for (i = m_Volumes; *i != 0; ++i) {
+        if (*i == pVolume) {
+            break;
+        }
     }
-    m_Volumes.add(pVolume);
+    if (*i == 0) {
+        m_Volumes.add(pVolume);
+    }
 }
 
 /* */
 void Controller::attachPhy(Object *pPhy)
 {
-    if (pPhy == 0) {
-        throw E_NULL_POINTER;
-    }
     m_Phys.add(pPhy);
 }
 
 /* */
 void Controller::attachArray(Object *pArray)
 {
-    if (pArray == 0) {
-        throw E_NULL_POINTER;
+    Iterator<Object *> i;
+    for (i = m_Arrays; *i != 0; ++i) {
+        if (*i == pArray) {
+            break;
+        }
     }
-    m_Arrays.add(pArray);
+    if (*i == 0) {
+        m_Arrays.add(pArray);
+    }
 }
 
 /* */
-void Controller::attachEnclosure(Object *pEnclosure, bool direct)
+void Controller::attachEnclosure(Object *pEnclosure)
 {
-    if (pEnclosure == 0) {
-        throw E_NULL_POINTER;
-    }
-    if (direct) {
-        m_Enclosures_Direct.add(pEnclosure);
-    }
-    m_Enclosures.add(pEnclosure);
-}
-
-/* */
-void Controller::getAddress(SSI_Address *pAddress) const
-{
-    if (pAddress) {
-        /* TODO: this is temporary method, it will be moved to specialized classes. */
-    }
+    m_Enclosures_Direct.add(pEnclosure);
 }
 
 /* */
 void Controller::acquireId(Session *pSession)
 {
     pSession->addController(this);
+    if (m_pRaidInfo != 0) {
+        m_pRaidInfo->acquireId(pSession);
+    }
+
     Iterator<Object *> i;
     for (i = m_EndDevices_Direct; *i != 0; ++i) {
         dynamic_cast<StorageObject *>(*i)->acquireId(pSession);

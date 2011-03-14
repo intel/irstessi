@@ -36,7 +36,9 @@
 
 // Forward declaration
 class Array;
+class Enclosure;
 class Phy;
+class RaidInfo;
 class Port;
 
 /**
@@ -67,34 +69,68 @@ public:
     // StorageObject
 
 public:
-    void getAddress(SSI_Address *pAddress) const;
+    void getAddress(SSI_Address &address) const;
 
     void attachPhy(Object *pPhy);
     void attachPort(Object *pPort);
 
-    void acquireId(Session *pSession);
+    virtual void acquireId(Session *pSession);
 
     // EndDevice
 
 protected:
     String m_SerialNum;
+    String m_SgName;
     Phy *m_pPhy;
     Port *m_pPort;
+    String m_Model;
+    String m_Firmware;
+    unsigned long long m_TotalSize;
+    unsigned int m_BlockSize;
+    unsigned int m_BlocksFree;
+    unsigned long long m_SASAddress;
+    SSI_ScsiAddress m_SCSIAddress;
+    SSI_WriteCachePolicy m_WriteCachePolicy;
 
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
+    RaidInfo * getRaidInfo() const;
 
     String getSerialNum() const {
         return m_SerialNum;
-    }
-    virtual Array * getArray() const {
-        return 0;
     }
     Object * getPhy() const {
         return reinterpret_cast<Object *>(m_pPhy);
     }
     Object * getPort() const {
         return reinterpret_cast<Object *>(m_pPort);
+    }
+    unsigned int getSectors() const {
+        return m_BlockSize;
+    }
+    virtual unsigned char getStoragePoolId() const {
+        return 0xff;
+    }
+    virtual Array * getArray() const {
+        return 0;
+    }
+    virtual Enclosure * getEnclosure() const {
+        return 0;
+    }
+    virtual bool isSystemDisk() const {
+        return false;
+    }
+    virtual unsigned int getSlotNumber() const {
+        return -1U;
+    }
+    virtual SSI_DiskUsage getDiskUsage() const {
+        return SSI_DiskUsageUnknown;
+    }
+    virtual SSI_DiskType getDiskType() const {
+        return SSI_DiskTypeUnknown;
+    }
+    virtual SSI_DiskState getDiskState() const {
+        return SSI_DiskStateUnknown;
     }
     virtual SSI_Status unlock(SSI_DiskUnlockInfo *) {
         return SSI_StatusNotSupported;
@@ -108,7 +144,9 @@ public:
     virtual SSI_Status clearMetadata() {
         return SSI_StatusNotSupported;
     }
-
+    virtual SSI_EndDeviceType getDeviceType() const {
+        return SSI_EndDeviceTypeNonStorage;
+    }
     virtual SSI_Status passthroughCmd(void *pInfo, void *pData, unsigned int dataSize,
         SSI_DataDirection dir);
 };

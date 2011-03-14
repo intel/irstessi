@@ -34,6 +34,9 @@
 #ifndef __CONTROLLER_H__INCLUDED__
 #define __CONTROLLER_H__INCLUDED__
 
+// Forward declaration
+class RaidInfo;
+
 /* */
 class Controller : public StorageObject {
 public:
@@ -68,15 +71,13 @@ public:
     // StorageObject
 
 public:
-    void getAddress(SSI_Address *pAddress) const;
-
-    void attachEndDevice(Object *pEndDevice, bool direct);
-    void attachRoutingDevice(Object *pRoutingDevice, bool direct);
+    void attachEndDevice(Object *pEndDevice);
+    void attachRoutingDevice(Object *pRoutingDevice);
     void attachPort(Object *pPort);
     void attachVolume(Object *pVolume);
     void attachPhy(Object *pPhy);
     void attachArray(Object *pArray);
-    void attachEnclosure(Object *pEnclosure, bool direct);
+    void attachEnclosure(Object *pEnclosure);
 
     void acquireId(Session *pSession);
 
@@ -94,12 +95,39 @@ protected:
     Container m_Enclosures_Direct;
     Container m_Enclosures;
 
-    virtual void readRaidInfo() {
+    String m_Name;
+    String m_PrebootMgrVersion;
+    String m_DriverVersion;
+
+    unsigned short m_PciVendorId;
+    unsigned short m_PciDeviceId;
+    unsigned short m_SubSystemId;
+    unsigned char m_HardwareRevisionId;
+    unsigned char m_SubClassCode;
+    unsigned short m_SubVendorId;
+
+    RaidInfo *m_pRaidInfo;
+
+    bool m_twoTbVolumePrebootSupported;
+    bool m_twoTbDiskPrebootSupported;
+    bool m_ESATASpanning;
+    bool m_NVSRAMSupported;
+    bool m_HWXORSupported;
+    bool m_PhyLocate;
+    bool m_DiskUnlock;
+    bool m_PatrolReadSupport;
+
+    virtual SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeUnknown;
     }
 
 public:
     SSI_Status readPatrolSetState(bool enable);
     SSI_Status getInfo(SSI_ControllerInfo *pInfo) const;
+
+    RaidInfo * getRaidInfo() const {
+        return m_pRaidInfo;
+    }
 };
 
 #endif /* __CONTROLLER_H__INCLUDED__ */

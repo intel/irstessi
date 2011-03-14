@@ -46,8 +46,9 @@ public:
     void getEndDevices(Container &, bool all) const;
     void getRoutingDevices(Container &, bool all) const;
     bool equal(const Object *pObject) const;
-    void attachEndDevice(Object *, bool);
-    void attachRoutingDevice(Object *, bool);
+    void attachEndDevice(Object *);
+    void attachRoutingDevice(Object *);
+    void getSlotAddress(SSI_Address &address, unsigned int number);
 
     ObjectType getType() const {
         return ObjectType_Enclosure;

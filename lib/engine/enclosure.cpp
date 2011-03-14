@@ -83,16 +83,14 @@ bool Enclosure::equal(const Object *pObject) const
 }
 
 /* */
-void Enclosure::attachEndDevice(Object *pEndDevice, bool direct)
+void Enclosure::attachEndDevice(Object *pEndDevice)
 {
-    (void)direct;
     m_EndDevices.add(pEndDevice);
 }
 
 /* */
-void Enclosure::attachRoutingDevice(Object *pRoutingDevice, bool direct)
+void Enclosure::attachRoutingDevice(Object *pRoutingDevice)
 {
-    (void)direct;
     m_RoutingDevices.add(pRoutingDevice);
 }
 
@@ -100,6 +98,13 @@ void Enclosure::attachRoutingDevice(Object *pRoutingDevice, bool direct)
 void Enclosure::acquireId(Session *pSession)
 {
     pSession->addEnclosure(this);
+}
+
+/* */
+void Enclosure::getSlotAddress(SSI_Address &address, unsigned int number)
+{
+    (void)address;
+    (void)number;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

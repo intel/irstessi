@@ -35,12 +35,17 @@
 #define __ARRAY_H__INCLUDED__
 
 // forward declaration
+class Volume;
+class BlockDevice;
 class EndDevice;
 
 /* */
 class Array : public RaidDevice {
 public:
-    Array(StorageObject *pParent, const String &path);
+    Array()
+        : RaidDevice(0) {
+    }
+    Array(const String &path);
     ~Array();
 
     // Object
@@ -53,7 +58,7 @@ public:
     // ScopeObject
 
 public:
-    void getEndDevices(Container &, bool all = false) const;
+    void getEndDevices(Container &, bool all) const;
     void getVolumes(Container &) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
@@ -64,7 +69,8 @@ public:
 
 public:
     void attachVolume(Object *pVolume);
-    void attachEndDevice(Object *pEndDevice, bool direct);
+    void attachEndDevice(Object *pEndDevice);
+    void acquireId(Session *pSession);
 
     // StorageDevice
 
@@ -72,16 +78,19 @@ public:
     SSI_Status  readStorageArea(void *buffer, unsigned int size);
     SSI_Status writeStorageArea(void *buffer, unsigned int size);
 
+    // RaidDevice
+
+public:
+    SSI_Status remove();
+    void create();
+
     // Array
 
 protected:
-    Container m_EndDevices;
-    Container m_Volumes;
-
-    SSI_ArrayState getState() const;
-    unsigned long long getFreeSize() const;
-    bool isCachable() const;
-    unsigned long long getSize() const;
+    List<Volume *> m_Volumes;
+    bool m_Busy;
+    unsigned long long m_TotalSize;
+    unsigned long long m_FreeSize;
 
 public:
     SSI_Status addSpare(const EndDevice *pEndDevice);
@@ -90,6 +99,11 @@ public:
     SSI_Status removeSpare(const EndDevice *pEndDevice);
 
     SSI_Status getInfo(SSI_ArrayInfo *pInfo) const;
+
+private:
+    void __internal_determine_total_and_free_size();
+    void __internal_determine_array_name();
+    void __internal_attach_end_device(Session *pSession, const String &path);
 };
 
 #endif /* __ARRAY_H__INCLUDED__ */

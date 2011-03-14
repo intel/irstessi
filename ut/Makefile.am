@@ -1,25 +1,48 @@
 # Process this file with automake to create Makefile.in
 
-noinst_PROGRAMS = ut_scope_controller_direct ut_volume
+noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string
 
-ACLOCAL_AMFLAGS = -I m4
-
-ut_scope_controller_direct_SOURCES =    \
-        ut_scope_controller_direct.c
-
-ut_scope_controller_direct_CFLAGS =     \
-        -I$(top_srcdir)                 \
-        -I$(top_srcdir)/include
-
-ut_scope_controller_direct_LDADD =     \
-        ../src/libssi.la
+ACLOCAL_AMFLAGS = -I m4 nostdinc
 
 ut_volume_SOURCES = \
-	ut_volume.c
+	ut_volume.cpp
 
-ut_volume_CFLAGS = \
+ut_volume_CPPFLAGS = \
 	-I$(top_srcdir) \
 	-I$(top_srcdir)/include
 
 ut_volume_LDADD = \
 	../src/libssi.la
+
+ut_session_SOURCES = \
+	ut_session.cpp
+
+ut_session_CPPFLAGS = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/include
+
+ut_session_LDADD = \
+	../src/libssi.la
+
+ut_filesystem_SOURCES = \
+	ut_filesystem.cpp \
+	../lib/engine/string.cpp \
+	../lib/engine/filesystem.cpp \
+	../lib/engine/exception.cpp
+
+ut_filesystem_CPPFLAGS = \
+	-iquote $(top_srcdir)/lib/engine \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/include
+
+ut_string_SOURCES = \
+	ut_string.cpp \
+	../lib/engine/exception.cpp \
+	../lib/engine/string.cpp
+
+
+ut_string_CPPFLAGS = \
+	-iquote $(top_srcdir)/lib/engine \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/include
+

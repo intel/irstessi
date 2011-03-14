@@ -62,9 +62,9 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->phyHandle = getId();
-    /* pInfo->phyAddress */
+    m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
-    /* pInfo->phyProtocol */
+    /* TODO: pInfo->phyProtocol  */
     if (m_pPort != 0) {
         pInfo->associatedPort = m_pPort->getId();
     } else {
@@ -86,11 +86,11 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     pInfo->deviceHandle = m_pParent->getId();
     pInfo->isExternal = SSI_FALSE;
     pInfo->hotPlugCap = SSI_FALSE;
-    /* pInfo->minHWLinkSpeed */
-    /* pInfo->maxHWLinkSpeed */
-    /* pInfo->minLinkSpeed */
-    /* pInfo->maxLinkSpeed */
-    /* pInfo->negotiatedLinkSpeed */
+    /* TODO: pInfo->minHWLinkSpeed */
+    /* TODO: pInfo->maxHWLinkSpeed */
+    /* TODO: pInfo->minLinkSpeed */
+    /* TODO: pInfo->maxLinkSpeed */
+    /* TODO: pInfo->negotiatedLinkSpeed */
     pInfo->countsValid = SSI_FALSE;
     return SSI_StatusOk;
 }

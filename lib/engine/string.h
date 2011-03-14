@@ -154,19 +154,30 @@ public:
     operator const char * () const {
         return m_buffer;
     }
-#if 0 /* APW */
-    const char & operator [] (unsigned int offset) const {
-        return at(offset);
-    }
-#endif /* APW */
     operator bool () const {
         return isEmpty() == false;
     }
-#if 0 /* APW */
-    char & operator [] (unsigned int offset) {
-        return at(offset);
+    operator unsigned long long () const {
+        return __internal_to_ulonglong();
     }
-#endif /* APW */
+    operator long long () const {
+        return __internal_to_longlong();
+    }
+    operator unsigned int () const {
+        return __internal_to_uint();
+    }
+    operator int () const {
+        return __internal_to_int();
+    }
+    operator unsigned short () const {
+        return __internal_to_ushort();
+    }
+    operator short () const {
+        return __internal_to_short();
+    }
+    operator unsigned char () const {
+        return __internal_to_uchar();
+    }
 
 public:
     const char * get(unsigned int offset = 0) const {
@@ -187,20 +198,6 @@ public:
         }
         __get(dest, size, offset);
     }
-#if 0 /* APW */
-    char & at(unsigned int offset) {
-        if (offset > m_length) {
-            throw E_INVALID_OFFSET;
-        }
-        return __at(offset);
-    }
-    const char & at(unsigned int offset) const {
-        if (offset > m_length) {
-            throw E_INVALID_OFFSET;
-        }
-        return __at(offset);
-    }
-#endif /* APW */
     unsigned int length() const {
         return m_length;
     }
@@ -274,63 +271,121 @@ public:
     }
 
 public:
+    unsigned int reverse_find(const char *buf, unsigned int offset = -1U) const;
     unsigned int find(const char *buf, unsigned int offset = 0) const;
 
+    unsigned int reverse_find(const String &s, unsigned int offset = -1U) const {
+        return reverse_find(s.m_buffer, offset);
+    }
     unsigned int find(const String &s, unsigned int offset = 0) const {
-        return find(s.get(), offset);
+        return find(s.m_buffer, offset);
     }
-    String left(const String &s) const {
+
+    String right(unsigned int length) const {
         try {
-            return left(find(s));
-        } catch (...) {
-            return String("");
-        }
-    }
-    String left(const char *buf) const {
-        return left(String(buf));
-    }
-    String left(unsigned int pos) const {
-        return mid(0, pos);
-    }
-    String right(const String &s) const {
-        try {
-            return right(find(s));
+            return String(get(length));
         } catch (...) {
             return String("");
         }
     }
     String right(const char *buf) const {
-        return right(String(buf));
+        try {
+            return right(find(buf));
+        } catch (...) {
+            return String("");
+        }
     }
-    String right(unsigned int pos) const {
-        return mid(pos);
+    String reverse_right(const char *buf) const {
+        try {
+            return right(reverse_find(buf));
+        } catch (...) {
+            return String("");
+        }
     }
-    String mid(unsigned int start = 0, unsigned int end = -1U) const {
+    String right(const String &s) const {
+        return right(s.m_buffer);
+    }
+    String reverse_right(const String &s) const {
+        return reverse_right(s.m_buffer);
+    }
+
+    String left(unsigned int length) const {
+        return String(m_buffer, length);
+    }
+    String left(const String &s) const {
+        return left(s.m_buffer);
+    }
+    String reverse_left(const String &s) const {
+        return reverse_left(s.m_buffer);
+    }
+    String left(const char *buf) const {
+        try {
+            return left(find(buf));
+        } catch (...) {
+            return String("");
+        }
+    }
+    String reverse_left(const char *buf) const {
+        try {
+            return left(reverse_find(buf));
+        } catch (...) {
+            return String("");
+        }
+    }
+
+    String mid(unsigned int start, unsigned int end) const {
         try {
             if (start < end) {
                 return String(get(start), end - start);
             }
         } catch (...) {
-            // intentionally left blank
         }
         return String("");
     }
     String mid(const char *start, const char *end) const {
-        return mid(String(start), String(end));
-    }
-    String mid(const String &start, const String &end) const {
         try {
-            unsigned int t = find(start) + start.length();
-            return mid(t, find(end, t));
+            unsigned int pos = find(start);
+            return mid(pos, pos + find(end));
         } catch (...) {
             return String("");
         }
     }
-    String mid(const String &start, const char *end) const {
-        return mid(start, String(end));
+    String mid(const String &left, const String &right) const {
+        return mid(left.m_buffer, right.m_buffer);
     }
-    String mid(const char *start, const String &end) const {
-        return mid(String(start), end);
+
+    void trim();
+
+    String reverse_after(const String &s) const {
+        try {
+            return right(reverse_find(s) + s.m_length);
+        } catch (...) {
+            return String("");
+        }
+    }
+    String after(const String &s) const {
+        try {
+            return right(find(s) + s.m_length);
+        } catch (...) {
+            return String("");
+        }
+    }
+
+    String between(const String &s, const String &e) const {
+        try {
+            unsigned int t = find(s) + s.m_length;
+            return mid(t, find(e, t));
+        } catch (...) {
+            return String("");
+        }
+    }
+    String reverse_between(const String &s, const String &e) const {
+        try {
+            unsigned int t = reverse_find(e);
+            return mid(reverse_find(s, t) + s.m_length, t);
+        } catch (...) {
+            return String("");
+        }
     }
 
 public:
@@ -359,25 +414,25 @@ protected:
     unsigned int m_capacity;
 
 private:
-#if 0 /* APW */
-    const Char & __at(unsigned int offset) const {
-        return *__offset(offset);
-    }
-    Char & __at(unsigned int offset) {
-        return *__offset(offset);
-    }
-#endif /* APW */
-
-    void __append(const char *buf, unsigned int count = -1U) {
+    void __append(const char *buf, unsigned int count) {
         __copy(buf, m_length, count);
     }
-    char * __find(const char *buf, unsigned int offset = 0) const;
+    char * __reverse_find(const char *buf, unsigned int offset) const;
+    char * __find(const char *buf, unsigned int offset) const;
     void __duplicate(char *buf) const;
     void __realloc(unsigned int buf_size, bool buf_copy = false);
     void __copy(const char *buf, unsigned int offset, unsigned int count);
     int __compare(const String &s, unsigned int offset = 0) const;
     void __get(char *buf, unsigned int size, unsigned int offset) const;
     char * __offset(unsigned int offset) const;
+
+    unsigned long long __internal_to_ulonglong() const;
+    long long __internal_to_longlong() const;
+    unsigned int __internal_to_uint() const;
+    int __internal_to_int() const;
+    unsigned short __internal_to_ushort() const;
+    short __internal_to_short() const;
+    unsigned char __internal_to_uchar() const;
 };
 
 /* */

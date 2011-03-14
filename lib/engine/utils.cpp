@@ -27,22 +27,43 @@
  * must be express and approved by Intel in writing.
  */
 
-#if __GNUC_PREREQ(3, 4)
-#pragma once
-#endif /* __GNUC_PREREQ */
+#if defined(HAVE_CONFIG_H)
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
 
-#ifndef __MULTIMEDIA_DEVICE_H__INCLUDED__
-#define __MULTIMEDIA_DEVICE_H__INCLUDED__
+#include <features.h>
+#include <cstdio>
 
-/**
- */
-class MultimediaDevice : public NonDiskDevice {
-public:
-    MultimediaDevice(const String &path)
-        : NonDiskDevice(path) {
+#include "exception.h"
+#include "list.h"
+#include "string.h"
+#include "filesystem.h"
+#include "utils.h"
+
+/* */
+int shell_cap(const String &s, String &r)
+{
+    char buffer[1024];
+    int count;
+    FILE *pd = popen(s, "r");
+    if (pd == 0) {
+        return -1;
     }
-};
+    r.clear();
+    do {
+        count = fread(buffer, sizeof(char), sizeof(buffer), pd);
+        if (count > 0) {
+            r.append(buffer, count);
+        }
+    } while (count > 0);
+    return pclose(pd);
+}
 
-#endif /* __MULTIMEDIA_DEVICE_H__INCLUDED__ */
+/* */
+int shell(const String &s)
+{
+    String buffer;
+    return shell_cap(s, buffer);
+}
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

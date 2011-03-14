@@ -21,6 +21,8 @@ libengine_la_SOURCES =          \
         ahci_multiplier.h       \
         ahci_phy.cpp            \
         ahci_phy.h              \
+        ahci_raid_info.cpp      \
+        ahci_raid_info.h        \
         ahci_tape.cpp           \
         ahci_tape.h             \
         array.cpp               \
@@ -59,11 +61,15 @@ libengine_la_SOURCES =          \
         isci_phy.h              \
         isci_tape.cpp           \
         isci_tape.h             \
+        isci_raid_info.cpp      \
+        isci_raid_info.h        \
         list.h                  \
         multimedia_device.cpp   \
         multimedia_device.h     \
+        nondisk_device.h        \
         object.cpp              \
         object.h                \
+        pci_header.h            \
         phy.cpp                 \
         phy.h                   \
         port.cpp                \
@@ -88,6 +94,8 @@ libengine_la_SOURCES =          \
         string.h                \
         unique_id_manager.cpp   \
         unique_id_manager.h     \
+        utils.cpp               \
+        utils.h                 \
         volume.cpp              \
         volume.h
 

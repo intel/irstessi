@@ -44,7 +44,9 @@
 #include "cache.h"
 #include "controller.h"
 #include "isci.h"
+#include "raid_info.h"
 #include "session.h"
+#include "enclosure.h"
 
 /* */
 ISCI::ISCI(const String &path)
@@ -53,9 +55,8 @@ ISCI::ISCI(const String &path)
 }
 
 /* */
-void ISCI::readRaidInfo()
+void ISCI::getAddress(SSI_Address &address) const
 {
 }
-
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

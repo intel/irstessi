@@ -94,65 +94,92 @@ private:
 class File : public Path {
 public:
     File(const String &path)
-        : Path(path), m_pContent(0) {
-    }
-    File(const char *path)
-        : Path(path), m_pContent(0) {
+        : Path(path), m_pContent(0), m_ContentCapacity(0), m_ContentSize(0) {
     }
     File(const File &file)
-        : Path(file), m_pContent(0) {
+        : Path(file), m_pContent(0), m_ContentCapacity(0), m_ContentSize(0) {
     }
     virtual ~File() {
-        if (m_pContent) {
-            delete [] m_pContent;
-        }
+        __internal_clear_content();
     }
 
 public:
-    void read(String &s);
-    void read(void *buffer, unsigned int size);
-    void read(long long &value);
-    void read(unsigned long long &value);
-    void read(int &value);
-    void read(unsigned int &value);
-    void read(short &value);
-    void read(unsigned short &value);
+    virtual void read(void *buffer, unsigned int size);
+    virtual void read(long long &value) {
+        __internal_read_content();
+        value = __internal_to_longlong();
+    }
+    virtual void read(unsigned long long &value) {
+        __internal_read_content();
+        value = __internal_to_ulonglong();
+    }
+    virtual void read(String &s) {
+        __internal_read_content();
+        s = String(reinterpret_cast<char *>(m_pContent), m_ContentSize);
+    }
+    virtual void read(int &value) {
+        __internal_read_content();
+        value = static_cast<int>(__internal_to_longlong());
+    }
+    virtual void read(unsigned int &value) {
+        __internal_read_content();
+        value = static_cast<unsigned int>(__internal_to_ulonglong());
+    }
+    virtual void read(short &value) {
+        __internal_read_content();
+        value = static_cast<short>(__internal_to_longlong());
+    }
+    virtual void read(unsigned short &value) {
+        __internal_read_content();
+        value = static_cast<unsigned short>(__internal_to_ulonglong());
+    }
 
-    void write(String &s);
-    void write(const void *buffer, unsigned int size);
-    void write(long long value) {
+    virtual void write(const String &s) {
+        __internal_write(const_cast<char *>(s.get()), s.size());
+    }
+    virtual void write(void *buffer, unsigned int size) {
+        __internal_write(reinterpret_cast<char *>(buffer), size);
+    }
+    virtual void write(long long value) {
         write(String(value));
     }
-    void write(unsigned long long value) {
+    virtual void write(unsigned long long value) {
         write(String(value));
     }
-    void write(int value) {
+    virtual void write(int value) {
         write(String(value));
     }
-    void write(unsigned int value) {
+    virtual void write(unsigned int value) {
         write(String(value));
     }
-    void write(short value) {
+    virtual void write(short value) {
         write(String(value));
     }
-    void write(unsigned short value) {
+    virtual void write(unsigned short value) {
         write(String(value));
     }
+
+private:
+    void __internal_clear_content();
+    void __internal_copy_content(const File &file);
+    void __internal_read_content();
+    unsigned long long __internal_to_ulonglong();
+    long long __internal_to_longlong();
+    void __internal_read_from_physical_fs(int fd, unsigned long long size);
+    void __internal_realloc_content(unsigned long long size, bool copy = true);
+    void __internal_read_from_virtual_fs(int fd);
+    void __internal_write(char *buffer, unsigned long long size);
 
 protected:
     unsigned char *m_pContent;
-    bool m_Valid;
+    unsigned long long m_ContentCapacity;
+    unsigned long long m_ContentSize;
+
+    friend class SysfsAttr;
 };
 
-/* */
 inline File & operator << (File &file, const String &s) {
     file.write(s); return file;
-}
-inline File & operator << (File &file, unsigned int value) {
-    file.write(value); return file;
-}
-inline File & operator << (File &file, int value) {
-    file.write(value); return file;
 }
 inline File & operator << (File &file, unsigned long long value) {
     file.write(value); return file;
@@ -160,27 +187,32 @@ inline File & operator << (File &file, unsigned long long value) {
 inline File & operator << (File &file, long long value) {
     file.write(value); return file;
 }
-inline File & operator << (File &file, short value) {
+inline File & operator << (File &file, unsigned int value) {
+    file.write(value); return file;
+}
+inline File & operator << (File &file, int value) {
     file.write(value); return file;
 }
 inline File & operator << (File &file, unsigned short value) {
     file.write(value); return file;
 }
+inline File & operator << (File &file, short value) {
+    file.write(value); return file;
+}
 
-/* */
 inline File & operator >> (File &file, String &s) {
-    file.read(s); return file;
-}
-inline File & operator >> (File &file, unsigned int &value) {
-    file.read(value); return file;
-}
-inline File & operator >> (File &file, int &value) {
-    file.read(value); return file;
+    file.read(s); s.trim(); return file;
 }
 inline File & operator >> (File &file, unsigned long long &value) {
     file.read(value); return file;
 }
 inline File & operator >> (File &file, long long &value) {
+    file.read(value); return file;
+}
+inline File & operator >> (File &file, unsigned int &value) {
+    file.read(value); return file;
+}
+inline File & operator >> (File &file, int &value) {
     file.read(value); return file;
 }
 inline File & operator >> (File &file, unsigned short &value) {
@@ -191,6 +223,14 @@ inline File & operator >> (File &file, short &value) {
 }
 
 /* */
+class SysfsAttr : public File {
+public:
+    SysfsAttr(const String &path = "")
+        : File(path) {
+    }
+};
+
+/* */
 class Directory : public Path {
 public:
     Directory(const String &path = "", const String &filter = "")
@@ -198,34 +238,34 @@ public:
     }
     Directory(const Directory &dir)
         : Path(dir), m_Valid(dir.m_Valid), m_Filter(dir.m_Filter) {
-        __copy_content(dir);
+        __internal_copy_content(dir);
     }
     ~Directory() {
-        __clear_content();
+        __internal_clear_content();
     }
 
 public:
     operator Iterator<File *> () {
-        __update_content();
+        __internal_update_content();
         return m_Files;
     }
     operator Iterator<Directory *> () {
-        __update_content();
+        __internal_update_content();
         return m_Directories;
     }
     operator Iterator<Path *> () {
-        __update_content();
+        __internal_update_content();
         return m_Content;
     }
     Directory & operator = (const String &path) {
-        __clear_content();
+        __internal_clear_content();
         assign(path);
         m_Filter = "";
         m_Valid = false;
         return *this;
     }
     Directory & operator = (const char *path) {
-        __clear_content();
+        __internal_clear_content();
         assign(path);
         m_Filter = "";
         m_Valid = false;
@@ -235,24 +275,24 @@ public:
         return count();
     }
     unsigned int count() {
-        __update_content();
+        __internal_update_content();
         return m_Content.count();
     }
 
 private:
-    void __update_content() {
+    void __internal_update_content() {
         if (m_Valid == false) {
             try {
-                __read_content();
+                __internal_read_content();
             } catch (...) {
-                __clear_content();
+                __internal_clear_content();
             }
             m_Valid = true;
         }
     }
-    void __read_content();
-    void __copy_content(const Directory &);
-    void __clear_content();
+    void __internal_read_content();
+    void __internal_copy_content(const Directory &);
+    void __internal_clear_content();
 
 protected:
     List<Path *> m_Content;
@@ -260,6 +300,16 @@ protected:
     List<Directory *> m_Directories;
     bool m_Valid;
     String m_Filter;
+};
+
+/* */
+class Tokenizer : public File {
+public:
+    Tokenizer(const String &path);
+    ~Tokenizer();
+
+private:
+    List<String *> m_Tokens;
 };
 
 #endif /* __FILESYSTEM_H__INCLUDED__ */

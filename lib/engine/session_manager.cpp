@@ -56,6 +56,10 @@ SessionManager::SessionManager()
 SessionManager::~SessionManager()
 {
     delete m_pNullSession;
+
+    for (Iterator<Object *> i = m_Sessions; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
 }
 
 /* */

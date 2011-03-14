@@ -31,18 +31,36 @@
 #pragma once
 #endif /* __GNUC_PREREQ */
 
-#ifndef __MULTIMEDIA_DEVICE_H__INCLUDED__
-#define __MULTIMEDIA_DEVICE_H__INCLUDED__
+#ifndef __UTILS_H__INCLUDED__
+#define __UTILS_H__INCLUDED__
 
-/**
- */
-class MultimediaDevice : public NonDiskDevice {
-public:
-    MultimediaDevice(const String &path)
-        : NonDiskDevice(path) {
-    }
-};
+/* */
+#define min(__a, __b) \
+    ({ typeof(__a) a = __a; \
+       typeof(__b) b = __b; \
+       a < b ? a : b; })
 
-#endif /* __MULTIMEDIA_DEVICE_H__INCLUDED__ */
+/* */
+int shell_cap(const String &s, String &r);
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* */
+int shell(const String &s);
+
+/* */
+inline unsigned char sg_make_byte(unsigned char *s) {
+    return *s;
+}
+
+inline unsigned short sg_make_short(unsigned char *s) {
+    unsigned short t = *s;
+    return (t << 8) + *(s + 1);
+}
+
+inline unsigned int sg_make_int(unsigned char *s) {
+    unsigned int t = sg_make_short(s);
+    return (t << 16) + sg_make_short(s + 2);
+}
+
+#endif /* __UTILS_H__INCLUDED__ */
+
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

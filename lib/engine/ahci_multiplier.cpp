@@ -45,6 +45,7 @@
 #include "phy.h"
 #include "port.h"
 #include "end_device.h"
+#include "nondisk_device.h"
 #include "routing_device.h"
 #include "session.h"
 #include "block_device.h"
@@ -58,16 +59,16 @@
 
 /* */
 AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
-    : RoutingDevice(path), m_pPhy(0), m_pPort(0)
+    : RoutingDevice(path), m_pPhy(0)
 {
     m_pPhy = new Phy(this, path, 0);
-    m_pPort = new RemotePort(this, path);
-    m_pPort->attachPhy(m_pPhy);
+    m_pSubtractivePort = new RemotePort(this, path);
+    m_pSubtractivePort->attachPhy(m_pPhy);
 
     unsigned int number = 0;
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         for (Iterator<Directory *> j = *(*i); *j != 0; ++j) {
-            if (__attachEndDevice(*(*j), ++number)) {
+            if (__internal_attach_end_device(*(*j), ++number)) {
                 break;
             }
         }
@@ -75,7 +76,7 @@ AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
 }
 
 /* */
-bool AHCI_Multiplier::__attachEndDevice(const Path &path, unsigned int number)
+bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned int number)
 {
     CanonicalPath temp = path + "driver";
     EndDevice *pEndDevice = 0;
@@ -102,9 +103,26 @@ bool AHCI_Multiplier::__attachEndDevice(const Path &path, unsigned int number)
 /* */
 void AHCI_Multiplier::acquireId(Session *pSession)
 {
-    RoutingDevice::acquireId(pSession);
     pSession->addPhy(m_pPhy);
-    pSession->addPort(m_pPort);
+    RoutingDevice::acquireId(pSession);
+}
+
+/* */
+void AHCI_Multiplier::getAddress(SSI_Address &address) const
+{
+    address.scsiAddress.host = 0;
+    address.scsiAddress.bus = 0;
+    address.scsiAddress.target = 0;
+    address.scsiAddress.lun = 0;
+    address.sasAddressPresent = SSI_FALSE;
+    address.sasAddress = 0ULL;
+}
+
+/* */
+void AHCI_Multiplier::getPhys(Container &container) const
+{
+    RoutingDevice::getPhys(container);
+    container.add(m_pPhy);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

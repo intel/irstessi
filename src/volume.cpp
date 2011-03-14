@@ -47,6 +47,8 @@
 #include <engine/volume.h>
 #include <engine/session.h>
 #include <engine/context_manager.h>
+#include <engine/array.h>
+#include <engine/volume.h>
 
 /* */
 SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType,
@@ -174,10 +176,13 @@ SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
 }
 
 /* */
-SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params)
+SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle *volumeHandle)
 {
     if (pContextMgr == 0) {
         return SSI_StatusNotInitialized;
+    }
+    if (volumeHandle == 0) {
+        return SSI_StatusInvalidParameter;
     }
     Session *pSession;
     try {
@@ -188,13 +193,66 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params)
     if (pSession == 0) {
         return SSI_StatusFailed;
     }
-    (void)params; /* TODO */
-    return SSI_StatusNotSupported;
+    Volume *pVolume;
+    Array *pArray;
+    try {
+        EndDevice *pEndDevice;
+        Container container;
+        for (unsigned int i = 0; i < params.numDisks; ++i) {
+            pEndDevice = pSession->getEndDevice(params.disks[i]);
+            if (pEndDevice == 0) {
+                return SSI_StatusInvalidHandle;
+            }
+            container.add(pEndDevice);
+        }
+        pEndDevice = pSession->getEndDevice(params.sourceDisk);
+        try {
+            pArray = new Array();
+        } catch (...) {
+            return SSI_StatusInsufficientResources;
+        }
+        pArray->setEndDevices(container);
+        pArray->create();
+        try {
+            pVolume = new Volume(pArray);
+        } catch (...) {
+            delete pArray;
+            return SSI_StatusInsufficientResources;
+        }
+        pVolume->setSourceDisk(pEndDevice);
+        pVolume->setEndDevices(container);
+        pVolume->setComponentSize(params.sizeInBytes / container);
+        pVolume->setName(params.volumeName);
+        pVolume->setStripSize(params.stripSize);
+        pVolume->setRaidLevel(params.raidLevel);
+        pVolume->create();
+        pArray->update();
+        pVolume->update();
+        pSession->addVolume(pVolume);
+        pSession->addArray(pArray);
+        *volumeHandle = pVolume->getId();
+        return SSI_StatusOk;
+    } catch (Exception ex) {
+        delete pVolume;
+        delete pArray;
+        switch (ex) {
+        case E_INVALID_STRIP_SIZE:
+            return SSI_StatusInvalidStripSize;
+        case E_INVALID_NAME:
+            return SSI_StatusInvalidString;
+        case E_INVALID_RAID_LEVEL:
+            return SSI_StatusInvalidRaidLevel;
+        default:
+            return SSI_StatusFailed;
+        }
+    }
 }
 
 /* */
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
+    Volume *pVolume;
+
     if (pContextMgr == 0) {
         return SSI_StatusNotInitialized;
     }
@@ -207,8 +265,42 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
     if (pSession == 0) {
         return SSI_StatusFailed;
     }
-    (void)params; /* TODO */
-    return SSI_StatusNotSupported;
+    Array *pArray = pSession->getArray(params.arrayHandle);
+    if (pArray == 0) {
+        return SSI_StatusInvalidHandle;
+    }
+    Container container;
+    pArray->getEndDevices(container, true);
+    try {
+        try {
+            pVolume = new Volume(pArray);
+        } catch (...) {
+            return SSI_StatusInsufficientResources;
+        }
+        pVolume->setEndDevices(container);
+        pVolume->setComponentSize(params.sizeInBytes / container);
+        pVolume->setName(params.volumeName);
+        pVolume->setStripSize(params.stripSize);
+        pVolume->setRaidLevel(params.raidLevel);
+        pVolume->create();
+        pVolume->update();
+        pSession->addVolume(pVolume);
+        return SSI_StatusOk;
+    } catch (Exception ex) {
+        delete pVolume;
+        switch (ex) {
+        case E_INVALID_STRIP_SIZE:
+            return SSI_StatusInvalidStripSize;
+        case E_INVALID_NAME:
+            return SSI_StatusInvalidString;
+        case E_INVALID_RAID_LEVEL:
+            return SSI_StatusInvalidRaidLevel;
+        default:
+            return SSI_StatusFailed;
+        }
+    } catch (...) {
+        return SSI_StatusInsufficientResources;
+    }
 }
 
 /* */

@@ -31,18 +31,29 @@
 #pragma once
 #endif /* __GNUC_PREREQ */
 
-#ifndef __MULTIMEDIA_DEVICE_H__INCLUDED__
-#define __MULTIMEDIA_DEVICE_H__INCLUDED__
+#ifndef __AHCI_RAID_INFO_H__INCLUDED__
+#define __AHCI_RAID_INFO_H__INCLUDED__
 
-/**
- */
-class MultimediaDevice : public NonDiskDevice {
+/* */
+class AHCI_RaidInfo : public RaidInfo {
 public:
-    MultimediaDevice(const String &path)
-        : NonDiskDevice(path) {
+    AHCI_RaidInfo(AHCI *pAHCI, int disksPerArray, int totalRaidDisks,
+        int volsPerArray, int volsPerHBA, unsigned short supportedChunkSize);
+
+    // Object
+
+public:
+    bool equal(const Object *pObject) const;
+
+    // RaidInfo
+
+public:
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeAHCI;
     }
+    SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *info) const;
 };
 
-#endif /* __MULTIMEDIA_DEVICE_H__INCLUDED__ */
+#endif /* __AHCI_RAID_INFO_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

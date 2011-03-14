@@ -35,9 +35,11 @@
 #include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include <asm/types.h>
 #include <sys/stat.h>
 
 #include <ssi.h>
+#include <orom/orom.h>
 
 #include "exception.h"
 #include "list.h"
@@ -45,12 +47,15 @@
 #include "string.h"
 #include "filesystem.h"
 #include "object.h"
+#include "raid_info.h"
 #include "cache.h"
 #include "controller.h"
 #include "phy.h"
 #include "session.h"
 #include "ahci.h"
+#include "pci_header.h"
 #include "ahci_phy.h"
+#include "ahci_raid_info.h"
 
 /* */
 AHCI::AHCI(const String &path)
@@ -61,13 +66,70 @@ AHCI::AHCI(const String &path)
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath temp = *(*i) + "scsi_host";
         if (temp) {
-            attachPhy(new AHCI_Phy(this, *(*i), number++));
+            attachPhy(new AHCI_Phy(this, CanonicalPath(*(*i)), number++));
         }
     }
+    __internal_initialize();
 }
 
-void AHCI::readRaidInfo()
+/* */
+void AHCI::getAddress(SSI_Address &address) const
 {
+    address.scsiAddress.host = 0;
+    address.scsiAddress.bus = 0;
+    address.scsiAddress.target = 0;
+    address.scsiAddress.lun = 0;
+    address.sasAddressPresent = SSI_FALSE;
+    address.sasAddress = 0ULL;
+}
+
+/* */
+void AHCI::__internal_initialize()
+{
+    SysfsAttr attr;
+    struct PCIHeader pciInfo;
+
+    /* TODO: read the name of controller from PCI bar */
+    m_Name = "AHCI at " + m_Path.reverse_right("0000:");
+
+    try {
+        attr = m_Path + "/driver/module/version";
+        attr >> m_DriverVersion;
+    } catch (...) {
+        /* TODO: log that version of the driver cannot be determined. */
+    }
+    try {
+        attr = m_Path + "/config";
+        attr.read(&pciInfo, sizeof(struct PCIHeader));
+        m_PciVendorId = pciInfo.vendorId;
+        m_PciDeviceId = pciInfo.deviceId;
+        m_SubSystemId = pciInfo.subSystemId;
+        m_HardwareRevisionId = pciInfo.revisionId;
+        m_SubClassCode = pciInfo.subClassId;
+        m_SubVendorId = pciInfo.subSystemVendorId;
+    } catch (...) {
+        /* TODO: log that PCI header cannot be read from sysfs. */
+    }
+
+    struct orom_info *pInfo = orom_get(m_PciDeviceId);
+    if (pInfo != 0) {
+        m_PrebootMgrVersion =
+            String(pInfo->prod_ver.major) + String(".") +
+            String(pInfo->prod_ver.minor) + String(".") +
+            String(pInfo->prod_ver.hotfix) + String(".") +
+            String(pInfo->prod_ver.build);
+        m_twoTbVolumePrebootSupported = pInfo->a_2tb_vol;
+        m_twoTbDiskPrebootSupported = pInfo->a_2tb_disk;
+        m_ESATASpanning = pInfo->c_esata;
+        m_NVSRAMSupported = pInfo->a_nvm;
+        m_HWXORSupported = pInfo->f_hardware_xor;
+        m_PhyLocate = pInfo->f_led_locate;
+        m_DiskUnlock = pInfo->c_hdd_passwd;
+        m_PatrolReadSupport = pInfo->f_read_patrol;
+
+        m_pRaidInfo = new AHCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
+            pInfo->vpa, pInfo->vphba, pInfo->chk);
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -33,6 +33,11 @@
 
 #include <features.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <cerrno>
+#include <unistd.h>
+
 #include <ssi.h>
 
 #include "exception.h"
@@ -46,12 +51,36 @@
 #include "array.h"
 #include "volume.h"
 #include "end_device.h"
+#include "utils.h"
+#include "filesystem.h"
 #include "session.h"
+#include "block_device.h"
 
 /* */
-Array::Array(StorageObject *pParent, const String &path)
-    : RaidDevice(pParent, path)
+Array::Array(const String &path)
+    : RaidDevice(0, path)
 {
+    String metadata;
+    Directory dir("/sys/devices/virtual/block");
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        SysfsAttr attr = *(*i) + "md/metadata_version";
+        try {
+            attr >> metadata;
+        } catch (...) {
+            continue;
+        }
+        try {
+            metadata.find("/" + m_DevName);
+        } catch (...) {
+            try {
+                metadata.find("-" + m_DevName);
+            } catch (...) {
+                continue;
+            }
+        }
+        Volume *pVolume = new Volume(this, *(*i), metadata.reverse_after("/"));
+        attachVolume(pVolume);
+    }
 }
 
 /* */
@@ -62,15 +91,62 @@ Array::~Array()
 /* */
 SSI_Status Array::addSpare(const Container &container)
 {
-    (void)container;
-    return SSI_StatusOk;
+    if (m_Busy) {
+        return SSI_StatusInvalidState;
+    }
+    String endDevices;
+    for (Iterator<Object *> i = container; *i != 0; ++i) {
+        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
+        if (pBlockDevice == 0) {
+            return SSI_StatusInvalidState;
+        }
+        if (pBlockDevice->getArray() == this) {
+            /* TODO: log that the given end device is already a component of this array. */
+            continue;
+        }
+        if (pBlockDevice->isSystemDisk()) {
+            return SSI_StatusInvalidState;
+        }
+        if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
+            return SSI_StatusInvalidState;
+        }
+        if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
+            return SSI_StatusInvalidState;
+        }
+        endDevices += pBlockDevice->getDevName();
+    }
+    if (shell("mdadm " + m_DevName + " -a" + endDevices) == 0) {
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
 }
 
 /* */
 SSI_Status Array::addSpare(const EndDevice *pEndDevice)
 {
-    (void)pEndDevice;
-    return SSI_StatusOk;
+    if (pEndDevice->getArray() == this) {
+        return SSI_StatusInvalidState;
+    }
+    if (m_Busy) {
+        return SSI_StatusInvalidState;
+    }
+    const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
+    if (pBlockDevice == 0) {
+        return SSI_StatusInvalidState;
+    }
+    if (pBlockDevice->isSystemDisk()) {
+        return SSI_StatusInvalidState;
+    }
+    if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
+        return SSI_StatusInvalidState;
+    }
+    if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
+        return SSI_StatusInvalidState;
+    }
+    if (shell("mdadm " + m_DevName + " -a " + pBlockDevice->getDevName()) == 0) {
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
 }
 
 /* */
@@ -81,43 +157,77 @@ SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
     }
     pInfo->arrayHandle = getId();
     m_Name.get(pInfo->name, sizeof(pInfo->name));
-    pInfo->state = getState();
-    pInfo->freeSize = getFreeSize();
-    pInfo->totalSize = getSize();
-    if (isCachable()) {
-        pInfo->writeCachePolicy = SSI_WriteCachePolicyOn;
+    if (m_Busy) {
+        pInfo->state = SSI_ArrayStateBusy;
     } else {
-        pInfo->writeCachePolicy = SSI_WriteCachePolicyOff;
+        pInfo->state = SSI_ArrayStateNormal;
     }
-    pInfo->numVolumes = m_Volumes.count();
-    pInfo->numDisks = m_EndDevices.count();
+    pInfo->totalSize = m_TotalSize;
+    pInfo->freeSize = m_FreeSize;
+    pInfo->writeCachePolicy = SSI_WriteCachePolicyOn;
+    pInfo->numVolumes = m_Volumes;
+    pInfo->numDisks = m_BlockDevices;
     return SSI_StatusOk;
 }
 
 /* */
 SSI_Status Array::setWriteCacheState(bool enable)
 {
-    (void)enable;
+    if (m_Busy) {
+        return SSI_StatusInvalidState;
+    }
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        (*i)->setWriteCache(enable);
+    }
     return SSI_StatusOk;
 }
 
 /* */
 SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
 {
-    (void)pEndDevice;
-    return SSI_StatusOk;
+    if (pEndDevice->getArray() != this) {
+        return SSI_StatusInvalidState;
+    }
+    if (m_Busy) {
+        return SSI_StatusInvalidState;
+    }
+    const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
+    if (pBlockDevice == 0) {
+        return SSI_StatusInvalidState;
+    }
+    if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
+        return SSI_StatusInvalidState;
+    }
+    SSI_DiskState state = pBlockDevice->getDiskState();
+    if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
+        return SSI_StatusInvalidState;
+    }
+    int result = shell("mdadm " + m_DevName + " -r " + pEndDevice->getDevName());
+    if (result == 0) {
+        result = shell("mdadm --zero-superblock /dev/" + m_DevName);
+    }
+    if (result == 0) {
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
 }
 
 /* */
 void Array::getEndDevices(Container &container, bool __attribute__((unused)) all) const
 {
-    container = m_EndDevices;
+    container.clear();
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        container.add(*i);
+    }
 }
 
 /* */
 void Array::getVolumes(Container &container) const
 {
-    container = m_Volumes;
+    container.clear();
+    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+        container.add(*i);
+    }
 }
 
 /* */
@@ -137,40 +247,89 @@ SSI_Status Array::writeStorageArea(void *pBuffer, unsigned int bufferSize)
 }
 
 /* */
-SSI_ArrayState Array::getState(void) const
+void Array::acquireId(Session *pSession)
 {
-    return SSI_ArrayStateUnknown;
+    RaidDevice::acquireId(pSession);
+    pSession->addArray(this);
+    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
+    }
+    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+        if ((*i)->getState() != SSI_VolumeStateNormal) {
+            m_Busy = true; break;
+        }
+    }
+    __internal_determine_total_and_free_size();
 }
 
 /* */
-unsigned long long Array::getSize(void) const
+SSI_Status Array::remove()
 {
-    return 0ULL;
+    if (m_Volumes > 1) {
+        return SSI_StatusOk;
+    }
+    if (shell("mdadm -S /dev/" + m_DevName) == 0) {
+        String devices;
+        for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+            devices += " /dev/" + (*i)->getDevName();
+        }
+        if (shell("mdadm --zero-superblock" + devices) == 0) {
+            return SSI_StatusOk;
+        }
+    }
+    return SSI_StatusFailed;
+}
+
+void Array::create()
+{
+    determineDeviceName("Imsm_");
+
+    String devices;
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        devices += " /dev/" + (*i)->getDevName();
+    }
+    if (shell("mdadm -CR " + m_Name + " -amd -eimsm -n" + String(m_BlockDevices) + devices) != 0) {
+        throw E_ARRAY_CREATE_FAILED;
+    }
 }
 
 /* */
-unsigned long long Array::getFreeSize(void) const
+void Array::attachEndDevice(Object *pObject)
 {
-    return 0ULL;
+    BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pObject);
+    if (pBlockDevice == 0) {
+        throw E_INVALID_OBJECT;
+    }
+    pBlockDevice->attachArray(this);
+    m_BlockDevices.add(pBlockDevice);
 }
 
 /* */
-bool Array::isCachable(void) const
+void Array::attachVolume(Object *pObject)
 {
-    return false;
-}
-
-/* */
-void Array::attachEndDevice(Object *pEndDevice, bool direct)
-{
-    (void)direct;
-    m_EndDevices.add(pEndDevice);
-}
-
-/* */
-void Array::attachVolume(Object *pVolume)
-{
+    Volume *pVolume = dynamic_cast<Volume *>(pObject);
+    if (pVolume == 0) {
+        throw E_INVALID_OBJECT;
+    }
     m_Volumes.add(pVolume);
+}
+
+/* */
+void Array::__internal_determine_total_and_free_size()
+{
+    unsigned int totalSectors = -1U;
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        totalSectors = min(totalSectors, (*i)->getSectors());
+    }
+    m_TotalSize = ((totalSectors * m_BlockDevices) * 512);
+    unsigned long long occupiedSectors = 0;
+    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+        occupiedSectors += (*i)->getComponentSize();
+    }
+    if (occupiedSectors > 0) {
+        occupiedSectors = ((occupiedSectors * 1000) / 512) * m_BlockDevices;
+    }
+    m_FreeSize = (m_TotalSize - (occupiedSectors * 512));
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

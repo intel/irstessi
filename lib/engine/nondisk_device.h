@@ -31,18 +31,25 @@
 #pragma once
 #endif /* __GNUC_PREREQ */
 
-#ifndef __MULTIMEDIA_DEVICE_H__INCLUDED__
-#define __MULTIMEDIA_DEVICE_H__INCLUDED__
+#ifndef __CHARACTER_DEVICE_H__INCLUDED__
+#define __CHARACTER_DEVICE_H__INCLUDED__
 
 /**
  */
-class MultimediaDevice : public NonDiskDevice {
+class NonDiskDevice : public EndDevice {
 public:
-    MultimediaDevice(const String &path)
-        : NonDiskDevice(path) {
+    NonDiskDevice(const String &path)
+        : EndDevice(path) {
+    }
+
+    // EndDevice
+
+protected:
+    SSI_EndDeviceType getDeviceType() const {
+        return SSI_EndDeviceTypeNonDiskStorage;
     }
 };
 
-#endif /* __MULTIMEDIA_DEVICE_H__INCLUDED__ */
+#endif /* __CHARACTER_DEVICE_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

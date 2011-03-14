@@ -35,11 +35,13 @@
 #include <cstdlib>
 #include <sys/types.h>
 #include <unistd.h>
+#include <asm/types.h>
 
 #include <ssi.h>
 
 #include <engine/context_manager.h>
 #include <log/log.h>
+#include <orom/orom.h>
 
 /* */
 ContextManager *pContextMgr = 0;
@@ -54,12 +56,12 @@ SSI_Status SsiInitialize(void)
         return SSI_StatusDuplicate;
     }
     log_init(LOG_ALL, "ssi.log");
+    orom_init();
     try {
         pContextMgr = new ContextManager();
     } catch (...) {
         return SSI_StatusInsufficientResources;
     }
-    atexit((void (*)(void))SsiFinalize);
     return SSI_StatusOk;
 }
 
@@ -74,6 +76,7 @@ SSI_Status SsiFinalize(void)
     } catch (...) {
         // intentionally left blank
     }
+    orom_fini();
     pContextMgr = 0;
     log_fini();
     return SSI_StatusOk;

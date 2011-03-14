@@ -39,8 +39,22 @@ class AHCI : public Controller {
 public:
     AHCI(const String &path);
 
+    // StorageObject
+
+public:
+    void getAddress(SSI_Address &address) const;
+
+    // Controller
+
 protected:
-    void readRaidInfo();
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeAHCI;
+    }
+
+    // AHCI
+
+private:
+    void __internal_initialize();
 };
 
 #endif /* __AHCI_H__INCLUDED__ */

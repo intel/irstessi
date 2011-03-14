@@ -45,5 +45,3 @@ test -f Makefile.in || \
     { echo "**Error**: automake failed to generate Makefile.in" >&2; exit 1; }
 
 ) || exit 1
-
-./configure

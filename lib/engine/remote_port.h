@@ -42,13 +42,20 @@ public:
     // StorageObject
 
 public:
+    void attachArray(Object *pArray);
+    void attachVolume(Object *pVolume);
     void attachPort(Object *pPort);
-    void attachRoutingDevice(Object *pRoutingDevice, bool direct) {
+    void attachRoutingDevice(Object *pRoutingDevice) {
         throw E_INVALID_OPERATION;
     }
-    void attachEndDevice(Object *pEndDevice, bool direct) {
+    void attachEndDevice(Object *pEndDevice) {
         throw E_INVALID_OPERATION;
     }
+
+    // Port
+
+public:
+    RaidInfo * getRaidInfo() const;
 };
 
 #endif /* __REMOTE_PORT_H__INCLUDED__ */

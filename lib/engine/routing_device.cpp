@@ -41,11 +41,13 @@
 #include "string.h"
 #include "object.h"
 #include "routing_device.h"
+#include "port.h"
 #include "session.h"
+#include "enclosure.h"
 
 /* */
 RoutingDevice::RoutingDevice(const String &path)
-    : StorageObject(0, path)
+    : StorageObject(0, path), m_pSubtractivePort(0)
 {
 }
 
@@ -71,6 +73,7 @@ void RoutingDevice::acquireId(Session *pSession)
     for (i = m_RoutingDevices_Direct; *i != 0; ++i) {
         dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
     }
+    pSession->addPort(m_pSubtractivePort);
 }
 
 /* */
@@ -82,18 +85,9 @@ void RoutingDevice::getPhys(Container &container) const
 /* */
 void RoutingDevice::getEndDevices(Container &container, bool all) const
 {
+    container = m_EndDevices_Direct;
     if (all) {
-        container = m_EndDevices;
-    } else {
-        container = m_EndDevices_Direct;
-    }
-}
-
-/* */
-void RoutingDevice::getAddress(SSI_Address *pAddress) const
-{
-    if (pAddress) {
-        /* TODO: copy the address of routing device (SAS address attached to SMP target) */
+        container.add(m_EndDevices);
     }
 }
 
@@ -101,6 +95,22 @@ void RoutingDevice::getAddress(SSI_Address *pAddress) const
 void RoutingDevice::getPorts(Container &container) const
 {
     container = m_Ports;
+    container.add(m_pSubtractivePort);
+}
+
+/* */
+void RoutingDevice::getRoutingDevices(Container &container, bool all) const
+{
+    container = m_RoutingDevices_Direct;
+    if (all) {
+        container.add(m_RoutingDevices);
+    }
+}
+
+/* */
+RaidInfo * RoutingDevice::getRaidInfo() const
+{
+    return m_pSubtractivePort->getRaidInfo();
 }
 
 /* */
@@ -110,7 +120,52 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->routingDeviceHandle = getId();
+    pInfo->routingDeviceType = getRoutingDeviceType();
+    getAddress(pInfo->routingDeviceAddress);
+
+    Enclosure *pEnclosure = getEnclosure();
+    if (pEnclosure != 0) {
+        pInfo->enclosureHandle = pEnclosure->getId();
+    } else {
+        pInfo->enclosureHandle = SSI_NULL_HANDLE;
+    }
+    pInfo->numberPhys = getNumberOfPhys();
+
+    m_ProductId.get(pInfo->productId,
+        sizeof(pInfo->productId));
+
+    m_Vendor.get(pInfo->vendorId,
+        sizeof(pInfo->vendorId));
+
+    m_ProductRev.get(pInfo->productRev,
+        sizeof(pInfo->productRev));
+
+    m_ComponentVendorId.get(pInfo->componentVendorId,
+        sizeof(pInfo->componentVendorId));
+
+    m_ComponentId.get(pInfo->componentId,
+        sizeof(pInfo->componentId));
+
+    m_ComponentRev.get(pInfo->componentRev,
+        sizeof(pInfo->componentRev));
+
+    pInfo->expanderType = getExpanderType();
+    pInfo->selfConfiguring = SSI_FALSE;
+    pInfo->expanderChangeCount = 0;
+    pInfo->expanderRouteIndexes = 0;
     return SSI_StatusOk;
+}
+
+/* */
+void RoutingDevice::attachArray(Object *pObject)
+{
+    m_pSubtractivePort->attachArray(pObject);
+}
+
+/* */
+void RoutingDevice::attachVolume(Object *pObject)
+{
+    m_pSubtractivePort->attachVolume(pObject);
 }
 
 /* */
@@ -120,12 +175,9 @@ void RoutingDevice::attachPhy(Object *pPhy)
 }
 
 /* */
-void RoutingDevice::attachEndDevice(Object *pEndDevice, bool direct)
+void RoutingDevice::attachEndDevice(Object *pEndDevice)
 {
-    if (direct) {
-        m_EndDevices_Direct.add(pEndDevice);
-    }
-    m_EndDevices.add(pEndDevice);
+    m_EndDevices_Direct.add(pEndDevice);
 }
 
 /* */
@@ -135,12 +187,15 @@ void RoutingDevice::attachPort(Object *pPort)
 }
 
 /* */
-void RoutingDevice::attachRoutingDevice(Object *pRoutingDevice, bool direct)
+void RoutingDevice::attachRoutingDevice(Object *pRoutingDevice)
 {
-    if (direct) {
-        m_RoutingDevices_Direct.add(pRoutingDevice);
-    }
-    m_RoutingDevices.add(pRoutingDevice);
+    m_RoutingDevices_Direct.add(pRoutingDevice);
+    ScopeObject *pScopeObject = dynamic_cast<ScopeObject *>(pRoutingDevice);
+    Container container;
+    pScopeObject->getEndDevices(container, true);
+    m_EndDevices.add(container);
+    pScopeObject->getRoutingDevices(container, true);
+    m_RoutingDevices.add(container);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

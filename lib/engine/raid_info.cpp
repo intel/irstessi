@@ -41,43 +41,49 @@
 #include "string.h"
 #include "object.h"
 #include "raid_info.h"
+#include "session.h"
 
 /* */
-RaidInfo::RaidInfo(Controller *pController)
-    : m_pController(pController)
+RaidInfo::RaidInfo(int disksPerArray, int totalRaidDisks, int volumesPerArray,
+    int volumesPerHBA, unsigned short supportedChunkSize)
+    : m_DisksPerArray(disksPerArray),
+      m_RaidDisksSupported(totalRaidDisks),
+      m_VolumesPerHBA(volumesPerHBA),
+      m_VolumesPerArray(volumesPerArray),
+      m_SupportedStripSizes(supportedChunkSize)
 {
 }
 
 /* */
-RaidInfo::RaidInfo(const RaidInfo &raidInfo)
-    : ScopeObject(raidInfo), m_pController(raidInfo.m_pController)
+void RaidInfo::getControllers(Container &container) const
 {
+    container = m_Controllers;
 }
 
 /* */
-RaidInfo::~RaidInfo()
+void RaidInfo::acquireId(Session *pSession)
 {
-}
-
-/* */
-SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel level, SSI_RaidLevelInfo *pInfo) const
-{
-    (void)level;
-    (void)pInfo;
-    return SSI_StatusOk;
+    pSession->addRaidInfo(this);
 }
 
 /* */
 SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
 {
-    (void)pInfo;
-    return SSI_StatusOk;
-}
+    if (pInfo == 0) {
+        return SSI_StatusInvalidParameter;
+    }
+    pInfo->raidHandle = getId();
+    pInfo->maxDisksPerArray = m_DisksPerArray;
+    pInfo->maxRaidDisksSupported = m_RaidDisksSupported;
+    pInfo->maxVolumesPerHba = m_VolumesPerHBA;
+    pInfo->maxVolumesPerArray = m_VolumesPerArray;
+    pInfo->raidEnabled = SSI_TRUE;
+    pInfo->supportsDedicatedSpare = SSI_TRUE;
+    pInfo->supportsGlobalSpare = SSI_TRUE;
+    pInfo->supportsCreateFromExisting = SSI_TRUE;
+    pInfo->supportsEmptyArrays = SSI_TRUE;
 
-/* */
-void  RaidInfo::getControllers(Container &container) const
-{
-    (void)container;
+    return SSI_StatusOk;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -48,20 +48,20 @@
 
 #include "orom.h"
 
-#define VIDEO_BIOS_START_ADDR       0x000C0000
-#define SYSTEM_BIOS_START_ADDR      0x000F0000
-#define OROM_PCIR_SIGNATURE         0x50434952U     /* "PCIR" */
-#define OROM_SVER_SIGNATURE         0x24564552U     /* "$VER" */
-#define OROM_VALID_SIGNATURE        0xAA55U
+#define VIDEO_BIOS_START_ADDR       0x000C0000U
+#define SYSTEM_BIOS_START_ADDR      0x000F0000U
+#define OROM_PCIR_SIGNATURE         0x52494350U     /* "PCIR" */
+#define OROM_SVER_SIGNATURE         0x52455624U     /* "$VER" */
+#define OROM_VALID_SIGNATURE        0x0000AA55U
 #define OROM_SCAN_STEP              2048
-#define OROM_SCAN_LAST              (0xDFFFF - VIDEO_BIOS_START_ADDR)
+#define OROM_SCAN_LAST              (0x000DFFFF - VIDEO_BIOS_START_ADDR)
 #define OROM_REGION_SIZE            (SYSTEM_BIOS_START_ADDR - VIDEO_BIOS_START_ADDR)
 #define OROM_CHUNK_SIZE             512
 
 /* */
 struct bios_hdr {
     __u16 signature;
-    __u32 length;
+    __u8 length;
     __u32 init_vector;
     __u8 reserved[13];
     __u16 exp_hdr_offset;
@@ -216,8 +216,8 @@ static void * __orom_init(unsigned int device_id)
     }
     int fd = open("/dev/mem", O_RDWR);
     if (fd >= 0) {
-        void *base_addr = mmap(NULL, OROM_REGION_SIZE, PROT_READ | PROT_WRITE,
-            MAP_PRIVATE, fd, VIDEO_BIOS_START_ADDR);
+        void *base_addr = mmap(NULL, OROM_REGION_SIZE, PROT_READ, MAP_PRIVATE,
+            fd, VIDEO_BIOS_START_ADDR);
         if (base_addr != MAP_FAILED) {
             result = __orom_scan_for_device(device_id, base_addr);
             munmap(base_addr, OROM_REGION_SIZE);
@@ -244,8 +244,11 @@ static void * __orom_get(unsigned int device_id)
 /* */
 void orom_init(void)
 {
-    cache = NULL;
-    atexit(__orom_fini);
+#if defined(HAVE_ATEXIT)
+    if (cache == NULL) {
+        atexit(__orom_fini);
+    }
+#endif /* HAVE_ATEXIT */
 }
 
 /* */

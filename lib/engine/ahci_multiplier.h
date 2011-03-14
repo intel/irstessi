@@ -39,30 +39,40 @@ class AHCI_Multiplier : public RoutingDevice {
 public:
     AHCI_Multiplier(const String &path, Directory &dir);
 
+    // ScopeObject
+
+public:
+    void getPhys(Container &container) const;
+
+    // StorageObject
+
+public:
+    void getAddress(SSI_Address &address) const;
+
     // RoutingDevice
 
 public:
+    unsigned int getNumberOfPhys() const {
+        return RoutingDevice::getNumberOfPhys() + 1;
+    }
     SSI_RoutingDeviceType getRoutingDeviceType() const {
         return SSI_RoutingDeviceTypeMultiplier;
     }
+
     void acquireId(Session *pSession);
 
     // AHCI_Multiplier
 
 public:
-    Object * getPort() const {
-        return reinterpret_cast<Object *>(m_pPort);
-    }
     Object * getPhy() const {
         return reinterpret_cast<Object *>(m_pPhy);
     }
 
 protected:
     Phy *m_pPhy;
-    Port *m_pPort;
 
 private:
-    bool __attachEndDevice(const Path &path, unsigned int number);
+    bool __internal_attach_end_device(const Path &path, unsigned int number);
 };
 
 #endif /* __AHCI_MULTIPLIER_H__INCLUDED__ */

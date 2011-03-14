@@ -44,6 +44,7 @@
 #include "storage_device.h"
 #include "phy.h"
 #include "end_device.h"
+#include "nondisk_device.h"
 #include "multimedia_device.h"
 #include "session.h"
 #include "ahci_cdrom.h"

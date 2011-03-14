@@ -46,15 +46,162 @@
 #include "volume.h"
 #include "end_device.h"
 #include "session.h"
+#include "filesystem.h"
+#include "utils.h"
+#include "block_device.h"
 
 /* */
-Volume::Volume(StorageObject *pParent, const String &path, Session *pSession)
-    : RaidDevice(pParent, path)
+Volume::Volume(Array *pArray)
+    : RaidDevice(pArray),
+      m_Ordinal(-1U),
+      m_TotalSize(0),
+      m_RaidLevel(-1U),
+      m_MigrationProgress(0),
+      m_WriteThrough(false),
+      m_SystemVolume(false),
+      m_MismatchCount(0),
+      m_StripSize(0),
+      m_ComponentSize(0),
+      m_State(SSI_VolumeStateUnknown),
+      m_pSourceDisk(0)
 {
-    if (pSession == 0) {
-        throw E_NULL_POINTER;
+}
+
+/* */
+Volume::Volume(Array *pArray, const String &path, unsigned int ordinal)
+    : RaidDevice(pArray, path),
+      m_Ordinal(ordinal),
+      m_TotalSize(0),
+      m_RaidLevel(-1U),
+      m_MigrationProgress(0),
+      m_WriteThrough(false),
+      m_SystemVolume(false),
+      m_MismatchCount(0),
+      m_StripSize(0),
+      m_ComponentSize(0),
+      m_State(SSI_VolumeStateUnknown),
+      m_pSourceDisk(0)
+{
+    String temp;
+    try {
+        SysfsAttr attr = m_Path + "/md/level";
+        attr >> temp;
+        if (temp == "raid0") {
+            m_RaidLevel = 0;
+        } else
+        if (temp == "raid1") {
+            m_RaidLevel = 1;
+        } else
+        if (temp == "raid10") {
+            m_RaidLevel = 10;
+        } else
+        if (temp == "raid5") {
+            m_RaidLevel = 5;
+        } else
+        if (temp == "raid6") {
+            m_RaidLevel = 6;
+        } else {
+            m_RaidLevel = -1U;
+        }
+    } catch (...) {
+        // Intentionaly left blank
     }
-    pSession->addVolume(this);
+    try {
+        int degraded = 0;
+        SysfsAttr attr = m_Path + "/md/degraded";
+        attr >> degraded;
+        if (degraded > 0) {
+            switch (m_RaidLevel) {
+            case 1:
+                if (degraded > 1) {
+                    m_State = SSI_VolumeStateFailed;
+                } else {
+                    m_State = SSI_VolumeStateDegraded;
+                }
+                break;
+            case 5:
+            case 6:
+            case 10:
+                if (degraded > 2) {
+                    m_State = SSI_VolumeStateFailed;
+                } else {
+                    m_State = SSI_VolumeStateDegraded;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    } catch (...) {
+        // Intentionally left blank
+    }
+    if (m_State == SSI_VolumeStateUnknown) {
+        try {
+            SysfsAttr attr = m_Path + "/md/array_state";
+            attr >> temp;
+            if (temp == "readonly") {
+                m_State = SSI_VolumeStateLocked;
+            }
+        } catch (...) {
+            // Intentionaly left blank
+        }
+    }
+    if (m_State == SSI_VolumeStateUnknown) {
+        try {
+            SysfsAttr attr = m_Path + "/md/sync_action";
+            attr >> temp;
+            if (temp == "resync") {
+                m_State = SSI_VolumeStateInitializing;
+            } else
+            if (temp == "recover") {
+                m_State = SSI_VolumeStateRebuilding;
+            } else
+            if (temp == "idle") {
+                m_State = SSI_VolumeStateNormal;
+            } else
+            if (temp == "check") {
+                m_State = SSI_VolumeStateVerifying;
+            } else
+            if (temp == "repair") {
+                m_State = SSI_VolumeStateVerifyingAndFix;
+            }
+        } catch (...) {
+            // Intentionally left blank
+        }
+    }
+    try {
+        SysfsAttr attr = m_Path + "/md/array_size";
+        attr >> m_TotalSize;
+    } catch (...) {
+        // Intentionaly left blank
+    }
+    try {
+        SysfsAttr attr = m_Path + "/md/chunk_size";
+        attr >> m_StripSize;
+    } catch (...) {
+        // Intentionaly left blank
+    }
+    try {
+        SysfsAttr attr = m_Path + "/md/mismatch_cnt";
+        attr >> m_MismatchCount;
+    } catch (...) {
+        // Intentionaly left blank
+    }
+    try {
+        SysfsAttr attr = m_Path + "/md/component_size";
+        attr >> m_ComponentSize;
+    } catch (...) {
+        // Intentionaly left blank
+    }
+    String result;
+    if (shell_cap("df /boot", result) == 0) {
+        try {
+            result.find(m_DevName);
+            m_SystemVolume = true;
+        } catch (...) {
+            // Intentionaly left blank
+        }
+    }
 }
 
 /* */
@@ -71,8 +218,12 @@ SSI_Status Volume::initialize()
 /* */
 SSI_Status Volume::rebuild(EndDevice *pEndDevice)
 {
-    (void)pEndDevice;
-    return SSI_StatusOk;
+    Array *pArray = dynamic_cast<Array *>(m_pParent);
+    if (pArray == 0) {
+        return SSI_StatusFailed;
+    } else {
+        return pArray->addSpare(pEndDevice);
+    }
 }
 
 /* */
@@ -85,14 +236,29 @@ SSI_Status Volume::expand(unsigned long long newSize)
 /* */
 SSI_Status Volume::rename(const String &newName)
 {
-    (void)newName;
-    return SSI_StatusOk;
+    Array *pArray = dynamic_cast<Array *>(m_pParent);
+    if (pArray == 0) {
+        return SSI_StatusFailed;
+    }
+    if (shell("mdadm --misc -N " + m_DevName + " --update=name " + newName + " /dev/" + pArray->getDevName()) == 0) {
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
 }
 
 /* */
 SSI_Status Volume::remove()
 {
-    return SSI_StatusOk;
+    Array *pArray = dynamic_cast<Array *>(m_pParent);
+    if (pArray == 0) {
+        return SSI_StatusFailed;
+    }
+    if (shell("mdadm -S /dev/" + m_DevName) == 0) {
+        if (shell("mdadm --kill-subarray=" + String(m_Ordinal) + " /dev/" + pArray->getDevName()) == 0) {
+            return pArray->remove();
+        }
+    }
+    return SSI_StatusFailed;
 }
 
 /* */
@@ -104,13 +270,28 @@ SSI_Status Volume::markAsNormal()
 /* */
 SSI_Status Volume::verify(bool repair)
 {
-    (void)repair;
+    SysfsAttr attr = m_Path + "/md/sync_action";
+    try {
+        if (repair) {
+            attr << "repair";
+        } else {
+            attr << "check";
+        }
+    } catch (...) {
+        return SSI_StatusFailed;
+    }
     return SSI_StatusOk;
 }
 
 /* */
 SSI_Status Volume::cancelVerify()
 {
+    SysfsAttr attr = m_Path + "/md/sync_action";
+    try {
+        attr << "idle";
+    } catch (...) {
+        return SSI_StatusFailed;
+    }
     return SSI_StatusOk;
 }
 
@@ -128,7 +309,105 @@ SSI_Status Volume::modify(SSI_StripSize chunk, SSI_RaidLevel raidLevel,
 /* */
 SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
 {
-    (void)pInfo;
+    if (pInfo == 0) {
+        return SSI_StatusInvalidParameter;
+    }
+    pInfo->volumeHandle = getId();
+    pInfo->arrayHandle = m_pParent->getId();
+    pInfo->arrayOrdinal = m_Ordinal;
+    m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));
+    switch (m_RaidLevel) {
+    case 0:
+        pInfo->raidLevel = SSI_Raid0;
+        break;
+    case 1:
+        pInfo->raidLevel = SSI_Raid1;
+        break;
+    case 5:
+        pInfo->raidLevel = SSI_Raid5;
+        break;
+    case 6:
+        pInfo->raidLevel = SSI_Raid6;
+        break;
+    case 10:
+        pInfo->raidLevel = SSI_Raid10;
+        break;
+    default:
+        pInfo->raidLevel = SSI_RaidInvalid;
+        break;
+    }
+    pInfo->state = m_State;
+    pInfo->totalSize = m_TotalSize;
+    switch (m_StripSize) {
+    case (2 * 1024):
+        pInfo->stripSize = SSI_StripSize2kB;
+        break;
+    case (4 * 1024):
+        pInfo->stripSize = SSI_StripSize4kB;
+        break;
+    case (8 * 1024):
+        pInfo->stripSize = SSI_StripSize8kB;
+        break;
+    case (16 * 1024):
+        pInfo->stripSize = SSI_StripSize16kB;
+        break;
+    case (32 * 1024):
+        pInfo->stripSize = SSI_StripSize32kB;
+        break;
+    case (64 * 1024):
+        pInfo->stripSize = SSI_StripSize64kB;
+        break;
+    case (128 * 1024):
+        pInfo->stripSize = SSI_StripSize128kB;
+        break;
+    case (256 * 1024):
+        pInfo->stripSize = SSI_StripSize256kB;
+        break;
+    case (512 * 1024):
+        pInfo->stripSize = SSI_StripSize512kB;
+        break;
+    case (1024 * 1024):
+        pInfo->stripSize = SSI_StripSize1MB;
+        break;
+    case (2 * 1024 * 1024):
+        pInfo->stripSize = SSI_StripSize2MB;
+        break;
+    case (4 * 1024 * 1024):
+        pInfo->stripSize = SSI_StripSize4MB;
+        break;
+    case (8 * 1024 * 1024):
+        pInfo->stripSize = SSI_StripSize8MB;
+        break;
+    case (16 * 1024 * 1024):
+        pInfo->stripSize = SSI_StripSize16MB;
+        break;
+    case (32 * 1024 * 1024):
+        pInfo->stripSize = SSI_StripSize32MB;
+        break;
+    case (64 * 1024 * 1024):
+        pInfo->stripSize = SSI_StripSize64MB;
+        break;
+    default:
+        pInfo->stripSize = SSI_StripSizeUnknown;
+    }
+    pInfo->numDisks = m_BlockDevices;
+    pInfo->migrProgress = m_MigrationProgress;
+    if (m_CachingEnabled == false) {
+        pInfo->cachePolicy = SSI_VolumeCachePolicyOff;
+    } else {
+        if (m_WriteThrough) {
+            pInfo->cachePolicy = SSI_VolumeCachePolicyWriteThrough;
+        } else {
+            pInfo->cachePolicy = SSI_VolumeCachePolicyWriteBack;
+        }
+    }
+    pInfo->systemVolume = m_SystemVolume ? SSI_TRUE : SSI_FALSE;
+    pInfo->initialized = m_State != SSI_VolumeStateInitializing ? SSI_TRUE : SSI_FALSE;
+    pInfo->logicalSectorSize = 0;
+    pInfo->verifyErrors = m_MismatchCount;
+    pInfo->verifyBadBlocks = 0;
+    pInfo->physicalSectorSize = 0;
+
     return SSI_StatusOk;
 }
 
@@ -156,10 +435,150 @@ SSI_Status Volume::readStorageArea(void *pBuffer, unsigned int bufferSize)
 }
 
 /* */
-void Volume::attachEndDevice(Object *pEndDevice, bool direct)
+void Volume::getEndDevices(Container &container, bool __attribute__((unused)) all) const
 {
-    (void)direct;
-    m_EndDevices.add(pEndDevice);
+    container.clear();
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        container.add(*i);
+    }
+}
+
+/* */
+void Volume::acquireId(Session *pSession)
+{
+    RaidDevice::acquireId(pSession);
+    pSession->addVolume(this);
+    if (m_RaidLevel == 0) {
+        m_State = SSI_VolumeStateNormal;
+        for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+            if ((*i)->getDiskState() != SSI_DiskStateNormal) {
+                m_State = SSI_VolumeStateNonRedundantVolumeFailedDisk;
+            }
+        }
+    }
+}
+
+/* */
+void Volume::attachEndDevice(Object *pObject)
+{
+    BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pObject);
+    if (pBlockDevice == 0) {
+        throw E_INVALID_OBJECT;
+    }
+    pBlockDevice->attachVolume(this);
+    m_BlockDevices.add(pBlockDevice);
+}
+
+/* */
+void Volume::setSourceDisk(EndDevice *pEndDevice)
+{
+    m_pSourceDisk = dynamic_cast<BlockDevice *>(pEndDevice);
+}
+
+/* */
+void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
+{
+    switch (raidLevel) {
+    case SSI_Raid0:
+        m_RaidLevel = 0;
+        break;
+    case SSI_Raid1:
+        m_RaidLevel = 1;
+        break;
+    case SSI_Raid10:
+        m_RaidLevel = 10;
+        break;
+    case SSI_Raid5:
+        m_RaidLevel = 5;
+        break;
+    case SSI_Raid6:
+        m_RaidLevel = 6;
+        break;
+    default:
+        throw E_INVALID_RAID_LEVEL;
+    }
+}
+
+/* */
+void Volume::setStripSize(SSI_StripSize stripSize)
+{
+    switch (stripSize) {
+    case SSI_StripSize2kB:
+        m_StripSize = 2 * 1024;
+        break;
+    case SSI_StripSize4kB:
+        m_StripSize = 4 * 1024;
+        break;
+    case SSI_StripSize8kB:
+        m_StripSize = 8 * 1024;
+        break;
+    case SSI_StripSize16kB:
+        m_StripSize = 16 * 1024;
+        break;
+    case SSI_StripSize32kB:
+        m_StripSize = 32 * 1024;
+        break;
+    case SSI_StripSize64kB:
+        m_StripSize = 64 * 1024;
+        break;
+    case SSI_StripSize128kB:
+        m_StripSize = 128 * 1024;
+        break;
+    case SSI_StripSize256kB:
+        m_StripSize = 256 * 1024;
+        break;
+    case SSI_StripSize512kB:
+        m_StripSize = 512 * 1024;
+        break;
+    case SSI_StripSize1MB:
+        m_StripSize = 1 * 1024 * 1024;
+        break;
+    case SSI_StripSize2MB:
+        m_StripSize = 2 * 1024 * 1024;
+        break;
+    case SSI_StripSize4MB:
+        m_StripSize = 4 * 1024 * 1024;
+        break;
+    case SSI_StripSize8MB:
+        m_StripSize = 8 * 1024 * 1024;
+        break;
+    case SSI_StripSize16MB:
+        m_StripSize = 16 * 1024 * 1024;
+        break;
+    case SSI_StripSize32MB:
+        m_StripSize = 32 * 1024 * 1024;
+        break;
+    case SSI_StripSize64MB:
+        m_StripSize = 64 * 1024 * 1024;
+        break;
+    default:
+        throw E_INVALID_STRIP_SIZE;
+    }
+}
+
+/* */
+void Volume::create()
+{
+    if (m_Name == "") {
+        determineDeviceName("Volume_");
+    }
+    if (m_Name.length() > 16) {
+        throw E_INVALID_NAME;
+    }
+    String devices;
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        devices += " /dev/" + (*i)->getDevName();
+    }
+    String componentSize;
+    if (m_ComponentSize == 0) {
+        componentSize = "max";
+    } else {
+        componentSize = m_ComponentSize;
+    }
+    if (shell("mdadm -CR " + m_Name + " -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
+            " --chunk=" + String(m_StripSize / 1024) + " -n" + String(m_BlockDevices) + devices) != 0) {
+        throw E_VOLUME_CREATE_FAILED;
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
