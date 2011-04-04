@@ -1,7 +1,0 @@
-ClearCase CopyAreaDB|4
-vobs/trelliscruzbay_mgmt/management/RAID_API/lib/efi
-2
-3
-5:efi.c|1|12e29089640|630|b55c0b94|85100e8a343c11e082cd78e7d1f7676c|0
-5:efi.h|1|12e29089640|6d2|cd183ed4|85c00ea2343c11e082cd78e7d1f7676c|0
-b:Makefile.am|1|12e29089640|a7|8f042e86|86500eba343c11e082cd78e7d1f7676c|0

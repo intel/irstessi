@@ -1,6 +1,0 @@
-ClearCase CopyAreaDB|4
-vobs/trelliscruzbay_mgmt/management/RAID_API/include
-2
-2
-5:ssi.h|1|12e29089e10|f8e8|9951ae80|ed6ada1c343d11e088b978e7d1f7676c|0
-b:Makefile.am|1|12e29089e10|53|da2b1cbe|580595a97d2311df964600145efc352c|0
