@@ -38,7 +38,7 @@
 class Object;
 
 /* */
-class Cache : public Container {
+class Cache : public Container<Object> {
 public:
     ~Cache();
 

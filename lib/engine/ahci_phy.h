@@ -37,13 +37,15 @@
 /* */
 class AHCI_Phy : public Phy {
 public:
-    AHCI_Phy(AHCI *pParent, const String &path, unsigned int number);
+    AHCI_Phy(const String &path, unsigned int number);
+    void discover();
     SSI_Status locate(bool mode) const;
 
 private:
+    String m_PhyPath;
     EndDevice * __internal_attach_end_device(Iterator<Directory *> i);
 };
 
 #endif /* __AHCI_PHY_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 expandtab: */

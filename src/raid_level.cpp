@@ -96,7 +96,7 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
         return SSI_StatusInvalidParameter;
     }
     try {
-        Container container;
+        Container<EndDevice> container;
         for (unsigned int i = 0; i < params.diskHandleCount; i++) {
             EndDevice *pEndDevice = pSession->getEndDevice(params.diskHandles[i]);
             if (pEndDevice == 0) {
@@ -111,4 +111,4 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     }
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

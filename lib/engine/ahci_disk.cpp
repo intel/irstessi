@@ -42,7 +42,6 @@
 #include "filesystem.h"
 #include "object.h"
 #include "storage_device.h"
-#include "phy.h"
 #include "end_device.h"
 #include "block_device.h"
 #include "ahci_disk.h"

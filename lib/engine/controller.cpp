@@ -43,11 +43,20 @@
 #include "raid_info.h"
 #include "cache.h"
 #include "controller.h"
+#include "storage_device.h"
+#include "raid_device.h"
+#include "end_device.h"
+#include "routing_device.h"
+#include "phy.h"
+#include "volume.h"
+#include "port.h"
+#include "enclosure.h"
+#include "array.h"
 #include "session.h"
 
 /* */
 Controller::Controller(const String &path)
-    : StorageObject(0, path),
+    : StorageObject(path),
       m_PciVendorId(0),
       m_PciDeviceId(0),
       m_SubSystemId(0),
@@ -135,13 +144,13 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
 }
 
 /* */
-void Controller::getPhys(Container &container) const
+void Controller::getPhys(Container<Phy> &container) const
 {
     container = m_Phys;
 }
 
 /* */
-void Controller::getEnclosures(Container &container, bool all) const
+void Controller::getEnclosures(Container<Enclosure> &container, bool all) const
 {
     container = m_Enclosures_Direct;
     if (all) {
@@ -150,13 +159,13 @@ void Controller::getEnclosures(Container &container, bool all) const
 }
 
 /* */
-void Controller::getPorts(Container &container) const
+void Controller::getPorts(Container<Port> &container) const
 {
     container = m_Ports;
 }
 
 /* */
-void Controller::getEndDevices(Container &container, bool all) const
+void Controller::getEndDevices(Container<EndDevice> &container, bool all) const
 {
     container = m_EndDevices_Direct;
     if (all) {
@@ -165,7 +174,7 @@ void Controller::getEndDevices(Container &container, bool all) const
 }
 
 /* */
-void Controller::getRoutingDevices(Container &container, bool all) const
+void Controller::getRoutingDevices(Container<RoutingDevice> &container, bool all) const
 {
     container = m_RoutingDevices_Direct;
     if (all) {
@@ -174,13 +183,13 @@ void Controller::getRoutingDevices(Container &container, bool all) const
 }
 
 /* */
-void Controller::getArrays(Container &container) const
+void Controller::getArrays(Container<Array> &container) const
 {
     container = m_Arrays;
 }
 
 /* */
-void Controller::getVolumes(Container &container) const
+void Controller::getVolumes(Container<Volume> &container) const
 {
     container = m_Volumes;
 }
@@ -200,33 +209,34 @@ bool Controller::equal(const Object *pObject) const
 }
 
 /* */
-void Controller::attachEndDevice(Object *pEndDevice)
+void Controller::attachEndDevice(EndDevice *pEndDevice)
 {
     m_EndDevices_Direct.add(pEndDevice);
 }
 
 /* */
-void Controller::attachRoutingDevice(Object *pRoutingDevice)
+void Controller::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 {
     m_RoutingDevices_Direct.add(pRoutingDevice);
     ScopeObject *pScopeObject = dynamic_cast<ScopeObject *>(pRoutingDevice);
-    Container container;
-    pScopeObject->getEndDevices(container, true);
-    m_EndDevices.add(container);
-    pScopeObject->getRoutingDevices(container, true);
-    m_RoutingDevices.add(container);
+    Container<EndDevice> endDevices;
+    pScopeObject->getEndDevices(endDevices, true);
+    m_EndDevices.add(endDevices);
+    Container<RoutingDevice> routingDevices;
+    pScopeObject->getRoutingDevices(routingDevices, true);
+    m_RoutingDevices.add(routingDevices);
 }
 
 /* */
-void Controller::attachPort(Object *pPort)
+void Controller::attachPort(Port *pPort)
 {
     m_Ports.add(pPort);
 }
 
 /* */
-void Controller::attachVolume(Object *pVolume)
+void Controller::attachVolume(Volume *pVolume)
 {
-    Iterator<Object *> i;
+    Iterator<Volume *> i;
     for (i = m_Volumes; *i != 0; ++i) {
         if (*i == pVolume) {
             break;
@@ -238,15 +248,15 @@ void Controller::attachVolume(Object *pVolume)
 }
 
 /* */
-void Controller::attachPhy(Object *pPhy)
+void Controller::attachPhy(Phy *pPhy)
 {
     m_Phys.add(pPhy);
 }
 
 /* */
-void Controller::attachArray(Object *pArray)
+void Controller::attachArray(Array *pArray)
 {
-    Iterator<Object *> i;
+    Iterator<Array *> i;
     for (i = m_Arrays; *i != 0; ++i) {
         if (*i == pArray) {
             break;
@@ -258,7 +268,7 @@ void Controller::attachArray(Object *pArray)
 }
 
 /* */
-void Controller::attachEnclosure(Object *pEnclosure)
+void Controller::attachEnclosure(Enclosure *pEnclosure)
 {
     m_Enclosures_Direct.add(pEnclosure);
 }
@@ -271,24 +281,23 @@ void Controller::acquireId(Session *pSession)
         m_pRaidInfo->acquireId(pSession);
     }
 
-    Iterator<Object *> i;
-    for (i = m_EndDevices_Direct; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<EndDevice *> i = m_EndDevices_Direct; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_RoutingDevices_Direct; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices_Direct; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_Ports; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_Phys; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_Arrays; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<Array *> i = m_Arrays; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_Enclosures_Direct; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
 }
 

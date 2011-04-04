@@ -58,7 +58,7 @@
 
 /* */
 Array::Array(const String &path)
-    : RaidDevice(0, path)
+    : RaidDevice(path)
 {
     String metadata;
     Directory dir("/sys/devices/virtual/block");
@@ -78,8 +78,9 @@ Array::Array(const String &path)
                 continue;
             }
         }
-        Volume *pVolume = new Volume(this, *(*i), metadata.reverse_after("/"));
+        Volume *pVolume = new Volume(*(*i), metadata.reverse_after("/"));
         attachVolume(pVolume);
+        pVolume->setParent(this);
     }
 }
 
@@ -89,13 +90,13 @@ Array::~Array()
 }
 
 /* */
-SSI_Status Array::addSpare(const Container &container)
+SSI_Status Array::addSpare(const Container<EndDevice> &container)
 {
     if (m_Busy) {
         return SSI_StatusInvalidState;
     }
     String endDevices;
-    for (Iterator<Object *> i = container; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             return SSI_StatusInvalidState;
@@ -213,7 +214,7 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
 }
 
 /* */
-void Array::getEndDevices(Container &container, bool __attribute__((unused)) all) const
+void Array::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
 {
     container.clear();
     for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
@@ -222,12 +223,9 @@ void Array::getEndDevices(Container &container, bool __attribute__((unused)) all
 }
 
 /* */
-void Array::getVolumes(Container &container) const
+void Array::getVolumes(Container<Volume> &container) const
 {
-    container.clear();
-    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
-        container.add(*i);
-    }
+    container = m_Volumes;
 }
 
 /* */
@@ -294,7 +292,7 @@ void Array::create()
 }
 
 /* */
-void Array::attachEndDevice(Object *pObject)
+void Array::attachEndDevice(EndDevice *pObject)
 {
     BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pObject);
     if (pBlockDevice == 0) {
@@ -305,12 +303,8 @@ void Array::attachEndDevice(Object *pObject)
 }
 
 /* */
-void Array::attachVolume(Object *pObject)
+void Array::attachVolume(Volume *pVolume)
 {
-    Volume *pVolume = dynamic_cast<Volume *>(pObject);
-    if (pVolume == 0) {
-        throw E_INVALID_OBJECT;
-    }
     m_Volumes.add(pVolume);
 }
 

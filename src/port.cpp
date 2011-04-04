@@ -69,7 +69,7 @@ SSI_Status SsiGetPortHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<Port> container;
     try {
         pScopeObject->getPorts(container);
     } catch (...) {
@@ -101,4 +101,4 @@ SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
     return pPort->getInfo(portInfo);
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

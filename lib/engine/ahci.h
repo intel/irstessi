@@ -43,6 +43,7 @@ public:
 
 public:
     void getAddress(SSI_Address &address) const;
+    void discover();
 
     // Controller
 
@@ -50,11 +51,6 @@ protected:
     SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeAHCI;
     }
-
-    // AHCI
-
-private:
-    void __internal_initialize();
 };
 
 #endif /* __AHCI_H__INCLUDED__ */

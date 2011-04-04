@@ -278,6 +278,13 @@ public:
         __internal_update_content();
         return m_Content.count();
     }
+    void setFilter(const String &filter, bool update = false) {
+        m_Valid = false;
+        m_Filter = filter;
+        if (update) {
+            __internal_update_content();
+        }
+    }
 
 private:
     void __internal_update_content() {

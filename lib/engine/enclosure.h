@@ -37,17 +37,17 @@
 /* */
 class Enclosure : public StorageObject {
 public:
-    Enclosure(StorageObject *pParent, const String &path);
+    Enclosure(const String &path);
     ~Enclosure();
 
 public:
     void acquireId(Session *pSession);
     SSI_Status getInfo(SSI_EnclosureInfo *pInfo) const;
-    void getEndDevices(Container &, bool all) const;
-    void getRoutingDevices(Container &, bool all) const;
+    void getEndDevices(Container<EndDevice> &, bool all) const;
+    void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
     bool equal(const Object *pObject) const;
-    void attachEndDevice(Object *);
-    void attachRoutingDevice(Object *);
+    void attachEndDevice(EndDevice *);
+    void attachRoutingDevice(RoutingDevice *);
     void getSlotAddress(SSI_Address &address, unsigned int number);
 
     ObjectType getType() const {
@@ -58,8 +58,8 @@ public:
     }
 
 protected:
-    Container m_EndDevices;
-    Container m_RoutingDevices;
+    Container<EndDevice> m_EndDevices;
+    Container<RoutingDevice> m_RoutingDevices;
 };
 
 #endif /* __ENCLOSURE_H__INCLUDED__ */

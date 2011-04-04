@@ -38,8 +38,8 @@ class EndDevice;
 /* */
 class Volume : public RaidDevice {
 public:
-    Volume(Array *pParent);
-    Volume(Array *pParent, const String &path, unsigned int orginal);
+    Volume();
+    Volume(const String &path, unsigned int orginal);
     ~Volume();
 
     // Object
@@ -52,12 +52,12 @@ public:
     // ScopeObject
 
 public:
-    void getEndDevices(Container &, bool all) const;
+    void getEndDevices(Container<EndDevice> &, bool all) const;
 
     // StorageObject
 
 public:
-    void attachEndDevice(Object *pEndDevice);
+    void attachEndDevice(EndDevice *pEndDevice);
     void acquireId(Session *pSession);
 
     // StorageDevice
@@ -99,7 +99,7 @@ public:
     SSI_Status cancelVerify();
     SSI_Status verify(bool repair);
     SSI_Status modify(SSI_StripSize chunkSize, SSI_RaidLevel raidLevel,
-        unsigned long long newSize, const Container &disks);
+        unsigned long long newSize, const Container<EndDevice> &disks);
 
     void setComponentSize(unsigned long long size) {
         m_ComponentSize = size;
@@ -120,4 +120,4 @@ private:
     void __internal_initialize();
 };
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

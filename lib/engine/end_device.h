@@ -60,7 +60,7 @@ public:
     // ScopeObject
 
 public:
-    void getPhys(Container &container) const;
+    void getPhys(Container<Phy> &container) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeEndDevice;
@@ -71,8 +71,8 @@ public:
 public:
     void getAddress(SSI_Address &address) const;
 
-    void attachPhy(Object *pPhy);
-    void attachPort(Object *pPort);
+    void attachPhy(Phy *pPhy);
+    void attachPort(Port *pPort);
 
     virtual void acquireId(Session *pSession);
 
@@ -99,11 +99,11 @@ public:
     String getSerialNum() const {
         return m_SerialNum;
     }
-    Object * getPhy() const {
-        return reinterpret_cast<Object *>(m_pPhy);
+    Phy * getPhy() const {
+        return m_pPhy;
     }
-    Object * getPort() const {
-        return reinterpret_cast<Object *>(m_pPort);
+    Port * getPort() const {
+        return m_pPort;
     }
     unsigned int getSectors() const {
         return m_BlockSize;

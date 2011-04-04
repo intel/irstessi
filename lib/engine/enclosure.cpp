@@ -44,8 +44,8 @@
 #include "session.h"
 
 /* */
-Enclosure::Enclosure(StorageObject *pParent, const String &path)
-    : StorageObject(pParent, path)
+Enclosure::Enclosure(const String &path)
+    : StorageObject(path)
 {
 }
 
@@ -55,7 +55,7 @@ Enclosure::~Enclosure()
 }
 
 /* */
-void Enclosure::getEndDevices(Container &container, bool) const
+void Enclosure::getEndDevices(Container<EndDevice> &container, bool) const
 {
     container = m_EndDevices;
 }
@@ -71,7 +71,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
 }
 
 /* */
-void Enclosure::getRoutingDevices(Container &container, bool) const
+void Enclosure::getRoutingDevices(Container<RoutingDevice> &container, bool) const
 {
     container = m_RoutingDevices;
 }
@@ -83,13 +83,13 @@ bool Enclosure::equal(const Object *pObject) const
 }
 
 /* */
-void Enclosure::attachEndDevice(Object *pEndDevice)
+void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 {
     m_EndDevices.add(pEndDevice);
 }
 
 /* */
-void Enclosure::attachRoutingDevice(Object *pRoutingDevice)
+void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 {
     m_RoutingDevices.add(pRoutingDevice);
 }

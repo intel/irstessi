@@ -68,7 +68,7 @@ SSI_Status SsiGetPhyHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<Phy> container;
     try {
         pScopeObject->getPhys(container);
     } catch (...) {
@@ -122,4 +122,4 @@ SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
     return pPhy->locate(mode == SSI_TRUE);
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -42,8 +42,8 @@ class BlockDevice;
  */
 class RaidDevice : public StorageDevice {
 public:
-    RaidDevice(StorageDevice *pParent);
-    RaidDevice(StorageDevice *pParent, const String &path);
+    RaidDevice();
+    RaidDevice(const String &path);
     virtual ~RaidDevice();
 
     // Object
@@ -61,10 +61,10 @@ public:
 protected:
     String m_Name;
     String m_Uuid;
-    List<BlockDevice *> m_BlockDevices;
+    Container<BlockDevice> m_BlockDevices;
     List<String *> m_Components;
 
-    void attachComponent(const Container &endDevices, const String &devName);
+    void attachComponent(const Container<EndDevice> &endDevices, const String &devName);
 
 public:
     String getUuid() const {
@@ -75,7 +75,7 @@ public:
     virtual SSI_Status remove() = 0;
     virtual void create() = 0;
 
-    void setEndDevices(const Container &endDevices);
+    void setEndDevices(const Container<EndDevice> &endDevices);
     void setName(const String &prefix);
     void determineDeviceName(const String &prefix);
 
@@ -85,4 +85,4 @@ private:
 
 #endif /* __RAID_DEVICE_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

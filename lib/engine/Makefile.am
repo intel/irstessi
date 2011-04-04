@@ -19,19 +19,24 @@ libengine_la_SOURCES =          \
         ahci_disk.h             \
         ahci_multiplier.cpp     \
         ahci_multiplier.h       \
+        ahci_multiplier_phy.cpp \
+        ahci_multiplier_phy.h   \
+        ahci_multiplier_port.cpp\
+        ahci_multiplier_port.h  \
         ahci_phy.cpp            \
         ahci_phy.h              \
+        ahci_port.cpp           \
+        ahci_port.h             \
         ahci_raid_info.cpp      \
         ahci_raid_info.h        \
         ahci_tape.cpp           \
         ahci_tape.h             \
         array.cpp               \
         array.h                 \
-        block_device.h          \
         block_device.cpp        \
+        block_device.h          \
         cache.cpp               \
         cache.h                 \
-        container.cpp           \
         container.h             \
         context_manager.cpp     \
         context_manager.h       \
@@ -45,8 +50,8 @@ libengine_la_SOURCES =          \
         event.h                 \
         event_manager.cpp       \
         event_manager.h         \
-        exception.h             \
         exception.cpp           \
+        exception.h             \
         filesystem.cpp          \
         filesystem.h            \
         isci.cpp                \
@@ -57,14 +62,19 @@ libengine_la_SOURCES =          \
         isci_disk.h             \
         isci_expander.cpp       \
         isci_expander.h         \
+        isci_expander_phy.cpp   \
+        isci_expander_phy.h     \
+        isci_expander_port.cpp  \
+        isci_expander_port.h    \
         isci_phy.cpp            \
         isci_phy.h              \
-        isci_tape.cpp           \
-        isci_tape.h             \
+        isci_port.cpp           \
+        isci_port.h             \
         isci_raid_info.cpp      \
         isci_raid_info.h        \
+        isci_tape.cpp           \
+        isci_tape.h             \
         list.h                  \
-        multimedia_device.cpp   \
         multimedia_device.h     \
         nondisk_device.h        \
         object.cpp              \
@@ -88,7 +98,6 @@ libengine_la_SOURCES =          \
         session_manager.h       \
         storage_device.cpp      \
         storage_device.h        \
-        stream_device.cpp       \
         stream_device.h         \
         string.cpp              \
         string.h                \

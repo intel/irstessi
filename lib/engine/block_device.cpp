@@ -124,19 +124,19 @@ SSI_Status BlockDevice::writeStorageArea(void *pBuffer, unsigned int bufferSize)
 }
 
 /* */
-void BlockDevice::attachArray(Object *pArray)
+void BlockDevice::attachArray(Array *pArray)
 {
     if (pArray == 0) {
         throw E_NULL_POINTER;
     }
-    m_pArray = dynamic_cast<Array *>(pArray);
+    m_pArray = pArray;
     m_pPort->attachArray(pArray);
 
     __internal_determine_disk_usage();
 }
 
 /* */
-void BlockDevice::attachVolume(Object *pVolume)
+void BlockDevice::attachVolume(Volume *pVolume)
 {
     if (pVolume == 0) {
         throw E_NULL_POINTER;

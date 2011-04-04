@@ -68,7 +68,7 @@ SSI_Status SsiGetRoutingDeviceHandles(SSI_Handle session, SSI_ScopeType scopeTyp
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<RoutingDevice> container;
     try {
         pScopeObject->getRoutingDevices(container, scopeType == SSI_ScopeTypeControllerAll);
     } catch (...) {
@@ -100,3 +100,4 @@ SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session,
     return pRtDevice->getInfo(routingDeviceInfo);
 }
 
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

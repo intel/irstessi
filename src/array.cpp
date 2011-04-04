@@ -72,7 +72,7 @@ SSI_Status SsiGetArrayHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<Array> container;
     try {
         pScopeObject->getArrays(container);
     } catch (...) {
@@ -131,7 +131,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
         return SSI_StatusBufferTooSmall;
     }
     try {
-        Container container;
+        Container<EndDevice> container;
         for (unsigned int i = 0; i < diskHandleCount; i++) {
             EndDevice *pEndDevice = pSession->getEndDevice(diskHandles[i]);
             if (pEndDevice == 0) {
@@ -168,4 +168,4 @@ SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle,
     return pArray->setWriteCacheState(cacheEnable == SSI_TRUE);
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

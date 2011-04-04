@@ -54,8 +54,8 @@
 #include "raid_device.h"
 
 /* */
-RaidDevice::RaidDevice(StorageDevice *pParent, const String &path)
-    : StorageDevice(pParent, path)
+RaidDevice::RaidDevice(const String &path)
+    : StorageDevice(path)
 {
     m_DevName = m_Path.reverse_after("/");
 
@@ -72,8 +72,7 @@ RaidDevice::RaidDevice(StorageDevice *pParent, const String &path)
 }
 
 /* */
-RaidDevice::RaidDevice(StorageDevice *pParent)
-    : StorageDevice(pParent)
+RaidDevice::RaidDevice() : StorageDevice()
 {
 }
 
@@ -114,17 +113,17 @@ void RaidDevice::acquireId(Session *pSession)
     if (pSession == 0) {
         throw E_NULL_POINTER;
     }
-    Container endDevices = pSession->getEndDevices();
+    Container<EndDevice> endDevices = pSession->getEndDevices();
     for (Iterator<String *> i = m_Components; *i != 0; ++i) {
         attachComponent(endDevices, *(*i));
     }
 }
 
 /* */
-void RaidDevice::setEndDevices(const Container &container)
+void RaidDevice::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
-    for (Iterator<Object *> i = container; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             throw E_INVALID_OBJECT;
@@ -154,9 +153,9 @@ void RaidDevice::setName(const String &deviceName)
 }
 
 /* */
-void RaidDevice::attachComponent(const Container &endDevices, const String &devName)
+void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const String &devName)
 {
-    Iterator<Object *> i;
+    Iterator<EndDevice *> i;
     for (i = endDevices; *i != 0; ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
@@ -185,4 +184,4 @@ void RaidDevice::determineDeviceName(const String &prefix)
     }
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

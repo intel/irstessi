@@ -55,7 +55,7 @@ RaidInfo::RaidInfo(int disksPerArray, int totalRaidDisks, int volumesPerArray,
 }
 
 /* */
-void RaidInfo::getControllers(Container &container) const
+void RaidInfo::getControllers(Container<Controller> &container) const
 {
     container = m_Controllers;
 }
@@ -86,4 +86,4 @@ SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
     return SSI_StatusOk;
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

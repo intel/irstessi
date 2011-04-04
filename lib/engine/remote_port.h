@@ -37,18 +37,18 @@
 /* */
 class RemotePort : public Port {
 public:
-    RemotePort(StorageObject *pParent, const String &path);
+    RemotePort(const String &path);
 
     // StorageObject
 
 public:
-    void attachArray(Object *pArray);
-    void attachVolume(Object *pVolume);
-    void attachPort(Object *pPort);
-    void attachRoutingDevice(Object *pRoutingDevice) {
+    void attachArray(Array *pArray);
+    void attachVolume(Volume *pVolume);
+    void attachPort(Port *pPort);
+    void attachRoutingDevice(RoutingDevice *pRoutingDevice) {
         throw E_INVALID_OPERATION;
     }
-    void attachEndDevice(Object *pEndDevice) {
+    void attachEndDevice(EndDevice *pEndDevice) {
         throw E_INVALID_OPERATION;
     }
 

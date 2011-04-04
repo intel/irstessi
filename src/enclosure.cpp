@@ -68,7 +68,7 @@ SSI_Status SsiGetEnclosureHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<Enclosure> container;
     try {
         pScopeObject->getEnclosures(container, scopeType == SSI_ScopeTypeControllerAll);
     } catch (...) {
@@ -100,4 +100,4 @@ SSI_Status SsiGetEnclosureInfo(SSI_Handle session, SSI_Handle enclosureHandle,
     return pEnclosure->getInfo(enclosureInfo);
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

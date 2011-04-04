@@ -86,7 +86,7 @@
 
 /* */
 EndDevice::EndDevice(const String &path)
-    : StorageDevice(0, path),
+    : StorageDevice(path),
       m_SerialNum(""),
       m_pPhy(0),
       m_pPort(0),
@@ -98,8 +98,10 @@ EndDevice::EndDevice(const String &path)
       m_SASAddress(0),
       m_WriteCachePolicy(SSI_WriteCachePolicyOff)
 {
-    m_pPhy = new Phy(this, path, 0);
-    m_pPort = new RemotePort(this, path);
+    m_pPhy = new Phy(path, 0);
+    m_pPhy->setParent(this);
+    m_pPort = new RemotePort(path);
+    m_pPort->setParent(this);
     m_pPort->attachPhy(m_pPhy);
 
     String scsiAddress = m_Path.reverse_after("/");
@@ -269,12 +271,9 @@ void EndDevice::getAddress(SSI_Address &address) const
 
 
 /* */
-void EndDevice::getPhys(Container &container) const
+void EndDevice::getPhys(Container<Phy> &container) const
 {
-    container.clear();
-    if (m_pPhy != 0) {
-        container.add(reinterpret_cast<Object *>(m_pPhy));
-    }
+    container = m_pPhy;
 }
 
 /* */
@@ -304,15 +303,15 @@ bool EndDevice::equal(const Object *pObject) const
 }
 
 /* */
-void EndDevice::attachPhy(Object *pPhy)
+void EndDevice::attachPhy(Phy *pPhy)
 {
-    m_pPhy = dynamic_cast<Phy *>(pPhy);
+    m_pPhy = pPhy;
 }
 
 /* */
-void EndDevice::attachPort(Object *pPort)
+void EndDevice::attachPort(Port *pPort)
 {
-    m_pPort = dynamic_cast<Port *>(pPort);
+    m_pPort = pPort;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -43,8 +43,8 @@
 #include "storage_device.h"
 
 /* */
-StorageDevice::StorageDevice(StorageObject *pParent, const String &path)
-    : StorageObject(pParent, path)
+StorageDevice::StorageDevice(const String &path)
+    : StorageObject(path)
 {
 }
 
@@ -53,4 +53,4 @@ StorageDevice::~StorageDevice()
 {
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

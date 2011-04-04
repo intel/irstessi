@@ -42,7 +42,7 @@ public:
     // ScopeObject
 
 public:
-    void getPhys(Container &container) const;
+    void getPhys(Container<Phy> &container) const;
 
     // StorageObject
 
@@ -64,8 +64,8 @@ public:
     // AHCI_Multiplier
 
 public:
-    Object * getPhy() const {
-        return reinterpret_cast<Object *>(m_pPhy);
+    Phy * getPhy() const {
+        return m_pPhy;
     }
 
 protected:

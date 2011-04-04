@@ -44,49 +44,49 @@
 #include "session.h"
 
 /* */
-void NoneScopeObject::getEndDevices(Container &container, bool) const
+void NoneScopeObject::getEndDevices(Container<EndDevice> &container, bool) const
 {
     container = m_pSession->getEndDevices();
 }
 
 /* */
-void NoneScopeObject::getRoutingDevices(Container &container, bool) const
+void NoneScopeObject::getRoutingDevices(Container<RoutingDevice> &container, bool) const
 {
     container = m_pSession->getRoutingDevices();
 }
 
 /* */
-void NoneScopeObject::getPorts(Container &container) const
+void NoneScopeObject::getPorts(Container<Port> &container) const
 {
     container = m_pSession->getPorts();
 }
 
 /* */
-void NoneScopeObject::getVolumes(Container &container) const
+void NoneScopeObject::getVolumes(Container<Volume> &container) const
 {
     container = m_pSession->getVolumes();
 }
 
 /* */
-void NoneScopeObject::getArrays(Container &container) const
+void NoneScopeObject::getArrays(Container<Array> &container) const
 {
     container = m_pSession->getArrays();
 }
 
 /* */
-void NoneScopeObject::getControllers(Container &container) const
+void NoneScopeObject::getControllers(Container<Controller> &container) const
 {
     container = m_pSession->getControllers();
 }
 
 /* */
-void NoneScopeObject::getPhys(Container &container) const
+void NoneScopeObject::getPhys(Container<Phy> &container) const
 {
     container = m_pSession->getPhys();
 }
 
 /* */
-void NoneScopeObject::getEnclosures(Container &container, bool) const
+void NoneScopeObject::getEnclosures(Container<Enclosure> &container, bool) const
 {
     container = m_pSession->getEnclosures();
 }

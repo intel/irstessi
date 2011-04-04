@@ -40,7 +40,7 @@ class Port;
 /* */
 class Phy : public StorageObject {
 public:
-    Phy(StorageObject *pParent, const String &path, unsigned int number);
+    Phy(const String &path, unsigned int number);
     virtual ~Phy();
 
     // Object
@@ -63,8 +63,8 @@ public:
 public:
     void acquireId(Session *pSession);
 
-    void attachPhy(Object *pPhy);
-    void attachPort(Object *pPort);
+    void attachPhy(Phy *pPhy);
+    void attachPort(Port *pPort);
 
     // Phy
 

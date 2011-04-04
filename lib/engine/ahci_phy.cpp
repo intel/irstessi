@@ -69,24 +69,32 @@
 #define EM_MSG_WAIT     1500
 
 /* */
-AHCI_Phy::AHCI_Phy(AHCI *pParent, const String &path, unsigned int number)
-    : Phy(pParent, "", number)
+AHCI_Phy::AHCI_Phy(const String &path, unsigned int number)
+    : Phy(path, number), m_PhyPath(CanonicalPath(path + "/scsi_host" + path.reverse_right("/host")))
 {
-    m_Path = CanonicalPath(path + "/scsi_host" + path.right("/host"));
-    Directory dir(path, "target");
+}
+
+/* */
+void AHCI_Phy::discover()
+{
+    Directory dir(m_Path, "target");
     if (dir > 0) {
-        m_pPort = new Port(pParent, path);
+        m_pPort = new Port(m_Path);
+        m_pPort->setParent(m_pParent);
         m_pPort->attachPhy(this);
+
         if (dir.count() == 1) {
             EndDevice *pEndDevice = __internal_attach_end_device(dir);
             if (pEndDevice != 0) {
                 m_pPort->attachPort(pEndDevice->getPort());
             }
         } else {
-            AHCI_Multiplier *pMultiplier = new AHCI_Multiplier(path, dir);
-            m_pPort->attachPort(pMultiplier->getPort());
+            AHCI_Multiplier *pMultiplier = new AHCI_Multiplier(m_Path, dir);
+            m_pPort->attachPort(pMultiplier->getSubtractivePort());
         }
-        m_pParent->attachPort(m_pPort);
+        if (m_pParent != 0) {
+            m_pParent->attachPort(m_pPort);
+        }
     }
 }
 

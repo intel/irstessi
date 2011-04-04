@@ -74,7 +74,8 @@ Session::Session() : m_pNoneScopeObj(0)
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            AHCI *pAHCI = new AHCI(*(*i));
+            AHCI *pAHCI = new AHCI(CanonicalPath(*(*i)));
+            pAHCI->discover();
             pAHCI->acquireId(this);
         }
     }
@@ -82,14 +83,15 @@ Session::Session() : m_pNoneScopeObj(0)
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            ISCI *pISCI = new ISCI(*(*i));
+            ISCI *pISCI = new ISCI(CanonicalPath(*(*i)));
+            pISCI->discover();
             pISCI->acquireId(this);
         }
     }
     if (m_EndDevices > 0) {
         dir = "/sys/devices/virtual/block";
         for (Iterator<Directory *> i = dir; *i != 0; ++i) {
-            __internal_attach_imsm_device(*(*i));
+            __internal_attach_imsm_device(CanonicalPath(*(*i)));
         }
     }
     m_pNoneScopeObj = new NoneScopeObject(this);
@@ -100,31 +102,31 @@ Session::~Session()
 {
     delete m_pNoneScopeObj;
 
-    for (Iterator<Object *> i = m_EndDevices; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = m_EndDevices; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_Arrays; *i != 0; ++i) {
+    for (Iterator<Array *> i = m_Arrays; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_Enclosures; *i != 0; ++i) {
+    for (Iterator<Enclosure *> i = m_Enclosures; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_RaidInfo; *i != 0; ++i) {
+    for (Iterator<RaidInfo *> i = m_RaidInfo; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_Phys; *i != 0; ++i) {
+    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_Volumes; *i != 0; ++i) {
+    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_Ports; *i != 0; ++i) {
+    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_RoutingDevices; *i != 0; ++i) {
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Object *> i = m_Controllers; *i != 0; ++i) {
+    for (Iterator<Controller *> i = m_Controllers; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
 }
@@ -407,4 +409,4 @@ void Session::__internal_attach_imsm_array(const String &path)
     }
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

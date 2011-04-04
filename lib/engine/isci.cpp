@@ -33,6 +33,9 @@
 
 #include <features.h>
 
+#include <unistd.h>
+#include <asm/types.h>
+
 #include <ssi.h>
 
 #include "exception.h"
@@ -45,13 +48,82 @@
 #include "controller.h"
 #include "isci.h"
 #include "raid_info.h"
+#include "phy.h"
 #include "session.h"
 #include "enclosure.h"
+#include "isci_phy.h"
+#include "port.h"
+#include "pci_header.h"
 
 /* */
 ISCI::ISCI(const String &path)
     : Controller(path)
 {
+    SysfsAttr attr;
+    struct PCIHeader pciInfo;
+
+    m_Name = "ISCI at " + m_Path.reverse_right("0000:");
+
+    try {
+        attr = m_Path + "/driver/module/version";
+        attr >> m_DriverVersion;
+    } catch (...) {
+        m_DriverVersion = "Unknown";
+    }
+    try {
+        attr = m_Path + "/config";
+        attr.read(&pciInfo, sizeof(struct PCIHeader));
+        m_PciVendorId = pciInfo.vendorId;
+        m_PciDeviceId = pciInfo.deviceId;
+        m_SubSystemId = pciInfo.subSystemId;
+        m_HardwareRevisionId = pciInfo.revisionId;
+        m_SubClassCode = pciInfo.subClassId;
+        m_SubVendorId = pciInfo.subSystemVendorId;
+    } catch (...) {
+        /* TODO: log that PCI header cannot be read from sysfs. */
+    }
+
+    /* TODO: Read RAID info parameters from EFI variables if any */
+}
+
+/* */
+void ISCI::discover()
+{
+    Directory dir(m_Path, "host");
+    SysfsAttr attr;
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        unsigned int number = 0;
+        try {
+            attr = *(*i) + "scsi_host" + (*i)->reverse_after("/") + "isci_id";
+            attr >> number;
+        } catch (Exception) {
+            /* TODO: report read failure of attribtue. */
+        }
+        Directory phys(*(*i), "phy");
+        number *= 4;
+        for (Iterator<Directory *> j = phys; *j != 0; ++j, ++number) {
+            Phy *pPhy = new ISCI_Phy(*(*j), number);
+            attachPhy(pPhy);
+            pPhy->setParent(this);
+        }
+    }
+    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+        (*i)->discover();
+    }
+    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+        (*i)->discover();
+    }
+}
+
+/* */
+Port * ISCI::getPortByPath(const String &path) const
+{
+    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+        if ((*i)->getPath() == path) {
+            return (*i);
+        }
+    }
+    return 0;
 }
 
 /* */
@@ -59,4 +131,4 @@ void ISCI::getAddress(SSI_Address &address) const
 {
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

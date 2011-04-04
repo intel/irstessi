@@ -59,7 +59,15 @@ inline ObjectType getTypeOfId(unsigned int id) {
 
 // Forward declaration
 class Session;
+class RoutingDevice;
+class EndDevice;
+class Port;
 class RaidInfo;
+class Volume;
+class Controller;
+class Phy;
+class Enclosure;
+class Array;
 
 /* */
 class Object {
@@ -133,28 +141,28 @@ public:
     }
 
 public:
-    virtual void getEndDevices(Container &, bool) const {
+    virtual void getEndDevices(Container<EndDevice> &, bool) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getRoutingDevices(Container &, bool) const {
+    virtual void getRoutingDevices(Container<RoutingDevice> &, bool) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getPorts(Container &) const {
+    virtual void getPorts(Container<Port> &) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getVolumes(Container &) const {
+    virtual void getVolumes(Container<Volume> &) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getArrays(Container &) const {
+    virtual void getArrays(Container<Array> &) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getControllers(Container &) const {
+    virtual void getControllers(Container<Controller> &) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getPhys(Container &) const {
+    virtual void getPhys(Container<Phy> &) const {
         throw E_INVALID_SCOPE;
     }
-    virtual void getEnclosures(Container &, bool) const {
+    virtual void getEnclosures(Container<Enclosure> &, bool) const {
         throw E_INVALID_SCOPE;
     }
     virtual bool scopeTypeMatches(SSI_ScopeType) const {
@@ -194,14 +202,14 @@ protected:
     Session *m_pSession;
 
 public:
-    void getEndDevices(Container &, bool) const;
-    void getRoutingDevices(Container &, bool) const;
-    void getPorts(Container &) const;
-    void getVolumes(Container &) const;
-    void getArrays(Container &) const;
-    void getControllers(Container &) const;
-    void getPhys(Container &) const;
-    void getEnclosures(Container &, bool) const;
+    void getEndDevices(Container<EndDevice> &, bool) const;
+    void getRoutingDevices(Container<RoutingDevice> &, bool) const;
+    void getPorts(Container<Port> &) const;
+    void getVolumes(Container<Volume> &) const;
+    void getArrays(Container<Array> &) const;
+    void getControllers(Container<Controller> &) const;
+    void getPhys(Container<Phy> &) const;
+    void getEnclosures(Container<Enclosure> &, bool) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeNone;
@@ -214,10 +222,10 @@ class StorageObject : public ScopeObject {
 public:
     virtual ~StorageObject() {
     }
-    StorageObject(StorageObject *pParent)
+    StorageObject(StorageObject *pParent = 0)
         : m_pParent(pParent) {
     }
-    StorageObject(StorageObject *pParent, const String &path)
+    StorageObject(const String &path, StorageObject *pParent = 0)
         : m_pParent(pParent), m_Path(path) {
     }
 
@@ -226,32 +234,42 @@ protected:
     String m_Path;
 
 public:
-    virtual void attachEndDevice(Object *) {
+    String getPath() const {
+        return m_Path;
+    }
+    void setPath(const String &path) {
+        m_Path = path;
+    }
+
+public:
+    virtual void attachEndDevice(EndDevice *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachRoutingDevice(Object *) {
+    virtual void attachRoutingDevice(RoutingDevice *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachPort(Object *) {
+    virtual void attachPort(Port *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachVolume(Object *) {
+    virtual void attachVolume(Volume *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachArray(Object *) {
+    virtual void attachArray(Array *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachPhy(Object *) {
+    virtual void attachPhy(Phy *) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachEnclosure(Object *) {
+    virtual void attachEnclosure(Enclosure *) {
         throw E_INVALID_OPERATION;
     }
     StorageObject * getParent() const {
         return m_pParent;
     }
-    virtual void setParent(StorageObject *pParent) {
-        m_pParent = pParent;
+    void setParent(StorageObject *pParent) {
+        if (pParent != this) {
+            m_pParent = pParent;
+        }
     }
     virtual RaidInfo * getRaidInfo() const {
         return 0;
@@ -261,9 +279,18 @@ public:
     }
 
 public:
+    virtual Port * getPort() const {
+        throw E_INVALID_OPERATION;
+    }
+    virtual Port * getPortByPath(const String &s) const {
+        throw E_INVALID_OPERATION;
+    }
+    virtual void discover() {
+        throw E_INVALID_OPERATION;
+    }
     virtual void acquireId(Session *pSession) = 0;
 };
 
 #endif /* __OBJECT_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

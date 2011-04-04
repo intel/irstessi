@@ -42,7 +42,6 @@
 #include "filesystem.h"
 #include "object.h"
 #include "storage_device.h"
-#include "phy.h"
 #include "end_device.h"
 #include "nondisk_device.h"
 #include "stream_device.h"

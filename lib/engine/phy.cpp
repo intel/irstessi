@@ -45,8 +45,8 @@
 #include "session.h"
 
 /* */
-Phy::Phy(StorageObject *pParent, const String &path, unsigned int number)
-    : StorageObject(pParent, path), m_pRemotePhy(0), m_pPort(0), m_Number(number)
+Phy::Phy(const String &path, unsigned int number)
+    : StorageObject(path), m_pRemotePhy(0), m_pPort(0), m_Number(number)
 {
 }
 
@@ -116,10 +116,10 @@ bool Phy::equal(const Object *pObject) const
 }
 
 /* */
-void Phy::attachPhy(Object *pPhy)
+void Phy::attachPhy(Phy *pPhy)
 {
     if (pPhy != this ) {
-        m_pRemotePhy = dynamic_cast<Phy *>(pPhy);
+        m_pRemotePhy = pPhy;
         if (pPhy == 0) {
             throw E_NULL_POINTER;
         }
@@ -128,12 +128,12 @@ void Phy::attachPhy(Object *pPhy)
 }
 
 /* */
-void Phy::attachPort(Object *pPort)
+void Phy::attachPort(Port *pPort)
 {
     if (pPort == 0) {
         throw E_NULL_POINTER;
     }
-    m_pPort = dynamic_cast<Port *>(pPort);
+    m_pPort = pPort;
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -37,10 +37,10 @@
 /* */
 class StorageDevice : public StorageObject {
 public:
-    StorageDevice(StorageObject *pParent)
-        : StorageObject(pParent) {
+    StorageDevice()
+        : StorageObject() {
     }
-    StorageDevice(StorageObject *pParent, const String &path);
+    StorageDevice(const String &path);
     virtual ~StorageDevice();
 
 protected:
@@ -63,4 +63,4 @@ public:
 
 #endif /* __STORAGE_DEVICE_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

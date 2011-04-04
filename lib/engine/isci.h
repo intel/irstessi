@@ -42,7 +42,9 @@ public:
     // StorageObject
 
 public:
+    void discover();
     void getAddress(SSI_Address &address) const;
+    Port * getPortByPath(const String &) const;
 
     // Controller
 
@@ -54,9 +56,10 @@ protected:
     // ISCI
 
 private:
+    void __internal_discover_phys(const String &);
     void __internal_initialize();
 };
 
 #endif /* __ISCI_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

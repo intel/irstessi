@@ -36,6 +36,13 @@
 
 // Forward declaration
 class RaidInfo;
+class RoutingDevice;
+class EndDevice;
+class Phy;
+class Port;
+class Volume;
+class Array;
+class Enclosure;
 
 /* */
 class Controller : public StorageObject {
@@ -55,13 +62,13 @@ public:
     // ScopeObject
 
 public:
-    void getEndDevices(Container &, bool all) const;
-    void getRoutingDevices(Container &, bool all) const;
-    void getPorts(Container &) const;
-    void getVolumes(Container &) const;
-    void getArrays(Container &) const;
-    void getPhys(Container &) const;
-    void getEnclosures(Container &, bool all) const;
+    void getEndDevices(Container<EndDevice> &, bool all) const;
+    void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
+    void getPorts(Container<Port> &) const;
+    void getVolumes(Container<Volume> &) const;
+    void getArrays(Container<Array> &) const;
+    void getPhys(Container<Phy> &) const;
+    void getEnclosures(Container<Enclosure> &, bool all) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeControllerDirect ||
@@ -71,29 +78,29 @@ public:
     // StorageObject
 
 public:
-    void attachEndDevice(Object *pEndDevice);
-    void attachRoutingDevice(Object *pRoutingDevice);
-    void attachPort(Object *pPort);
-    void attachVolume(Object *pVolume);
-    void attachPhy(Object *pPhy);
-    void attachArray(Object *pArray);
-    void attachEnclosure(Object *pEnclosure);
+    void attachEndDevice(EndDevice *pEndDevice);
+    void attachRoutingDevice(RoutingDevice *pRoutingDevice);
+    void attachPort(Port *pPort);
+    void attachVolume(Volume *pVolume);
+    void attachPhy(Phy *pPhy);
+    void attachArray(Array *pArray);
+    void attachEnclosure(Enclosure *pEnclosure);
 
     void acquireId(Session *pSession);
 
     // Controller
 
 protected:
-    Container m_EndDevices;
-    Container m_EndDevices_Direct;
-    Container m_RoutingDevices;
-    Container m_RoutingDevices_Direct;
-    Container m_Ports;
-    Container m_Volumes;
-    Container m_Phys;
-    Container m_Arrays;
-    Container m_Enclosures_Direct;
-    Container m_Enclosures;
+    Container<EndDevice> m_EndDevices_Direct;
+    Container<EndDevice> m_EndDevices;
+    Container<RoutingDevice> m_RoutingDevices_Direct;
+    Container<RoutingDevice> m_RoutingDevices;
+    Container<Port> m_Ports;
+    Container<Volume> m_Volumes;
+    Container<Phy> m_Phys;
+    Container<Array> m_Arrays;
+    Container<Enclosure> m_Enclosures_Direct;
+    Container<Enclosure> m_Enclosures;
 
     String m_Name;
     String m_PrebootMgrVersion;

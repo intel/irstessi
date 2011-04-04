@@ -71,7 +71,7 @@ SSI_Status SsiGetEndDeviceHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<EndDevice> container;
     try {
         pScopeObject->getEndDevices(container, scopeType == SSI_ScopeTypeControllerAll);
     } catch (...) {
@@ -270,4 +270,4 @@ SSI_Status SsiPassthroughCommand(SSI_Handle deviceHandle, void *cmdInfoUnit,
         dataDirection);
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

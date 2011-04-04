@@ -42,11 +42,9 @@
 #include "filesystem.h"
 #include "object.h"
 #include "storage_device.h"
-#include "phy.h"
 #include "end_device.h"
 #include "nondisk_device.h"
 #include "multimedia_device.h"
-#include "session.h"
 #include "ahci_cdrom.h"
 
 /* */
@@ -55,4 +53,4 @@ AHCI_CDROM::AHCI_CDROM(const String &path)
 {
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

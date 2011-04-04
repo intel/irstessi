@@ -401,6 +401,9 @@ public:
     bool different(const char *buf) const {
         return buf != 0 && __compare(buf) != 0;
     }
+    int compare(const String &s) const {
+        return __compare(s.get());
+    }
 
 public:
     void clear() {
@@ -472,4 +475,4 @@ inline String operator + (const char *left, const String &right) {
 
 #endif /* __STRING_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

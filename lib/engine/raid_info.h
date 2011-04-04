@@ -55,7 +55,7 @@ public:
     // ScopeObject
 
 public:
-    void getControllers(Container &) const;
+    void getControllers(Container<Controller> &) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRaidInfo;
@@ -64,14 +64,14 @@ public:
     // RaidInfo
 
 protected:
-    Container m_Controllers;
+    Container<Controller> m_Controllers;
     int m_DisksPerArray;
     int m_RaidDisksSupported;
     int m_VolumesPerHBA;
     int m_VolumesPerArray;
     short m_SupportedStripSizes;
 
-    void attachController(Object *pController) {
+    void attachController(Controller *pController) {
         m_Controllers.add(pController);
     }
 
@@ -85,4 +85,4 @@ public:
 
 #endif /* __RAID_INFO_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

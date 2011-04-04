@@ -37,7 +37,13 @@
 /* */
 class ISCI_Expander : public RoutingDevice {
 public:
-    ISCI_Expander(Port *pParent, const String &path);
+    ISCI_Expander(const String &path);
+
+    // StorageObject
+
+public:
+    void discover();
+    Port * getPortByPath(const String &) const;
 
     // RoutingDevice
 

@@ -68,7 +68,7 @@ SSI_Status SsiGetControllerHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<Controller> container;
     try {
         pScopeObject->getControllers(container);
     } catch(...) {
@@ -122,4 +122,4 @@ SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
     return pController->readPatrolSetState(enable == SSI_TRUE);
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

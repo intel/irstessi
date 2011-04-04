@@ -58,8 +58,8 @@ public:
     // ScopeObject
 
 public:
-    void getEndDevices(Container &, bool all) const;
-    void getVolumes(Container &) const;
+    void getEndDevices(Container<EndDevice> &, bool all) const;
+    void getVolumes(Container<Volume> &) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeArray;
@@ -68,8 +68,8 @@ public:
     // StorageObject
 
 public:
-    void attachVolume(Object *pVolume);
-    void attachEndDevice(Object *pEndDevice);
+    void attachVolume(Volume *pVolume);
+    void attachEndDevice(EndDevice *pEndDevice);
     void acquireId(Session *pSession);
 
     // StorageDevice
@@ -87,14 +87,14 @@ public:
     // Array
 
 protected:
-    List<Volume *> m_Volumes;
+    Container<Volume> m_Volumes;
     bool m_Busy;
     unsigned long long m_TotalSize;
     unsigned long long m_FreeSize;
 
 public:
     SSI_Status addSpare(const EndDevice *pEndDevice);
-    SSI_Status addSpare(const Container &endDevices);
+    SSI_Status addSpare(const Container<EndDevice> &endDevices);
     SSI_Status setWriteCacheState(bool enable);
     SSI_Status removeSpare(const EndDevice *pEndDevice);
 

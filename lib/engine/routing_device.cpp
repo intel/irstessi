@@ -42,12 +42,15 @@
 #include "object.h"
 #include "routing_device.h"
 #include "port.h"
+#include "storage_device.h"
+#include "phy.h"
+#include "end_device.h"
 #include "session.h"
 #include "enclosure.h"
 
 /* */
 RoutingDevice::RoutingDevice(const String &path)
-    : StorageObject(0, path), m_pSubtractivePort(0)
+    : StorageObject(path), m_pSubtractivePort(0)
 {
 }
 
@@ -60,30 +63,29 @@ RoutingDevice::~RoutingDevice()
 void RoutingDevice::acquireId(Session *pSession)
 {
     pSession->addRoutingDevice(this);
-    Iterator<Object *> i;
-    for (i = m_EndDevices_Direct; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<EndDevice *> i = m_EndDevices_Direct; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_Phys; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_Ports; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
-    for (i = m_RoutingDevices_Direct; *i != 0; ++i) {
-        dynamic_cast<StorageObject *>(*i)->acquireId(pSession);
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices_Direct; *i != 0; ++i) {
+        (*i)->acquireId(pSession);
     }
     pSession->addPort(m_pSubtractivePort);
 }
 
 /* */
-void RoutingDevice::getPhys(Container &container) const
+void RoutingDevice::getPhys(Container<Phy> &container) const
 {
     container = m_Phys;
 }
 
 /* */
-void RoutingDevice::getEndDevices(Container &container, bool all) const
+void RoutingDevice::getEndDevices(Container<EndDevice> &container, bool all) const
 {
     container = m_EndDevices_Direct;
     if (all) {
@@ -92,14 +94,14 @@ void RoutingDevice::getEndDevices(Container &container, bool all) const
 }
 
 /* */
-void RoutingDevice::getPorts(Container &container) const
+void RoutingDevice::getPorts(Container<Port> &container) const
 {
     container = m_Ports;
     container.add(m_pSubtractivePort);
 }
 
 /* */
-void RoutingDevice::getRoutingDevices(Container &container, bool all) const
+void RoutingDevice::getRoutingDevices(Container<RoutingDevice> &container, bool all) const
 {
     container = m_RoutingDevices_Direct;
     if (all) {
@@ -157,45 +159,46 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
 }
 
 /* */
-void RoutingDevice::attachArray(Object *pObject)
+void RoutingDevice::attachArray(Array *pArray)
 {
-    m_pSubtractivePort->attachArray(pObject);
+    m_pSubtractivePort->attachArray(pArray);
 }
 
 /* */
-void RoutingDevice::attachVolume(Object *pObject)
+void RoutingDevice::attachVolume(Volume *pVolume)
 {
-    m_pSubtractivePort->attachVolume(pObject);
+    m_pSubtractivePort->attachVolume(pVolume);
 }
 
 /* */
-void RoutingDevice::attachPhy(Object *pPhy)
+void RoutingDevice::attachPhy(Phy *pPhy)
 {
     m_Phys.add(pPhy);
 }
 
 /* */
-void RoutingDevice::attachEndDevice(Object *pEndDevice)
+void RoutingDevice::attachEndDevice(EndDevice *pEndDevice)
 {
     m_EndDevices_Direct.add(pEndDevice);
 }
 
 /* */
-void RoutingDevice::attachPort(Object *pPort)
+void RoutingDevice::attachPort(Port *pPort)
 {
     m_Ports.add(pPort);
 }
 
 /* */
-void RoutingDevice::attachRoutingDevice(Object *pRoutingDevice)
+void RoutingDevice::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 {
     m_RoutingDevices_Direct.add(pRoutingDevice);
     ScopeObject *pScopeObject = dynamic_cast<ScopeObject *>(pRoutingDevice);
-    Container container;
-    pScopeObject->getEndDevices(container, true);
-    m_EndDevices.add(container);
-    pScopeObject->getRoutingDevices(container, true);
-    m_RoutingDevices.add(container);
+    Container<EndDevice> endDevices;
+    pScopeObject->getEndDevices(endDevices, true);
+    m_EndDevices.add(endDevices);
+    Container<RoutingDevice> routingDevices;
+    pScopeObject->getRoutingDevices(routingDevices, true);
+    m_RoutingDevices.add(routingDevices);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

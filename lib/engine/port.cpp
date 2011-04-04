@@ -48,8 +48,8 @@
 #include "session.h"
 
 /* */
-Port::Port(StorageObject *pParent, const String &path)
-    : StorageObject(pParent, path), m_pRemotePort(0)
+Port::Port(const String &path)
+    : StorageObject(path), m_pRemotePort(0)
 {
 }
 
@@ -90,7 +90,7 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
 }
 
 /* */
-void Port::getPhys(Container &container) const
+void Port::getPhys(Container<Phy> &container) const
 {
     container = m_Phys;
 }
@@ -104,43 +104,43 @@ bool Port::equal(const Object *pObject) const
 }
 
 /* */
-void Port::attachArray(Object *pArray)
+void Port::attachArray(Array *pArray)
 {
     m_pParent->attachArray(pArray);
 }
 
 /* */
-void Port::attachVolume(Object *pVolume)
+void Port::attachVolume(Volume *pVolume)
 {
     m_pParent->attachVolume(pVolume);
 }
 
 /* */
-void Port::attachEndDevice(Object *pEndDevice)
+void Port::attachEndDevice(EndDevice *pEndDevice)
 {
     m_pParent->attachEndDevice(pEndDevice);
 }
 
 /* */
-void Port::attachRoutingDevice(Object *pRoutingDevice)
+void Port::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 {
     m_pParent->attachRoutingDevice(pRoutingDevice);
 }
 
 /* */
-void Port::attachPhy(Object *pPhy)
+void Port::attachPhy(Phy *pPhy)
 {
     m_Phys.add(pPhy);
-    dynamic_cast<Phy *>(pPhy)->attachPort(this);
+    pPhy->attachPort(this);
 }
 
 /* */
-void Port::attachPort(Object *pPort)
+void Port::attachPort(Port *pPort)
 {
     if (pPort == this) {
         throw E_INVALID_OBJECT;
     }
-    m_pRemotePort = dynamic_cast<Port *>(pPort);
+    m_pRemotePort = pPort;
     m_pRemotePort->attachPort(this);
 }
 

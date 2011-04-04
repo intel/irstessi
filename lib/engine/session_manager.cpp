@@ -57,7 +57,7 @@ SessionManager::~SessionManager()
 {
     delete m_pNullSession;
 
-    for (Iterator<Object *> i = m_Sessions; *i != 0; ++i) {
+    for (Iterator<Session *> i = m_Sessions; *i != 0; ++i) {
         pContextMgr->releaseId(*i);
     }
 }
@@ -71,7 +71,7 @@ Session * SessionManager::getSession(unsigned int id)
         delete m_pNullSession;
         m_pNullSession = pSession;
     } else {
-        pSession = dynamic_cast<Session *>(m_Sessions.find(id));
+        pSession = m_Sessions.find(id);
     }
     return pSession;
 }
@@ -102,7 +102,7 @@ SSI_Status SessionManager::closeSession(unsigned int id)
     if (id == 0) {
         return SSI_StatusInvalidParameter;
     }
-    Object *pSession;
+    Session *pSession;
     try {
         pSession = m_Sessions.remove(id);
         pContextMgr->releaseId(pSession);
@@ -112,4 +112,4 @@ SSI_Status SessionManager::closeSession(unsigned int id)
     return SSI_StatusOk;
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -64,7 +64,7 @@ public:
     // BlockDevice
 
 protected:
-    Container m_Volumes;
+    Container<Volume> m_Volumes;
     Array *m_pArray;
     SSI_DiskUsage m_DiskUsage;
     SSI_DiskState m_DiskState;
@@ -79,8 +79,8 @@ public:
     SSI_Status writeStorageArea(void *pBuffer, unsigned int bufferSize);
     SSI_Status  readStorageArea(void *pBuffer, unsigned int bufferSize);
 
-    void attachArray(Object *pArray);
-    void attachVolume(Object *pVolume);
+    void attachArray(Array *pArray);
+    void attachVolume(Volume *pVolume);
 
 public:
     Array * getArray() const {

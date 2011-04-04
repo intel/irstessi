@@ -44,8 +44,8 @@ public:
     ~SessionManager();
 
 private:
-    Object *m_pNullSession;
-    Container m_Sessions;
+    Container<Session> m_Sessions;
+    Session *m_pNullSession;
 
 public:
     Session * getSession(unsigned int id);
@@ -55,4 +55,4 @@ public:
 
 #endif /* __SESSION_MANAGER_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

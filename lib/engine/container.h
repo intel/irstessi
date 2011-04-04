@@ -34,17 +34,54 @@
 #ifndef __CONTAINER_H__INCLUDED__
 #define __CONTAINER_H__INCLUDED__
 
-// Forward declaration
-class Object;
-
 /* */
-class Container : public List<Object *> {
+template <typename T>
+class Container : public List<T *> {
 public:
-    SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize);
-    Object * remove(unsigned int id);
-    Object * find(unsigned int id) const;
+    Container<T> & operator = (T * elem) {
+        List<T *>::clear();
+        List<T *>::add(elem);
+        return *this;
+    }
+
+    SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize) {
+        SSI_Status status = SSI_StatusOk;
+        if (bufferSize == 0) {
+            return SSI_StatusInvalidParameter;
+        }
+        if (*bufferSize && pBuffer == 0) {
+            return SSI_StatusInvalidParameter;
+        }
+        if (*bufferSize < List<T *>::m_Count) {
+            status = SSI_StatusBufferTooSmall;
+        } else {
+            for (Iterator<T *> i = List<T *>::first(); *i != 0; ++i, ++pBuffer) {
+                *pBuffer = (*i)->getId();
+            }
+        }
+        *bufferSize = List<T *>::m_Count;
+        return status;
+    }
+
+    T * remove(unsigned int id) {
+        Iterator<T *> i;
+        for (i = List<T *>::first(); *i != 0 && (*i)->getId() != id; ++i) {
+        }
+        T *pObject = *i;
+        if (pObject) {
+            List<T *>::remove(i);
+        }
+        return pObject;
+    }
+
+    T * find(unsigned int id) const {
+        Iterator<T *> i;
+        for (i = List<T *>::first(); *i != 0 && (*i)->getId() != id; ++i) {
+        }
+        return *i;
+    }
 };
 
 #endif /* __CONTAINER_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

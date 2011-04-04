@@ -49,24 +49,24 @@
 #include "session.h"
 
 /* */
-RemotePort::RemotePort(StorageObject *pParent, const String &path)
-    : Port(pParent, path)
+RemotePort::RemotePort(const String &path)
+    : Port(path)
 {
 }
 
 /* */
-void RemotePort::attachPort(Object *pPort)
+void RemotePort::attachPort(Port *pPort)
 {
     if (pPort == this) {
         throw E_INVALID_OBJECT;
     }
-    m_pRemotePort = dynamic_cast<Port *>(pPort);
+    m_pRemotePort = pPort;
     switch (m_pParent->getType()) {
     case ObjectType_RoutingDevice:
-        m_pRemotePort->attachRoutingDevice(m_pParent);
+        m_pRemotePort->attachRoutingDevice(dynamic_cast<RoutingDevice *>(m_pParent));
         break;
     case ObjectType_EndDevice:
-        m_pRemotePort->attachEndDevice(m_pParent);
+        m_pRemotePort->attachEndDevice(dynamic_cast<EndDevice *>(m_pParent));
         break;
     default:
         break;
@@ -80,13 +80,13 @@ RaidInfo * RemotePort::getRaidInfo() const
 }
 
 /* */
-void RemotePort::attachArray(Object *pArray)
+void RemotePort::attachArray(Array *pArray)
 {
     m_pRemotePort->attachArray(pArray);
 }
 
 /* */
-void RemotePort::attachVolume(Object *pVolume)
+void RemotePort::attachVolume(Volume *pVolume)
 {
     m_pRemotePort->attachVolume(pVolume);
 }

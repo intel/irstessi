@@ -51,8 +51,7 @@
 #include "block_device.h"
 
 /* */
-Volume::Volume(Array *pArray)
-    : RaidDevice(pArray),
+Volume::Volume() : RaidDevice(),
       m_Ordinal(-1U),
       m_TotalSize(0),
       m_RaidLevel(-1U),
@@ -68,8 +67,8 @@ Volume::Volume(Array *pArray)
 }
 
 /* */
-Volume::Volume(Array *pArray, const String &path, unsigned int ordinal)
-    : RaidDevice(pArray, path),
+Volume::Volume(const String &path, unsigned int ordinal)
+    : RaidDevice(),
       m_Ordinal(ordinal),
       m_TotalSize(0),
       m_RaidLevel(-1U),
@@ -297,7 +296,7 @@ SSI_Status Volume::cancelVerify()
 
 /* */
 SSI_Status Volume::modify(SSI_StripSize chunk, SSI_RaidLevel raidLevel,
-    unsigned long long newSize, const Container &disks)
+    unsigned long long newSize, const Container<EndDevice> &disks)
 {
     (void)chunk;
     (void)raidLevel;
@@ -435,7 +434,7 @@ SSI_Status Volume::readStorageArea(void *pBuffer, unsigned int bufferSize)
 }
 
 /* */
-void Volume::getEndDevices(Container &container, bool __attribute__((unused)) all) const
+void Volume::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
 {
     container.clear();
     for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
@@ -459,9 +458,9 @@ void Volume::acquireId(Session *pSession)
 }
 
 /* */
-void Volume::attachEndDevice(Object *pObject)
+void Volume::attachEndDevice(EndDevice *pEndDevice)
 {
-    BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pObject);
+    BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pEndDevice);
     if (pBlockDevice == 0) {
         throw E_INVALID_OBJECT;
     }
@@ -581,4 +580,4 @@ void Volume::create()
     }
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -58,42 +58,42 @@ public:
     virtual ~Session();
 
 protected:
-    Container m_EndDevices;
-    Container m_Arrays;
-    Container m_Enclosures;
-    Container m_RaidInfo;
-    Container m_Phys;
-    Container m_Volumes;
-    Container m_Ports;
-    Container m_RoutingDevices;
-    Container m_Controllers;
+    Container<EndDevice> m_EndDevices;
+    Container<Array> m_Arrays;
+    Container<Enclosure> m_Enclosures;
+    Container<RaidInfo> m_RaidInfo;
+    Container<Phy> m_Phys;
+    Container<Volume> m_Volumes;
+    Container<Port> m_Ports;
+    Container<RoutingDevice> m_RoutingDevices;
+    Container<Controller> m_Controllers;
 
 public:
-    Container getEndDevices() const {
+    Container<EndDevice> getEndDevices() const {
         return m_EndDevices;
     }
-    Container getArrays() const {
+    Container<Array> getArrays() const {
         return m_Arrays;
     }
-    Container getEnclosures() const {
+    Container<Enclosure> getEnclosures() const {
         return m_Enclosures;
     }
-    Container getRaidInfo() const {
+    Container<RaidInfo> getRaidInfo() const {
         return m_RaidInfo;
     }
-    Container getPhys() const {
+    Container<Phy> getPhys() const {
         return m_Phys;
     }
-    Container getVolumes() const {
+    Container<Volume> getVolumes() const {
         return m_Volumes;
     }
-    Container getPorts() const {
+    Container<Port> getPorts() const {
         return m_Ports;
     }
-    Container getRoutingDevices() const {
+    Container<RoutingDevice> getRoutingDevices() const {
         return m_RoutingDevices;
     }
-    Container getControllers() const {
+    Container<Controller> getControllers() const {
         return m_Controllers;
     }
 
@@ -134,4 +134,4 @@ public:
 
 #endif /* __SESSION_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

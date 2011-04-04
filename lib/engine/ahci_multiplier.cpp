@@ -61,8 +61,10 @@
 AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
     : RoutingDevice(path), m_pPhy(0)
 {
-    m_pPhy = new Phy(this, path, 0);
-    m_pSubtractivePort = new RemotePort(this, path);
+    m_pPhy = new Phy(path, 0);
+    m_pPhy->setParent(this);
+    m_pSubtractivePort = new RemotePort(path);
+    m_pSubtractivePort->setParent(this);
     m_pSubtractivePort->attachPhy(m_pPhy);
 
     unsigned int number = 0;
@@ -90,10 +92,12 @@ bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned in
         pEndDevice = new AHCI_Tape(path);
     }
     if (pEndDevice != 0) {
-        Phy *pPhy = new Phy(this, path, number);
+        Phy *pPhy = new Phy(path, number);
         attachPhy(pPhy);
-        Port *pPort = new Port(this, path);
+        pPhy->setParent(this);
+        Port *pPort = new Port(path);
         attachPort(pPort);
+        pPort->setParent(this);
         pPort->attachPhy(pPhy);
         pPort->attachPort(pEndDevice->getPort());
     }
@@ -119,7 +123,7 @@ void AHCI_Multiplier::getAddress(SSI_Address &address) const
 }
 
 /* */
-void AHCI_Multiplier::getPhys(Container &container) const
+void AHCI_Multiplier::getPhys(Container<Phy> &container) const
 {
     RoutingDevice::getPhys(container);
     container.add(m_pPhy);

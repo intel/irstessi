@@ -73,7 +73,7 @@ SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (*pScopeObject != scopeType) {
         return SSI_StatusInvalidScope;
     }
-    Container container;
+    Container<Volume> container;
     try {
         pScopeObject->getVolumes(container);
     } catch (...) {
@@ -196,8 +196,8 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     Volume *pVolume;
     Array *pArray;
     try {
+        Container<EndDevice> container;
         EndDevice *pEndDevice;
-        Container container;
         for (unsigned int i = 0; i < params.numDisks; ++i) {
             pEndDevice = pSession->getEndDevice(params.disks[i]);
             if (pEndDevice == 0) {
@@ -214,11 +214,12 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pArray->setEndDevices(container);
         pArray->create();
         try {
-            pVolume = new Volume(pArray);
+            pVolume = new Volume();
         } catch (...) {
             delete pArray;
             return SSI_StatusInsufficientResources;
         }
+        pVolume->setParent(pArray);
         pVolume->setSourceDisk(pEndDevice);
         pVolume->setEndDevices(container);
         pVolume->setComponentSize(params.sizeInBytes / container);
@@ -269,14 +270,15 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
     if (pArray == 0) {
         return SSI_StatusInvalidHandle;
     }
-    Container container;
+    Container<EndDevice> container;
     pArray->getEndDevices(container, true);
     try {
         try {
-            pVolume = new Volume(pArray);
+            pVolume = new Volume();
         } catch (...) {
             return SSI_StatusInsufficientResources;
         }
+        pVolume->setParent(pArray);
         pVolume->setEndDevices(container);
         pVolume->setComponentSize(params.sizeInBytes / container);
         pVolume->setName(params.volumeName);
@@ -437,4 +439,4 @@ SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
     return pVolume->cancelVerify();
 }
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

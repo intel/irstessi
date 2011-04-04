@@ -42,7 +42,7 @@ class RaidInfo;
 /* */
 class Port : public StorageObject {
 public:
-    Port(StorageObject *pParent, const String &path);
+    Port(const String &path);
     virtual ~Port();
 
     // Object
@@ -56,7 +56,7 @@ public:
     // ScopeObject
 
 public:
-    void getPhys(Container &container) const;
+    void getPhys(Container<Phy> &container) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypePort;
@@ -65,12 +65,12 @@ public:
     // StorageObject
 
 public:
-    virtual void attachArray(Object *pArray);
-    virtual void attachPort(Object *pPort);
-    virtual void attachVolume(Object *pVolume);
-    virtual void attachRoutingDevice(Object *pRoutingDevice);
-    virtual void attachEndDevice(Object *pEndDevice);
-    void attachPhy(Object *pPhy);
+    virtual void attachArray(Array *pArray);
+    virtual void attachPort(Port *pPort);
+    virtual void attachVolume(Volume *pVolume);
+    virtual void attachRoutingDevice(RoutingDevice *pRoutingDevice);
+    virtual void attachEndDevice(EndDevice *pEndDevice);
+    void attachPhy(Phy *pPhy);
 
     void acquireId(Session *pSession);
 
@@ -82,9 +82,9 @@ public:
 
 protected:
     Port *m_pRemotePort;
-    Container m_Phys;
+    Container<Phy> m_Phys;
 };
 
 #endif /* __PORT_H__INCLUDED__ */
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -61,31 +61,6 @@
 AHCI::AHCI(const String &path)
     : Controller(path)
 {
-    Directory dir(path, "host");
-    unsigned int number = 0;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
-        CanonicalPath temp = *(*i) + "scsi_host";
-        if (temp) {
-            attachPhy(new AHCI_Phy(this, CanonicalPath(*(*i)), number++));
-        }
-    }
-    __internal_initialize();
-}
-
-/* */
-void AHCI::getAddress(SSI_Address &address) const
-{
-    address.scsiAddress.host = 0;
-    address.scsiAddress.bus = 0;
-    address.scsiAddress.target = 0;
-    address.scsiAddress.lun = 0;
-    address.sasAddressPresent = SSI_FALSE;
-    address.sasAddress = 0ULL;
-}
-
-/* */
-void AHCI::__internal_initialize()
-{
     SysfsAttr attr;
     struct PCIHeader pciInfo;
 
@@ -130,6 +105,33 @@ void AHCI::__internal_initialize()
         m_pRaidInfo = new AHCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
             pInfo->vpa, pInfo->vphba, pInfo->chk);
     }
+}
+
+/* */
+void AHCI::discover()
+{
+    Directory dir(m_Path, "host");
+    unsigned int number = 0;
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        CanonicalPath temp = *(*i) + "scsi_host";
+        if (temp) {
+            AHCI_Phy *pPhy = new AHCI_Phy(CanonicalPath(*(*i)), number++);
+            attachPhy(pPhy);
+            pPhy->setParent(this);
+            pPhy->discover();
+        }
+    }
+}
+
+/* */
+void AHCI::getAddress(SSI_Address &address) const
+{
+    address.scsiAddress.host = 0;
+    address.scsiAddress.bus = 0;
+    address.scsiAddress.target = 0;
+    address.scsiAddress.lun = 0;
+    address.sasAddressPresent = SSI_FALSE;
+    address.sasAddress = 0ULL;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

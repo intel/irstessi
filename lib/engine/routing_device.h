@@ -54,10 +54,10 @@ class RoutingDevice : public StorageObject {
     // ScopeObject
 
  public:
-    virtual void getPhys(Container &) const;
-    void getRoutingDevices(Container &, bool all) const;
-    void getPorts(Container &) const;
-    void getEndDevices(Container &, bool all) const;
+    virtual void getPhys(Container<Phy> &) const;
+    void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
+    void getPorts(Container<Port> &) const;
+    void getEndDevices(Container<EndDevice> &, bool all) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRoutingDevice;
@@ -66,24 +66,24 @@ class RoutingDevice : public StorageObject {
     // StorageObject
 
 public:
-    void attachEndDevice(Object *pEndDevice);
-    void attachVolume(Object *pVolume);
-    void attachPhy(Object *pPhy);
-    void attachRoutingDevice(Object *pRoutingDevice);
-    void attachPort(Object *pPort);
-    void attachArray(Object *pArray);
+    void attachEndDevice(EndDevice *pEndDevice);
+    void attachVolume(Volume *pVolume);
+    void attachPhy(Phy *pPhy);
+    void attachRoutingDevice(RoutingDevice *pRoutingDevice);
+    void attachPort(Port *pPort);
+    void attachArray(Array *pArray);
 
     virtual void acquireId(Session *pSession);
 
     // RoutingDevice
 
 protected:
-    Container m_EndDevices;
-    Container m_EndDevices_Direct;
-    Container m_Phys;
-    Container m_Ports;
-    Container m_RoutingDevices;
-    Container m_RoutingDevices_Direct;
+    Container<EndDevice> m_EndDevices;
+    Container<EndDevice> m_EndDevices_Direct;
+    Container<Phy> m_Phys;
+    Container<Port> m_Ports;
+    Container<RoutingDevice> m_RoutingDevices;
+    Container<RoutingDevice> m_RoutingDevices_Direct;
     Port *m_pSubtractivePort;
     String m_ProductId;
     String m_Vendor;
@@ -96,8 +96,13 @@ public:
     virtual Enclosure * getEnclosure() const {
         return 0;
     }
-    Object * getPort() const {
-        return reinterpret_cast<Object *>(m_pSubtractivePort);
+    Port * getSubtractivePort() const {
+        return m_pSubtractivePort;
+    }
+    void setSubtractivePort(Port *pPort) {
+        if (pPort != m_pSubtractivePort) {
+            m_pSubtractivePort = pPort;
+        }
     }
     virtual SSI_ExpanderType getExpanderType() const {
         return SSI_ExpanderTypeUnknown;
