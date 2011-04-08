@@ -50,6 +50,31 @@
 #include "utils.h"
 #include "block_device.h"
 
+#include <stdio.h>
+#include <string.h>
+
+#define BUFSIZE 4000
+#define LOGFILENAME "/tmp/my.log"
+
+int lprint(const char *sfilename, int nrline, const char *sinfo) {
+  FILE *flog = fopen(LOGFILENAME, "a");
+  fprintf(flog, "%s : %d %s\n", sfilename, nrline, sinfo);
+  fclose(flog);
+  return 0;
+}
+
+int lprinti(const char *sfilename, int nrline, int n) {
+  static char s[BUFSIZE]; 
+  sprintf(s, "%d", n);
+  lprint( sfilename, nrline, s);
+
+  return 0;
+}
+
+#define SHOWINT(x) lprinti(__FILE__, __LINE__,static_cast<int>(x))
+#define SHOWCHAR(x) lprint(__FILE__, __LINE__,(const char*)(x))
+
+
 /* */
 Volume::Volume() : RaidDevice(),
       m_Ordinal(-1U),
@@ -83,9 +108,12 @@ Volume::Volume(const String &path, unsigned int ordinal)
 {
     String temp;
 	setPath(path);
+	SHOWCHAR(path);
+	SHOWCHAR(m_Path);
     try {
         SysfsAttr attr = m_Path + "/md/level";
         attr >> temp;
+		SHOWCHAR(temp);
         if (temp == "raid0") {
             m_RaidLevel = 0;
         } else
@@ -106,10 +134,17 @@ Volume::Volume(const String &path, unsigned int ordinal)
     } catch (...) {
         // Intentionaly left blank
     }
+
     try {
+		
         int degraded = 0;
+SHOWINT(m_Path.length());		
+SHOWCHAR(m_Path);
         SysfsAttr attr = m_Path + "/md/degraded";
+
         attr >> degraded;
+		SHOWINT(degraded);
+		SHOWINT(m_RaidLevel);
         if (degraded > 0) {
             switch (m_RaidLevel) {
             case 1:
@@ -135,6 +170,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     } catch (...) {
         // Intentionally left blank
     }
+	SHOWINT(m_State);
     if (m_State == SSI_VolumeStateUnknown) {
         try {
             SysfsAttr attr = m_Path + "/md/array_state";
