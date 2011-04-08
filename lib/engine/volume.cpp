@@ -82,6 +82,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_pSourceDisk(0)
 {
     String temp;
+	setPath(path);
     try {
         SysfsAttr attr = m_Path + "/md/level";
         attr >> temp;
