@@ -148,13 +148,13 @@ SHOWCHAR(m_Path);
         if (degraded > 0) {
             switch (m_RaidLevel) {
             case 1:
+            case 5:
                 if (degraded > 1) {
                     m_State = SSI_VolumeStateFailed;
                 } else {
                     m_State = SSI_VolumeStateDegraded;
                 }
                 break;
-            case 5:
             case 6:
             case 10:
                 if (degraded > 2) {
