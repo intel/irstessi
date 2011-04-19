@@ -18,7 +18,7 @@ ut_session_SOURCES = \
 	ut_session.cpp
 
 ut_session_CPPFLAGS = \
-	-I$(top_srcdir) \
+	-g3 -I$(top_srcdir) \
 	-I$(top_srcdir)/include
 
 ut_session_LDADD = \
