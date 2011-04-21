@@ -74,29 +74,46 @@ void ISCI_Expander_Phy::discover()
 Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
 {
     Directory dir(portPath);
+	SHOW(portPath);
     Port *pPort = 0;
     RoutingDevice *pRtDevice = dynamic_cast<RoutingDevice *>(m_pParent);
-    dir.setFilter("host");
+    
+	dir.setFilter("host");
     if (dir > 0) {
+		SHOW("host");
         pPort = new ISCI_Expander_SubtractivePort(portPath);
+		SHOW(pRtDevice?"parent is RD":"parent is not RD");
         if (pRtDevice) {
             pRtDevice->setSubtractivePort(pPort);
         }
-    } else {
-        dir.setFilter("expander");
-        if (dir > 0) {
-            Iterator<Directory *> i = dir;
-            if (portPath.compare(CanonicalPath(*(*i))) > 0) {
-                pPort = new ISCI_Expander_SubtractivePort(portPath);
-                if (pRtDevice) {
-                    pRtDevice->setSubtractivePort(pPort);
-                }
+		return pPort;	
+	}
+    
+	dir.setFilter("expander");
+    if (dir > 0) {
+        Iterator<Directory *> i = dir;
+		SHOW("expander");
+		SHOW(CanonicalPath(*(*i)));
+		SHOW(portPath.compare(CanonicalPath(*(*i))));
+        if (portPath.compare(CanonicalPath(*(*i))) > 0) {			
+			SHOW("host of expander behind expander");
+			pPort = new ISCI_Expander_SubtractivePort(portPath);
+			SHOW(pRtDevice?"parent is RD":"parent is not RD");
+            if (pRtDevice) {
+                pRtDevice->setSubtractivePort(pPort);
             }
         } else {
-            pPort = new ISCI_Expander_Port(portPath);
-            m_pParent->attachPort(pPort);
-        }
-    }
+			SHOW("expander in expander");
+			pPort = new ISCI_Expander_Port(portPath);
+			m_pParent->attachPort(pPort);
+		}
+		return pPort;
+	}
+    
+	SHOW("end device");
+    pPort = new ISCI_Expander_Port(portPath);
+    m_pParent->attachPort(pPort);
+    SHOW(pPort?"not null":"null");
     return pPort;
 }
 
