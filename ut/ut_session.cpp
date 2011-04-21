@@ -13,8 +13,10 @@ int main(int argc, char *argv[])
     SSI_Status status;
     SSI_Handle handle;
 	SSI_Handle handleList[INITIAL_COUNT];
+	SSI_Handle handleList1[INITIAL_COUNT];
 	unsigned int handleCount;
-
+	unsigned int handleCount1;
+	
     status = SsiInitialize();
     if (status != SSI_StatusOk) {
         cout << "E: unable to initialize the SSI library (errcode:" << status << ")" << endl;
@@ -25,38 +27,115 @@ int main(int argc, char *argv[])
 		handleCount = INITIAL_COUNT;
 		status = SsiGetControllerHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
 		if (status == SSI_StatusOk) {
-			cout << "Controllers: " << handleCount << endl;
+			cout << handleCount << "\tControllers: " << endl;
 		} else {
 			cout << "E: Unable to retrieve Controller handles." << endl;
 		}
-		handleCount = INITIAL_COUNT;
-		status = SsiGetEndDeviceHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
+										
+		for(unsigned i = 0; i < handleCount; i++ ) {
+			//****** End Devices ************
+			cout << "Controller " << i << endl;
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetEndDeviceHandles(handle, SSI_ScopeTypeControllerDirect, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+		
+				cout << handleCount1 << "\tEndDevices Direct" << endl;
+			} else {
+				cout << "E: Unable to retrieve EndDevice handles." << endl;
+			}
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetEndDeviceHandles(handle, SSI_ScopeTypeControllerAll, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout << handleCount1 << "\tEndDevices All" << endl;
+			} else {
+				cout << "E: Unable to retrieve EndDevice handles." << endl;
+			}
+		
+			// ****** Phys *******************
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetPhyHandles(handle, SSI_ScopeTypeControllerDirect, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout << handleCount1 << "\tPhys Direct"<< endl;
+			} else {
+				cout << "E: Unable to retrieve Phy handles." << endl;
+			}		
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetPhyHandles(handle, SSI_ScopeTypeControllerAll, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout << handleCount1 << "\tPhys All"<< endl;
+			} else {
+				cout << "E: Unable to retrieve Phy handles." << endl;
+			}		
+			//****** Ports ****************
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetPortHandles(handle, SSI_ScopeTypeControllerDirect, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout << handleCount1 << "\tPorts Direct" << endl;
+			} else {
+				cout << "E: Unable to retrieve Port handles." << endl;
+			}
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetPortHandles(handle, SSI_ScopeTypeControllerAll, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout << handleCount1 << "\tPorts All" << endl;
+			} else {
+				cout << "E: Unable to retrieve Port handles." << endl;
+			}			
+		}		
+		
+		handleCount1 = INITIAL_COUNT;
+		status = SsiGetPhyHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList1, &handleCount1);
 		if (status == SSI_StatusOk) {
-			cout << "EndDevices: " << handleCount << endl;
-		} else {
-			cout << "E: Unable to retrieve EndDevice handles." << endl;
-		}
-		handleCount = INITIAL_COUNT;
-		status = SsiGetPhyHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
-		if (status == SSI_StatusOk) {
-			cout << "Phys: " << handleCount << endl;
+			cout << endl << handleCount1 << "\tPhys total " << endl;
 		} else {
 			cout << "E: Unable to retrieve Phy handles." << endl;
 		}
-		handleCount = INITIAL_COUNT;
-		status = SsiGetPortHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
+		handleCount1 = INITIAL_COUNT;
+		status = SsiGetPortHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList1, &handleCount1);
 		if (status == SSI_StatusOk) {
-			cout << "Ports: " << handleCount << endl;
+			cout << handleCount1 << "\tPorts total " << endl;
 		} else {
 			cout << "E: Unable to retrieve Port handles." << endl;
 		}
+		//******** Routing Device ***********
 		handleCount = INITIAL_COUNT;
 		status = SsiGetRoutingDeviceHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
 		if (status == SSI_StatusOk) {
-			cout << "RoutingDevices: " << handleCount << endl;
+			cout << handleCount << "\tRoutingDevices " << endl;
 		} else {
 			cout << "E: Unable to retrieve RoutingDevice handles." << endl;
 		}
+		
+		for(unsigned i = 0; i < handleCount; i++ ) {
+			cout << "Routing Device " << i << endl;
+			cout << "Handle=0x" << hex << handleList[i] << dec << endl;
+			//****** EndDevices ***************
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetEndDeviceHandles(handle, SSI_ScopeTypeRoutingDevice, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				
+				cout << handleCount1 << "\tEndDevices" << endl;
+			} else {
+				cout << "E: Unable to retrieve EndDevice handles." << endl;
+			}
+			// ****** Phys *******************
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetPhyHandles(handle, SSI_ScopeTypeRoutingDevice, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout  << handleCount1 << "\tPhys" << endl;
+			} else {
+				cout << "E: Unable to retrieve Phy handles." << endl;
+			}
+			//****** Ports ****************
+			handleCount1 = INITIAL_COUNT;
+			status = SsiGetPortHandles(handle, SSI_ScopeTypeRoutingDevice, handleList[i], handleList1, &handleCount1);
+			if (status == SSI_StatusOk) {
+				cout << handleCount1 << "\tPorts" << endl;
+			} else {
+				cout << "E: Unable to retrieve Port handles." << endl;
+			}
+		}
+
 		handleCount = INITIAL_COUNT;
 		status = SsiGetEnclosureHandles(handle, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
 		if (status == SSI_StatusOk) {
