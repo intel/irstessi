@@ -473,6 +473,14 @@ inline String operator + (const char *left, const String &right) {
     return String(left) += right;
 }
 
+#include <stdio.h>
+
+int show(const char *fname, int nline, char *s);
+int show(const char *fname, int nline, const char *s);
+int show(const char *fname, int nline, const String &s);
+int show(const char *fname, int nline, int nr);
+#define SHOW(x) show(__FILE__, __LINE__, x)
+
 #endif /* __STRING_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
