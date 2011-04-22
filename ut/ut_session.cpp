@@ -51,11 +51,11 @@ int main(int argc, char *argv[])
 				cout << "E: Unable to retrieve EndDevice handles." << endl;
 			}
 			
-			SSI_EndDeviceInfo info;
+			//SSI_EndDeviceInfo info;
 			for (unsigned int j = 0; j < handleCount1; j++) {
-				status = SsiGetEndDeviceInfo(SSI_NULL_HANDLE, handleList1[j], &info);
+				//status = SsiGetEndDeviceInfo(SSI_NULL_HANDLE, handleList1[j], &info);
 				if (status == SSI_StatusOk) {
-					cout << "Handle=0x" << hex << info.endDeviceHandle << dec << endl;
+					cout << "Handle = 0x" << hex << handleList1[j] << dec << endl;
 				
 				} else {
 					cout << "E: Unable to retrieve disk info" << endl;
