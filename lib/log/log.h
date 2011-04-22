@@ -56,6 +56,9 @@ enum log_level {
         __log(__level, __format, ## __VA_ARGS__);               \
     } while (0)
 
+#define dlog(__format, ...)                             \
+	log(LOG_DEBUG, __format, ## __VA_ARGS__);
+
 /* */
 void log_init(enum log_level level, const char *path);
 

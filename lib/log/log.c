@@ -89,7 +89,7 @@ void __log(enum log_level level, const char *format, ...) {
     struct timeval tv;
     va_list vl;
 
-    if ((g_log_level > level) || (format == NULL) || (g_log_stream == NULL))
+    if ((g_log_level < level) || (format == NULL) || (g_log_stream == NULL))
         return;
 
     gettimeofday(&tv, 0);
