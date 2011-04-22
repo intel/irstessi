@@ -50,7 +50,17 @@ int main(int argc, char *argv[])
 			} else {
 				cout << "E: Unable to retrieve EndDevice handles." << endl;
 			}
-		
+			
+			SSI_EndDeviceInfo info;
+			for (unsigned int j = 0; j < handleCount1; j++) {
+				status = SsiGetEndDeviceInfo(SSI_NULL_HANDLE, handleList1[j], &info);
+				if (status == SSI_StatusOk) {
+					cout << "Handle=0x" << hex << info.endDeviceHandle << dec << endl;
+				
+				} else {
+					cout << "E: Unable to retrieve disk info" << endl;
+				}
+			}
 			// ****** Phys *******************
 			handleCount1 = INITIAL_COUNT;
 			status = SsiGetPhyHandles(handle, SSI_ScopeTypeControllerDirect, handleList[i], handleList1, &handleCount1);

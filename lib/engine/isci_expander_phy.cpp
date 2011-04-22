@@ -82,7 +82,6 @@ Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
     if (dir > 0) {
 		SHOW("host");
         pPort = new ISCI_Expander_SubtractivePort(portPath);
-		SHOW(pRtDevice?"parent is RD":"parent is not RD");
         if (pRtDevice) {
             pRtDevice->setSubtractivePort(pPort);
         }
@@ -98,7 +97,6 @@ Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
         if (portPath.compare(CanonicalPath(*(*i))) > 0) {			
 			SHOW("host of expander behind expander");
 			pPort = new ISCI_Expander_SubtractivePort(portPath);
-			SHOW(pRtDevice?"parent is RD":"parent is not RD");
             if (pRtDevice) {
                 pRtDevice->setSubtractivePort(pPort);
             }
