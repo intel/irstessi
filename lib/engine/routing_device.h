@@ -47,6 +47,10 @@ class RoutingDevice : public StorageObject {
     // Object
 
  public:
+
+	 bool equal(const Object *pObject) const {
+		return false;
+	}
     ObjectType getType() const {
         return ObjectType_RoutingDevice;
     }
