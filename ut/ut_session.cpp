@@ -6,7 +6,7 @@
 using namespace std;
 
 /* */
-#define INITIAL_COUNT	96
+#define INITIAL_COUNT	200
 
 int main(int argc, char *argv[])
 {
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 			for (unsigned int j = 0; j < handleCount1; j++) {
 				//status = SsiGetEndDeviceInfo(SSI_NULL_HANDLE, handleList1[j], &info);
 				if (status == SSI_StatusOk) {
-					cout << "Handle = 0x" << hex << handleList1[j] << dec << endl;
+					cout << "Handle["<< j << "] = 0x" << hex << handleList1[j] << dec << endl;
 				
 				} else {
 					cout << "E: Unable to retrieve disk info" << endl;
