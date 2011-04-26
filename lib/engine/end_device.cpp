@@ -72,7 +72,7 @@
 /* */
 #define SCSI_INQUIRY_MODEL_OFFSET       16
 #define SCSI_INQUIRY_FW_OFFSET          32
-#define SCSI_INQUIRY_SERIALNUM_OFFSET   4
+#define SCSI_INQUIRY_SERIALNUM_OFFSET   36
 
 /* */
 #define SCSI_SENSE_DISK_CACHE_OFFSET    16
@@ -163,12 +163,17 @@ EndDevice::EndDevice(const String &path)
     if (fd >= 0) {
         if (hdioNotSupported) {
             if (sg_ll_inquiry(fd, 0, 0, 0, buffer, sizeof(buffer), 1, 0) == 0) {
-                m_SerialNum.assign(reinterpret_cast<char *>(buffer) + SCSI_INQUIRY_SERIALNUM_OFFSET, HD_SERIALNO_LENGTH);
-                m_SerialNum.trim();
+//              m_SerialNum.assign(reinterpret_cast<char *>((buffer) + SCSI_INQUIRY_SERIALNUM_OFFSET), HD_SERIALNO_LENGTH);
+//              m_SerialNum.trim();
                 m_Model.assign(reinterpret_cast<char *>(buffer) + SCSI_INQUIRY_MODEL_OFFSET, SSI_PRODUCT_ID_LENGTH);
                 m_Model.trim();
                 m_Firmware.assign(reinterpret_cast<char *>(buffer) + SCSI_INQUIRY_FW_OFFSET, SSI_PRODUCT_REV_LENGTH);
                 m_Firmware.trim();
+            }
+            String sbuffer;
+            if (shell_cap("sg_inq /dev/" + m_DevName, sbuffer) == 0) {
+                m_SerialNum = sbuffer.between("Unit serial number: ", "\n");
+                m_SerialNum.trim();
             }
             if (sg_ll_mode_sense10(fd, 0, 0, 0, SCSI_SENSE_DISK_SETTINGS_PAGE, 0, buffer, sizeof(buffer), 1, 0) == 0) {
                 if ((*(buffer + SCSI_SENSE_DISK_CACHE_OFFSET) & SCSI_SENSE_DISK_CACHE_MASK) != 0) {
