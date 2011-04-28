@@ -34,6 +34,7 @@
 #include <iostream>
 
 #include <ssi.h>
+#define HANDLE_COUNT 100
 
 using namespace std;
 
@@ -57,20 +58,25 @@ int main(int argc, char *argv[])
 	}
 
 	SSI_Handle r1_disks[2];
-	SSI_Handle handles[10];
-	SSI_Handle endDevices[10];
+	SSI_Handle handles[HANDLE_COUNT];
+	SSI_Handle endDevices[HANDLE_COUNT];
 	unsigned int j = 0;
 
-	count = 10;
+	count = HANDLE_COUNT;
 	status = SsiGetEndDeviceHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
 	if (status == SSI_StatusOk) {
 		SSI_EndDeviceInfo info;
+		cout << count << endl;
 		for (unsigned int i = 0; i < count; i++) {
+			cout << "handle " << i << "\t"<< hex << handles[i] << dec;
 			status = SsiGetEndDeviceInfo(SSI_NULL_HANDLE, handles[i], &info);
 			if (status == SSI_StatusOk) {
 				if (info.systemDisk == SSI_FALSE && info.deviceType == SSI_EndDeviceTypeDisk &&
 					info.state == SSI_DiskStateNormal && info.usage == SSI_DiskUsagePassThru) {
 					endDevices[j++] = handles[i];
+					cout << "\tdevice suitable for raid"<< endl;
+				} else {
+					cout << "\tdevice unusable" << endl;
 				}
 			}
 		}
