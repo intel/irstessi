@@ -130,6 +130,11 @@ Session::~Session()
         pContextMgr->releaseId(*i);
     }
 }
+/* */
+bool Session::equal(const Object *pObject) const
+{
+    return pObject == this;
+}
 
 /* */
 ScopeObject * Session::getObject(unsigned int id) const
