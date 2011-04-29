@@ -84,7 +84,7 @@ Session::Session() : m_pNoneScopeObj(0)
     }
 	dir = "/sys/class/enclosure";
 	for (Iterator<Directory *> i = dir; *i != 0; ++i) {
-        CanonicalPath path = *(*i) + "driver";
+        CanonicalPath path = *(*i) + "device/driver";
 		if (path == "/sys/bus/scsi/drivers/ses") {
             Enclosure *pEnclosure = new Enclosure(CanonicalPath(*(*i)));
             pEnclosure->acquireId(this);

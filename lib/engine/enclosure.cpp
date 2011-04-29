@@ -35,6 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Enclosure::Enclosure(const String &path)
     : StorageObject(path)
 {
+	/* TODO fill the lists of end devices and routing devices */
 }
 
 /* */
