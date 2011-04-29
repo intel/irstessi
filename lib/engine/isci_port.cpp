@@ -97,6 +97,7 @@ void ISCI_Port::discover()
 EndDevice * ISCI_Port::__internal_create_end_device(Iterator<Directory *> i)
 {
     EndDevice *pEndDevice = 0;
+    if (*i != 0)
     for (Iterator<Directory *> j = *(*i); *j != 0; ++j) {
         CanonicalPath temp = *(*j) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
