@@ -39,6 +39,14 @@ class ISCI_Expander : public RoutingDevice {
 public:
     ISCI_Expander(const String &path);
 
+	// Object
+public:
+	bool equal(const Object *pObject) const {
+		return Object::equal(pObject) &&
+			   dynamic_cast<const RoutingDevice *>(pObject)->getRoutingDeviceType() == getRoutingDeviceType() &&
+			   dynamic_cast<const ISCI_Expander *>(pObject)->getSasAddress() == m_SasAddress;
+	}
+
     // StorageObject
 
 public:
@@ -51,6 +59,17 @@ public:
     SSI_RoutingDeviceType getRoutingDeviceType() const {
         return SSI_RoutingDeviceTypeExpander;
     }
+
+	// ISCI_Expander
+
+protected:
+	String m_SasAddress;
+
+public:
+
+	String getSasAddress() const {
+		return m_SasAddress;
+	}
 };
 
 #endif /* __ISCI_EXPANDER_H__INCLUDED__ */

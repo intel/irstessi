@@ -48,7 +48,7 @@ class RoutingDevice : public StorageObject {
 
  public:
 
-	 bool equal(const Object *pObject) const {
+	virtual bool equal(const Object *pObject) const {
 		return false;
 	}
     ObjectType getType() const {
