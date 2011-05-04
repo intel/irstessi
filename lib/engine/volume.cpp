@@ -81,7 +81,7 @@ Volume::Volume() : RaidDevice(),
 
 /* */
 Volume::Volume(const String &path, unsigned int ordinal)
-    : RaidDevice(),
+    : RaidDevice(path),
       m_Ordinal(ordinal),
       m_TotalSize(0),
       m_RaidLevel(-1U),
