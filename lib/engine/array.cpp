@@ -44,9 +44,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "block_device.h"
 
+#include "log/log.h"
 /* */
 Array::Array(const String &path)
-    : RaidDevice(path)
+    : RaidDevice(path),
+      m_Busy(false)
 {
     String metadata;
     Directory dir("/sys/devices/virtual/block");
@@ -132,7 +134,7 @@ SSI_Status Array::addSpare(const EndDevice *pEndDevice)
     if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
         return SSI_StatusInvalidState;
     }
-    if (shell("mdadm " + m_DevName + " -a " + pBlockDevice->getDevName()) == 0) {
+    if (shell("mdadm /dev/" + m_DevName + " -a /dev/" + pBlockDevice->getDevName()) == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
