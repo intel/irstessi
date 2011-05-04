@@ -181,8 +181,8 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     if (pSession == 0) {
         return SSI_StatusFailed;
     }
-    Volume *pVolume;
-    Array *pArray;
+    Volume *pVolume = 0;
+    Array *pArray = 0;
     try {
         Container<EndDevice> container;
         EndDevice *pEndDevice;
