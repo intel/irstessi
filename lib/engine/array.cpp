@@ -102,9 +102,9 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
         if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
             return SSI_StatusInvalidState;
         }
-        endDevices += pBlockDevice->getDevName();
+        endDevices += " /dev/" + pBlockDevice->getDevName();
     }
-    if (shell("mdadm " + m_DevName + " -a" + endDevices) == 0) {
+    if (shell("mdadm /dev/" + m_DevName + " -a" + endDevices) == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
