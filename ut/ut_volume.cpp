@@ -30,7 +30,8 @@ int main(int argc, char *argv[])
 {
 	SSI_Status status;
 	SSI_Uint32 count;
-	SSI_Handle volumeHandle;
+	SSI_Handle volumeHandle = 0;
+	SSI_Handle arrayHandle = 0;
 
 	(void)argc;
 	(void)argv;
@@ -45,9 +46,10 @@ int main(int argc, char *argv[])
 		return -1;
 	}
 
-	SSI_Handle r1_disks[2];
+	SSI_Handle raid_disks[3];
 	SSI_Handle handles[HANDLE_COUNT];
 	SSI_Handle endDevices[HANDLE_COUNT];
+	SSI_Handle *pSpare = 0;
 	unsigned int j = 0;
 
 	count = HANDLE_COUNT;
@@ -70,27 +72,37 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (j == 0) {
+	if (j < 3) {
 		cout << "E: there are no available devices in the system to create a RAID." << endl;
 		return -2;
 	}
 
-	r1_disks[0] = endDevices[0];
-	r1_disks[1] = endDevices[1];
+	raid_disks[0] = endDevices[0];
+	raid_disks[1] = endDevices[1];
+	raid_disks[2] = endDevices[2];
+	if  (j > 3)
+		pSpare = endDevices + 3;
+	cout << "Usable disks:" << endl;
+	for (unsigned int i = 0; i < j; i++) {
+		cout << "Disk " << i << "\t"<< hex << endDevices[i] << dec << endl;
+	}
+	if (pSpare)
+	  cout << "Spare Disk \t"<< hex << *pSpare << dec << endl;
 
 	SSI_CreateFromDisksParams params;
-	params.disks = r1_disks;
-	params.numDisks = 2;
+	params.disks = raid_disks;
+	params.numDisks = 3;
 	params.sourceDisk = SSI_NULL_HANDLE;
-	strcpy(params.volumeName, "ut_Volume_r1_01");
+	strcpy(params.volumeName, "ut_Volume_r5_01");
 	params.stripSize = SSI_StripSize64kB;
-	params.raidLevel = SSI_Raid1;
+	params.raidLevel = SSI_Raid5;
 	params.sizeInBytes = 1024000;
 
 	status = SsiVolumeCreateFromDisks(params, &volumeHandle);
 	if (status == SSI_StatusOk) {
-		cout << "volumeHandle=0x" << hex << volumeHandle << endl;
+		cout << "Created volume: volumeHandle=0x" << hex << volumeHandle << endl;
 	}
+
 	count = 10;
 	status = SsiGetArrayHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
 	if (status == SSI_StatusOk) {
@@ -98,11 +110,15 @@ int main(int argc, char *argv[])
 		for (unsigned int i = 0; i < count; ++i) {
 			cout << "\thandle=0x" << hex << handles[i] << endl;
 		}
+		if (count > 0) {
+			arrayHandle = handles[0];
+		}
 	} else {
 		cout << "E: unable to get array handles (status=" << status << ")" << endl;
 	}
 
-/*	SSI_CreateFromArrayParams array_params;
+	/*
+	SSI_CreateFromArrayParams array_params;
 	array_params.arrayHandle = handles[0];
 	strcpy(array_params.volumeName, "ut_Volume_r0_01");
 	array_params.stripSize = SSI_StripSize64kB;
@@ -112,7 +128,8 @@ int main(int argc, char *argv[])
 	status = SsiVolumeCreate(array_params);
 	if (status != SSI_StatusOk) {
 		cout << "E: unable to create second volume in the same array." << endl;
-	}*/
+	}
+	*/
 
 	count = 10;
 	status = SsiGetVolumeHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
@@ -123,6 +140,15 @@ int main(int argc, char *argv[])
 		}
 	} else {
 		cout << "E: unable to get volume handles (status=" << status << ")" << endl;
+	}
+	system("while grep -i resync /proc/mdstat; do sleep 1; done");
+	if (arrayHandle && pSpare) {
+		status = SsiAddDisksToArray(arrayHandle, pSpare, 1);
+		if (status == SSI_StatusOk) {
+			cout << "Added disk to array 0x" << hex << arrayHandle << endl;
+		} else {
+			cout << "E: unable to add disk to array (status=" << status << ")" << endl;
+		}
 	}
 
 	status = SsiVolumeDelete(volumeHandle);
