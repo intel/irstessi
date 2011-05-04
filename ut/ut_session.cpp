@@ -21,6 +21,44 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 using namespace std;
 #define INITIAL_COUNT	200
 
+int ShowHandles(SSI_Handle handleList[], unsigned int handleCount);
+int ControllerScopeStats(SSI_Handle session, SSI_Handle handle);
+int RoutingDeviceScopeStats(SSI_Handle session, SSI_Handle handle);
+int SessionStats(SSI_Handle session);
+
+int main(int argc, char *argv[])
+{
+    SSI_Status status;
+    SSI_Handle session, session1;
+
+    status = SsiInitialize();
+    if (status != SSI_StatusOk) {
+        cout << "E: unable to initialize the SSI library (errcode:" << status << ")" << endl;
+        return -1;
+    }
+    status = SsiSessionOpen(&session);
+    if (status == SSI_StatusOk) {
+		cout << "Session\tHandle = 0x" << hex << session << dec << endl;
+		SessionStats(session);
+
+		// open another session to see if handles are reused
+		status = SsiSessionOpen(&session1);
+		if (status == SSI_StatusOk) {
+			cout << "Session1\tHandle = 0x" << hex << session1 << dec << endl;
+			SessionStats(session1);
+		} else {
+			cout << "E: unable to open a session (errcode:" << status << ")" << endl;
+		}
+    } else {
+        cout << "E: unable to open a session (errcode:" << status << ")" << endl;
+    }
+    status = SsiFinalize();
+    if (status != SSI_StatusOk) {
+        cout << "E: unable to finalize the SSI library (errcode:" << status << ")" << endl;
+    }
+    return 0;
+}
+
 int ShowHandles(SSI_Handle handleList[], unsigned int handleCount)
 {
 	for (unsigned int i = 0; i < handleCount; i++)
@@ -211,39 +249,6 @@ int SessionStats(SSI_Handle session)
 		cout << "E: Unable to retrieve RaidInfo handles." << endl;
 	}
 	return 0;
-}
-
-int main(int argc, char *argv[])
-{
-    SSI_Status status;
-    SSI_Handle session, session1;
-	
-    status = SsiInitialize();
-    if (status != SSI_StatusOk) {
-        cout << "E: unable to initialize the SSI library (errcode:" << status << ")" << endl;
-        return -1;
-    }
-    status = SsiSessionOpen(&session);
-    if (status == SSI_StatusOk) {
-		cout << "Session\tHandle = 0x" << hex << session << dec << endl;
-		SessionStats(session);
-		
-		// open another session to see if handles are reused
-		status = SsiSessionOpen(&session1);
-		if (status == SSI_StatusOk) {
-			cout << "Session1\tHandle = 0x" << hex << session1 << dec << endl;
-			SessionStats(session1);
-		} else {
-			cout << "E: unable to open a session (errcode:" << status << ")" << endl;
-		}
-    } else {
-        cout << "E: unable to open a session (errcode:" << status << ")" << endl;
-    }
-    status = SsiFinalize();
-    if (status != SSI_StatusOk) {
-        cout << "E: unable to finalize the SSI library (errcode:" << status << ")" << endl;
-    }
-    return 0;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
