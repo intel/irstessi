@@ -277,10 +277,9 @@ SSI_Status Volume::remove()
     if (pArray == 0) {
         return SSI_StatusFailed;
     }
-    if (shell("mdadm -S /dev/" + m_DevName) == 0) {
-        if (shell("mdadm --kill-subarray=" + String(m_Ordinal) + " /dev/" + pArray->getDevName()) == 0) {
+    if (shell("mdadm -S /dev/" + m_DevName) == 0 &&
+        pArray->removeVolume(m_Ordinal) == SSI_StatusOk) {
             return pArray->remove();
-        }
     }
     return SSI_StatusFailed;
 }

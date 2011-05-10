@@ -85,6 +85,7 @@ public:
     SSI_Status addSpare(const Container<EndDevice> &endDevices);
     SSI_Status setWriteCacheState(bool enable);
     SSI_Status removeSpare(const EndDevice *pEndDevice);
+    SSI_Status removeVolume(const unsigned int ordinal);
 
     SSI_Status getInfo(SSI_ArrayInfo *pInfo) const;
 
