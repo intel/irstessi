@@ -198,7 +198,7 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
     if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
         return SSI_StatusInvalidState;
     }
-    int result = shell("mdadm " + m_DevName + " -r " + pEndDevice->getDevName());
+    int result = shell("mdadm /dev/" + m_DevName + " -r /dev/" + pEndDevice->getDevName());
     if (result == 0) {
         result = shell("mdadm --zero-superblock /dev/" + m_DevName);
     }
