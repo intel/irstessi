@@ -165,10 +165,7 @@ SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
     if (pArray == 0) {
         return SSI_StatusInvalidState;
     }
-    if (pArray->removeSpare(pEndDevice) != SSI_StatusOk) {
-        return SSI_StatusFailed;
-    }
-    return pEndDevice->clearMetadata();
+    return pArray->removeSpare(pEndDevice);
 }
 
 /* */
