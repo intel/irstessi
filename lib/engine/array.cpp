@@ -200,7 +200,7 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
     }
     int result = shell("mdadm /dev/" + m_DevName + " -r /dev/" + pEndDevice->getDevName());
     if (result == 0) {
-        result = shell("mdadm --zero-superblock /dev/" + m_DevName);
+        result = shell("mdadm --zero-superblock /dev/" + pEndDevice->getDevName());
     }
     if (result == 0) {
         return SSI_StatusOk;
