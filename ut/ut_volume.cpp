@@ -186,7 +186,7 @@ int main(int argc, char *argv[])
     cout << "-->Adding spare 2 (SsiDiskMarkAsSpare)..." << endl;
     /* add a spare */
     if (arrayHandle && pSpare2) {
-        status = SsiDiskMarkAsSpare( *pSpare, arrayHandle);
+        status = SsiDiskMarkAsSpare( *pSpare2, arrayHandle);
         if (status == SSI_StatusOk) {
             cout << "Added disk to array 0x" << hex << arrayHandle << endl;
         } else {
