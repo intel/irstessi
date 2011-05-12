@@ -127,7 +127,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
             }
             container.add(pEndDevice);
         }
-        return pArray->addSpare(container);
+        return pArray->grow(container);
     } catch (...) {
         return SSI_StatusBufferTooSmall;
     }

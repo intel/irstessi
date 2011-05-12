@@ -130,6 +130,18 @@ SSI_Status Array::addSpare(EndDevice *pEndDevice)
 }
 
 /* */
+SSI_Status Array::grow(const Container<EndDevice> &container)
+{
+    SSI_Status status;
+    status = addSpare(container);
+    if (status == SSI_StatusOk)
+        if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " + container->count()) != 0) {
+            status = SSI_StatusFailed;
+        }
+    return status;
+}
+
+/* */
 SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
 {
     if (pInfo == 0) {
