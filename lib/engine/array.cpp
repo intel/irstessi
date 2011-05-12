@@ -84,9 +84,6 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
 {
     unsigned int count = 0;
 
-    if (m_Busy) {
-        return SSI_StatusInvalidState;
-    }
     String endDevices;
     for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
@@ -133,7 +130,10 @@ SSI_Status Array::addSpare(EndDevice *pEndDevice)
 SSI_Status Array::grow(const Container<EndDevice> &container)
 {
     SSI_Status status;
-    status = addSpare(container);
+    if (m_Busy) {
+        return SSI_StatusInvalidState;
+    }
+    status = this->addSpare(container);
     if (status == SSI_StatusOk)
         if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " + container->count()) != 0) {
             status = SSI_StatusFailed;
