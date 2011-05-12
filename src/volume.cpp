@@ -261,6 +261,8 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
     }
     Container<EndDevice> container;
     pArray->getEndDevices(container, false);
+    if (0 == container.count())
+        pArray->getEndDevices(container, true);
     try {
         try {
             pVolume = new Volume();
