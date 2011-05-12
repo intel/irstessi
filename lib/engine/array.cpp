@@ -218,10 +218,11 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
 }
 
 /* */
-void Array::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
+void Array::getEndDevices(Container<EndDevice> &container, bool all) const
 {
     container.clear();
     for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        if (all || (*i)->getDiskUsage() == SSI_DiskUsageArrayMember)
         container.add(*i);
     }
 }

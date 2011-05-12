@@ -260,7 +260,7 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         return SSI_StatusInvalidHandle;
     }
     Container<EndDevice> container;
-    pArray->getEndDevices(container, true);
+    pArray->getEndDevices(container, false);
     try {
         try {
             pVolume = new Volume();
