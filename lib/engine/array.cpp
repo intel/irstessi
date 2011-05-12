@@ -90,7 +90,8 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
         if (pBlockDevice == 0) {
             return SSI_StatusInvalidState;
         }
-        if (pBlockDevice->getArray() == this) {
+        if (pBlockDevice->getArray() == this &&
+           pBlockDevice->getDiskUsage() == SSI_DiskUsageSpare) {
             /* TODO: log that the given end device is already a component of this array. */
             continue;
         }
