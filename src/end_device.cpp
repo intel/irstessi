@@ -136,6 +136,9 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
     if (pEndDevice == 0) {
         return SSI_StatusInvalidHandle;
     }
+    if (pEndDevice->getArray() == pArray) {
+        return SSI_StatusInvalidState;
+    }
     return pArray->addSpare(pEndDevice);
 }
 

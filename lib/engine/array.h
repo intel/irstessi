@@ -81,7 +81,7 @@ protected:
     unsigned long long m_FreeSize;
 
 public:
-    SSI_Status addSpare(const EndDevice *pEndDevice);
+    SSI_Status addSpare(EndDevice *pEndDevice);
     SSI_Status addSpare(const Container<EndDevice> &endDevices);
     SSI_Status setWriteCacheState(bool enable);
     SSI_Status removeSpare(const EndDevice *pEndDevice);

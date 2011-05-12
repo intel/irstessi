@@ -82,6 +82,8 @@ Array::~Array()
 /* */
 SSI_Status Array::addSpare(const Container<EndDevice> &container)
 {
+    unsigned int count = 0;
+
     if (m_Busy) {
         return SSI_StatusInvalidState;
     }
@@ -105,6 +107,10 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
             return SSI_StatusInvalidState;
         }
         endDevices += " /dev/" + pBlockDevice->getDevName();
+        count++;
+    }
+    if (count == 0) {
+        return SSI_StatusOk;
     }
     if (shell("mdadm /dev/" + m_DevName + " -a" + endDevices) == 0) {
         return SSI_StatusOk;
@@ -113,31 +119,14 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
 }
 
 /* */
-SSI_Status Array::addSpare(const EndDevice *pEndDevice)
+SSI_Status Array::addSpare(EndDevice *pEndDevice)
 {
-    if (pEndDevice->getArray() == this) {
-        return SSI_StatusInvalidState;
+    Container<EndDevice> container;
+    if (pEndDevice == 0) {
+            return SSI_StatusInvalidHandle;
     }
-    if (m_Busy) {
-        return SSI_StatusInvalidState;
-    }
-    const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
-    if (pBlockDevice == 0) {
-        return SSI_StatusInvalidState;
-    }
-    if (pBlockDevice->isSystemDisk()) {
-        return SSI_StatusInvalidState;
-    }
-    if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
-        return SSI_StatusInvalidState;
-    }
-    if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
-        return SSI_StatusInvalidState;
-    }
-    if (shell("mdadm /dev/" + m_DevName + " -a /dev/" + pBlockDevice->getDevName()) == 0) {
-        return SSI_StatusOk;
-    }
-    return SSI_StatusFailed;
+    container.add(pEndDevice);
+    return this->addSpare(container);
 }
 
 /* */
