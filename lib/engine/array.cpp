@@ -184,9 +184,6 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
     if (pEndDevice->getArray() != this) {
         return SSI_StatusInvalidState;
     }
-    if (m_Busy) {
-        return SSI_StatusInvalidState;
-    }
     const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
     if (pBlockDevice == 0) {
         return SSI_StatusInvalidState;
