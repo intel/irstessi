@@ -131,12 +131,15 @@ SSI_Status Array::addSpare(EndDevice *pEndDevice)
 SSI_Status Array::grow(const Container<EndDevice> &container)
 {
     SSI_Status status;
+    Container<EndDevice> tmp;
     if (m_Busy) {
         return SSI_StatusInvalidState;
     }
     status = this->addSpare(container);
+    this->getEndDevices(tmp,false);
     if (status == SSI_StatusOk)
-        if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " + container->count()) != 0) {
+        if (shell("echo mdadm --grow /dev/" + m_DevName + " --raid-devices " +
+                  String(tmp.count() + container.count())) != 0) {
             status = SSI_StatusFailed;
         }
     return status;
