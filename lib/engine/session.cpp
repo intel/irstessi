@@ -62,6 +62,17 @@ Session::Session() : m_pNoneScopeObj(0)
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
+            SysfsAttr attr;
+            String vendor;
+            attr = *(*i) + "vendor";
+            try {
+                attr >> vendor;
+                if (vendor != "0x8086")
+                    continue;
+            } catch (...) {
+                /* TODO log that vendor cannot be read from filesystem */
+                continue;
+            }
             AHCI *pAHCI = new AHCI(CanonicalPath(*(*i)));
             pAHCI->discover();
             pAHCI->acquireId(this);
