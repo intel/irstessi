@@ -36,6 +36,7 @@ public:
     String getLogicalId() const;
     bool equal(const Object *pObject) const;
     void attachEndDevice(EndDevice *);
+    void attachEndDevices(Container<EndDevice> &EndDevices);
     void attachRoutingDevice(RoutingDevice *);
     void getSlotAddress(SSI_Address &address, unsigned int number);
 

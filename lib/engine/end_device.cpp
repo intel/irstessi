@@ -78,6 +78,7 @@ EndDevice::EndDevice(const String &path)
       m_SerialNum(""),
       m_pPhy(0),
       m_pPort(0),
+      m_pEnclosure(0),
       m_Model(""),
       m_Firmware(""),
       m_TotalSize(0),

@@ -29,9 +29,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "filesystem.h"
 #include "object.h"
+#include "routing_device.h"
 #include "enclosure.h"
 #include "session.h"
 #include "utils.h"
+#include "storage_device.h"
+#include "end_device.h"
 
 /* */
 Enclosure::Enclosure(const String &path)
@@ -97,6 +100,15 @@ void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 }
 
 /* */
+void Enclosure::attachEndDevices(Container<EndDevice> &EndDevices)
+{
+    for (Iterator<EndDevice *> i = EndDevices; *i != 0; i++) {
+        (*i)->setEnclosure(this);
+        attachEndDevice(*i);
+    }
+}
+
+/* */
 void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 {
     m_RoutingDevices.add(pRoutingDevice);
@@ -105,6 +117,11 @@ void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 /* */
 void Enclosure::acquireId(Session *pSession)
 {
+    Container<EndDevice> container;
+    for(Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; i++) {
+        (*i)->getEndDevices(container, false);
+        attachEndDevices(container);
+    }
     pSession->addEnclosure(this);
 }
 

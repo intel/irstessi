@@ -29,8 +29,7 @@ class Phy;
 class RaidInfo;
 class Port;
 
-/**
- */
+/* */
 class EndDevice : public StorageDevice {
 public:
     EndDevice(const String &path);
@@ -71,6 +70,7 @@ protected:
     String m_SgName;
     Phy *m_pPhy;
     Port *m_pPort;
+    Enclosure *m_pEnclosure;
     String m_Model;
     String m_Firmware;
     unsigned long long m_TotalSize;
@@ -103,7 +103,10 @@ public:
         return 0;
     }
     virtual Enclosure * getEnclosure() const {
-        return 0;
+        return m_pEnclosure;
+    }
+    virtual void setEnclosure(Enclosure *pEnclosure) {
+        m_pEnclosure = pEnclosure;
     }
     virtual bool isSystemDisk() const {
         return false;
