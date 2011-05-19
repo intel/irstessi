@@ -258,6 +258,12 @@ void Controller::attachArray(Array *pArray)
 /* */
 void Controller::attachEnclosure(Enclosure *pEnclosure)
 {
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; i++)
+        if (*i == pEnclosure) {
+            (*i)->attachRoutingDevice(dynamic_cast<RoutingDevice *>(pEnclosure->getParent()));
+            delete pEnclosure;
+            return;
+        }
     m_Enclosures_Direct.add(pEnclosure);
 }
 

@@ -32,6 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "storage_device.h"
 #include "end_device.h"
 #include "routing_device.h"
+#include "enclosure.h"
 #include "port.h"
 #include "session.h"
 
@@ -118,6 +119,7 @@ void Port::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 /* */
 void Port::attachEnclosure(Enclosure *pEnclosure)
 {
+    pEnclosure->attachRoutingDevice(dynamic_cast<RoutingDevice *>(m_pParent));
     m_pParent->attachEnclosure(pEnclosure);
 }
 
