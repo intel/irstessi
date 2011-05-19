@@ -62,6 +62,7 @@ void ISCI_Port::discover()
     Directory dir(m_Path, "expander");
     if (*(i = dir) != 0) {
         ISCI_Expander *pExpander = new ISCI_Expander(*(*i));
+        pExpander->setParent(m_pParent);
         pExpander->discover();
         attachPort(pExpander->getSubtractivePort());
         return;
@@ -70,6 +71,7 @@ void ISCI_Port::discover()
     if (*(i = dir) != 0) {
         Directory target(*(*i), "target");
         EndDevice *pEndDevice = __internal_create_end_device(target);
+        pEndDevice->setParent(m_pParent);
         if (pEndDevice != 0) {
             attachPort(pEndDevice->getPort());
         }

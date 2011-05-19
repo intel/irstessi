@@ -73,11 +73,13 @@ void AHCI_Phy::discover()
 
         if (dir.count() == 1) {
             EndDevice *pEndDevice = __internal_attach_end_device(dir);
+            pEndDevice->setParent(m_pParent);
             if (pEndDevice != 0) {
                 m_pPort->attachPort(pEndDevice->getPort());
             }
         } else {
             AHCI_Multiplier *pMultiplier = new AHCI_Multiplier(m_Path, dir);
+            pMultiplier->setParent(m_pParent);
             m_pPort->attachPort(pMultiplier->getSubtractivePort());
         }
         if (m_pParent != 0) {
