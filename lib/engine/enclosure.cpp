@@ -33,9 +33,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 Enclosure::Enclosure(const String &path)
-    : StorageObject(path)
+    : StorageObject(path),
+      m_LogicalId("")
 {
-	/* TODO fill the lists of end devices and routing devices */
 }
 
 /* */
@@ -65,10 +65,17 @@ void Enclosure::getRoutingDevices(Container<RoutingDevice> &container, bool) con
     container = m_RoutingDevices;
 }
 
+/* */
+String Enclosure::getLogicalId() const
+{
+    return m_LogicalId;
+}
+
+/* */
 bool Enclosure::equal(const Object *pObject) const
 {
-    (void)pObject;
-    return false; /* Object::equal(pObject); */
+    return Object::equal(pObject) &&
+           m_LogicalId == dynamic_cast<const Enclosure*>(pObject)->getLogicalId();
 }
 
 /* */

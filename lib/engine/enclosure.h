@@ -33,6 +33,7 @@ public:
     SSI_Status getInfo(SSI_EnclosureInfo *pInfo) const;
     void getEndDevices(Container<EndDevice> &, bool all) const;
     void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
+    String getLogicalId() const;
     bool equal(const Object *pObject) const;
     void attachEndDevice(EndDevice *);
     void attachRoutingDevice(RoutingDevice *);
@@ -48,6 +49,7 @@ public:
 protected:
     Container<EndDevice> m_EndDevices;
     Container<RoutingDevice> m_RoutingDevices;
+    String m_LogicalId;
 };
 
 #endif /* __ENCLOSURE_H__INCLUDED__ */
