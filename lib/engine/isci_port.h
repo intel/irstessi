@@ -29,7 +29,7 @@ public:
     void discover();
 
 private:
-    EndDevice * __internal_create_end_device(Iterator<Directory *> i);
+    StorageObject * __internal_create_storage_object(Iterator<Directory *> i);
 };
 
 #endif /* __ISCI_PORT_H__INCLUDED__ */

@@ -41,6 +41,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "multimedia_device.h"
 #include "stream_device.h"
 #include "routing_device.h"
+#include "enclosure.h"
 #include "isci.h"
 #include "isci_port.h"
 #include "isci_phy.h"
@@ -70,10 +71,14 @@ void ISCI_Port::discover()
     dir.setFilter("end_device");
     if (*(i = dir) != 0) {
         Directory target(*(*i), "target");
-        EndDevice *pEndDevice = __internal_create_end_device(target);
-        pEndDevice->setParent(m_pParent);
-        if (pEndDevice != 0) {
-            attachPort(pEndDevice->getPort());
+        StorageObject *pStorageObject = __internal_create_storage_object(target);
+        if (pStorageObject != 0) {
+            pStorageObject->setParent(m_pParent);
+            if  (pStorageObject->getType() == ObjectType_EndDevice)  {
+                attachPort(pStorageObject->getPort());
+            } else {
+                //attachEnclosure(pStorageObject);
+            }
         }
         return;
     }
@@ -84,26 +89,31 @@ void ISCI_Port::discover()
 }
 
 /* */
-EndDevice * ISCI_Port::__internal_create_end_device(Iterator<Directory *> i)
+StorageObject * ISCI_Port::__internal_create_storage_object(Iterator<Directory *> i)
 {
-    EndDevice *pEndDevice = 0;
+    StorageObject *pStorageObject = 0;
     if (*i != 0)
     for (Iterator<Directory *> j = *(*i); *j != 0; ++j) {
         CanonicalPath temp = *(*j) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
-            pEndDevice = new ISCI_Disk(*(*j));
+            pStorageObject = new ISCI_Disk(*(*j));
             break;
         } else
         if (temp == "/sys/bus/scsi/drivers/sr") {
-            pEndDevice = new ISCI_CDROM(*(*j));
+            pStorageObject = new ISCI_CDROM(*(*j));
             break;
         } else
         if (temp == "/sys/bus/scsi/drivers/st") {
-            pEndDevice = new ISCI_Tape(*(*j));
+            pStorageObject = new ISCI_Tape(*(*j));
+            break;
+        }
+        if (temp == "/sys/bus/scsi/drivers/ses") {
+            pStorageObject = new Enclosure(*(*j));
+
             break;
         }
     }
-    return pEndDevice;
+    return pStorageObject;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
