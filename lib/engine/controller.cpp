@@ -260,7 +260,9 @@ void Controller::attachEnclosure(Enclosure *pEnclosure)
 {
     for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; i++)
         if (*i == pEnclosure) {
-            (*i)->attachRoutingDevice(dynamic_cast<RoutingDevice *>(pEnclosure->getParent()));
+            RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(pEnclosure->getParent());
+            (*i)->attachRoutingDevice(pRoutingDevice);
+            pRoutingDevice->setEnclosure(*i);
             delete pEnclosure;
             return;
         }

@@ -119,8 +119,10 @@ void Port::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 /* */
 void Port::attachEnclosure(Enclosure *pEnclosure)
 {
-    pEnclosure->attachRoutingDevice(dynamic_cast<RoutingDevice *>(m_pParent));
-    m_pParent->attachEnclosure(pEnclosure);
+    RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(m_pParent);
+    pEnclosure->attachRoutingDevice(pRoutingDevice);
+    pRoutingDevice->setEnclosure(pEnclosure);
+    pRoutingDevice->attachEnclosure(pEnclosure);
 }
 
 /* */

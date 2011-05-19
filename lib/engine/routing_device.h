@@ -77,6 +77,7 @@ protected:
     Container<Port> m_Ports;
     Container<RoutingDevice> m_RoutingDevices;
     Container<RoutingDevice> m_RoutingDevices_Direct;
+    Enclosure *m_pEnclosure;
     Port *m_pSubtractivePort;
     String m_ProductId;
     String m_Vendor;
@@ -87,7 +88,10 @@ protected:
 
 public:
     virtual Enclosure * getEnclosure() const {
-        return 0;
+        return m_pEnclosure;
+    }
+    virtual void setEnclosure(Enclosure *pEnclosure) {
+        m_pEnclosure = pEnclosure;
     }
     Port * getSubtractivePort() const {
         return m_pSubtractivePort;
