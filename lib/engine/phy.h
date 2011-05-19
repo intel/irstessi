@@ -63,6 +63,9 @@ public:
     unsigned int getNumber() const {
         return m_Number;
     }
+    virtual SSI_PhyProtocol getPhyProtocol() const {
+        return SSI_PhyProtocolUnknown;
+    }
     virtual SSI_Status locate(bool mode) const;
     SSI_Status getInfo(SSI_PhyInfo *pInfo) const;
 

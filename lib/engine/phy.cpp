@@ -52,7 +52,7 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     pInfo->phyHandle = getId();
     m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
-    /* TODO: pInfo->phyProtocol  */
+    pInfo->protocol = getPhyProtocol();
     if (m_pPort != 0) {
         pInfo->associatedPort = m_pPort->getId();
     } else {
