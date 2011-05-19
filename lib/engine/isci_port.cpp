@@ -49,6 +49,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_disk.h"
 #include "isci_cdrom.h"
 #include "isci_tape.h"
+#include "log/log.h"
 
 /* */
 ISCI_Port::ISCI_Port(const String &path)
@@ -74,11 +75,16 @@ void ISCI_Port::discover()
         StorageObject *pStorageObject = __internal_create_storage_object(target);
         if (pStorageObject != 0) {
             pStorageObject->setParent(m_pParent);
-            if  (pStorageObject->getType() == ObjectType_EndDevice)  {
-                attachPort(pStorageObject->getPort());
-            } else {
-                //attachEnclosure(pStorageObject);
-            }
+            switch  (pStorageObject->getType()) {
+                    case ObjectType_EndDevice:
+                        attachPort(pStorageObject->getPort());
+                        break;
+                    case ObjectType_Enclosure:
+                        attachEnclosure(dynamic_cast<Enclosure *>(pStorageObject));
+                        break;
+                    default:
+                        dlog("neither end device nor enclosure??? (%s)", (const char *)(pStorageObject->getPath()));
+                }
         }
         return;
     }

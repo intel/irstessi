@@ -57,6 +57,7 @@ public:
     virtual void attachPort(Port *pPort);
     virtual void attachVolume(Volume *pVolume);
     virtual void attachRoutingDevice(RoutingDevice *pRoutingDevice);
+    virtual void attachEnclosure(Enclosure *pEnclosure);
     virtual void attachEndDevice(EndDevice *pEndDevice);
     void attachPhy(Phy *pPhy);
 

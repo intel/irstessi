@@ -36,9 +36,9 @@ class RoutingDevice : public StorageObject {
 
  public:
 
-	virtual bool equal(const Object *pObject) const {
-		return false;
-	}
+    virtual bool equal(const Object *pObject) const {
+        return false;
+    }
     ObjectType getType() const {
         return ObjectType_RoutingDevice;
     }
@@ -62,6 +62,7 @@ public:
     void attachVolume(Volume *pVolume);
     void attachPhy(Phy *pPhy);
     void attachRoutingDevice(RoutingDevice *pRoutingDevice);
+    void attachEnclosure(Enclosure *pEnclosure);
     void attachPort(Port *pPort);
     void attachArray(Array *pArray);
 

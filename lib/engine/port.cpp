@@ -116,6 +116,12 @@ void Port::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 }
 
 /* */
+void Port::attachEnclosure(Enclosure *pEnclosure)
+{
+    m_pParent->attachEnclosure(pEnclosure);
+}
+
+/* */
 void Port::attachPhy(Phy *pPhy)
 {
     m_Phys.add(pPhy);

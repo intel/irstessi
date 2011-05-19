@@ -189,4 +189,10 @@ void RoutingDevice::attachRoutingDevice(RoutingDevice *pRoutingDevice)
     m_RoutingDevices.add(routingDevices);
 }
 
+/* */
+void RoutingDevice::attachEnclosure(Enclosure *pEnclosure)
+{
+    m_pParent->attachEnclosure(pEnclosure);
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
