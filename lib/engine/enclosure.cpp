@@ -27,15 +27,27 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "list.h"
 #include "container.h"
 #include "string.h"
+#include "filesystem.h"
 #include "object.h"
 #include "enclosure.h"
 #include "session.h"
+#include "utils.h"
 
 /* */
 Enclosure::Enclosure(const String &path)
     : StorageObject(path),
       m_LogicalId("")
 {
+    CanonicalPath temp;
+    temp = m_Path + "/generic";
+    m_SgName = temp.reverse_after("/");
+    String sbuffer;
+    if (shell_cap("sg_ses -p 0x1 /dev/" + m_SgName, sbuffer) == 0) {
+        m_LogicalId = sbuffer.between("logical identifier (hex): ", "\n");
+        m_LogicalId.trim();
+        m_VendorId = sbuffer.between("vendor: ", "product");
+        m_VendorId.trim();
+    }
 }
 
 /* */

@@ -49,7 +49,9 @@ public:
 protected:
     Container<EndDevice> m_EndDevices;
     Container<RoutingDevice> m_RoutingDevices;
+    String m_SgName;
     String m_LogicalId;
+    String m_VendorId;
 };
 
 #endif /* __ENCLOSURE_H__INCLUDED__ */
