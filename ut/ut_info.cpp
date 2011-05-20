@@ -27,17 +27,11 @@ using namespace std;
 int main(int argc, char *argv[])
 {
     SSI_Status status;
-    SSI_Uint32 count;
     SSI_Handle session;
-
-
-    SSI_RaidInfo raidInfo;
-    SSI_RaidLevelInfo info;
-    SSI_ControllerInfo controllerInfo;
-    SSI_VolumeInfo volumeInfo;
     SSI_Handle handles[MAX_COUNT];
-    unsigned int j = 0;
+    SSI_Uint32 count;
 
+    unsigned int j = 0;
     (void)argc;
     (void)argv;
 
@@ -64,6 +58,7 @@ int main(int argc, char *argv[])
         cout << "passthroughCommandSupport: " << (bool)systemInfo.passthroughCommandSupport << endl;
     }
 
+    SSI_RaidInfo raidInfo;
     count = MAX_COUNT;
     status = SsiGetRaidInfoHandles(session, handles, &count);
     if (status == SSI_StatusOk) {
@@ -90,6 +85,7 @@ int main(int argc, char *argv[])
         cout << "E. Unable to get raid info handles" << endl;
     }
 
+    SSI_RaidLevelInfo info;
     if (count > 0 && count != MAX_COUNT) {
         SSI_RaidLevel a[] = {SSI_Raid0, SSI_Raid1, SSI_Raid10, SSI_Raid5, SSI_Raid6, SSI_RaidUnknown};
         for (j = 0; j < 6 ; j++) {
@@ -108,6 +104,7 @@ int main(int argc, char *argv[])
         }
     }
 
+    SSI_ControllerInfo controllerInfo;
     count = MAX_COUNT;
     status = SsiGetControllerHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
     if (status == SSI_StatusOk) {
@@ -149,19 +146,20 @@ int main(int argc, char *argv[])
         cout << "E. Unable to get controller handles" << endl;
     }
 
+    SSI_VolumeInfo volumeInfo;
     count = MAX_COUNT;
     status = SsiGetVolumeHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
     if (status == SSI_StatusOk) {
         cout << "volumes: " << count << endl;
         for (unsigned int i = 0; i < count; ++i) {
             cout << "\thandle=0x" << hex << handles[i] << endl;
-            status = SsiGetVolumeInfo(SSI_NULL_HANDLE, handles[i], &volumeInfo);
+            status = SsiGetVolumeInfo(session, handles[i], &volumeInfo);
             if (status == SSI_StatusOk) {
                 cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle<< endl;
                 cout << "\tarrayOrdinal" << volumeInfo.arrayOrdinal << endl;
                 cout << "\tvolumeName" << volumeInfo.volumeName << endl;
-                cout << "volume state: " << volumeInfo.state << endl;
-                cout << "volume raidLevel: " << volumeInfo.raidLevel << endl;
+                cout << "\tvolume state: " << volumeInfo.state << endl;
+                cout << "\tvolume raidLevel: " << volumeInfo.raidLevel << endl;
             } else {
                 cout << "E: unable to get volume info (status=" << status << ")" << endl;
             }
@@ -170,8 +168,24 @@ int main(int argc, char *argv[])
         cout << "E: unable to get volume handles (status=" << status << ")" << endl;
     }
 
+    SSI_PhyInfo phyInfo;
+    count = MAX_COUNT;
+    status = SsiGetPhyHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
+    if (status == SSI_StatusOk) {
+        cout << "Phys: " << count << endl;
+        for (unsigned int i = 0; i < count; ++i) {
+            cout << "\thandle=0x" << hex << handles[i] << endl;
+            status = SsiGetPhyInfo(session, handles[i], &phyInfo);
+            if (status == SSI_StatusOk) {
+                cout << "\tphy protocol: " << phyInfo.protocol << endl;
+            } else {
+                cout << "E: unable to get phy info (status=" << status << ")" << endl;
+            }
+        }
+    } else {
+        cout << "E: unable to get phy handles (status=" << status << ")" << endl;
+    }
 /*
-SSI_API SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle, SSI_PhyInfo *info); tt
 SSI_API SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle, SSI_PortInfo *info); tt
 SSI_API SSI_Status SsiGetEnclosureInfo(SSI_Handle session, SSI_Handle enclosureHandle, SSI_EnclosureInfo *info);tt
 SSI_API SSI_Status SsiGetEndDeviceInfo(SSI_Handle session, SSI_Handle endDeviceHandle, SSI_EndDeviceInfo *info); tt
