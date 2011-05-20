@@ -24,6 +24,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 class AHCI_Port : public Port {
+public:
+    AHCI_Port(const String &path);
 };
 
 #endif /* __AHCI_PORT_H__INCLUDED__ */

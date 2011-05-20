@@ -48,6 +48,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "stream_device.h"
 #include "routing_device.h"
 #include "ahci_phy.h"
+#include "ahci_port.h"
 #include "ahci_disk.h"
 #include "ahci_cdrom.h"
 #include "ahci_tape.h"
@@ -67,7 +68,7 @@ void AHCI_Phy::discover()
 {
     Directory dir(m_Path, "target");
     if (dir > 0) {
-        m_pPort = new Port(m_Path);
+        m_pPort = new AHCI_Port(m_Path);
         m_pPort->setParent(m_pParent);
         m_pPort->attachPhy(this);
 

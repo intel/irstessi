@@ -32,4 +32,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "ahci_port.h"
 
+/* */
+AHCI_Port::AHCI_Port(const String &path)
+    : Port(path)
+{
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
