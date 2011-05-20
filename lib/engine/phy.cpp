@@ -50,7 +50,11 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->phyHandle = getId();
-    m_pParent->getAddress(pInfo->phyAddress);
+    try {
+        m_pParent->getAddress(pInfo->phyAddress);
+    }
+    catch (...) {
+    }
     pInfo->phyNumber = m_Number;
     pInfo->protocol = getPhyProtocol();
     if (m_pPort != 0) {
