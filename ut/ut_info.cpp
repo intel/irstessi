@@ -34,7 +34,7 @@ enum InfoOption {
 };
 
 string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy"};
-
+string dt[]={"SSI_DeviceTypeUnknown", "SSI_DeviceTypeController", "SSI_DeviceTypeEndDevice", "SSI_DeviceTypeRoutingDevice"};
 int main(int argc, char *argv[])
 {
     SSI_Status status;
@@ -206,7 +206,9 @@ int main(int argc, char *argv[])
                     cout << "\thandle=0x" << hex << handles[i] << endl;
                     status = SsiGetPhyInfo(session, handles[i], &phyInfo);
                     if (status == SSI_StatusOk) {
+                        cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.lun << endl;
                         cout << "\tphy protocol: " << phyInfo.protocol << endl;
+                        cout << "\tdeviceType: " << dt[phyInfo.deviceType] << endl;
 #if 0
                         SSI_Address phyAddress;
                         /** Indicates which phy on the parent device this represents */
