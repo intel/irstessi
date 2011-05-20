@@ -30,7 +30,7 @@ public:
     SSI_Status locate(bool mode) const;
     SSI_PhyProtocol getPhyProtocol() const {
         /* TODO */
-        return Phy::getPhyProtocol();
+        return SSI_PhyProtocolUnknown;
     }
 };
 
