@@ -17,7 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstring>
 #include <cstdlib>
 #include <iostream>
-
+#include <string>
 #include <ssi.h>
 
 #define MAX_COUNT 200
@@ -67,15 +67,15 @@ int main(int argc, char *argv[])
             cout << "\thandle=0x" << hex << handles[i] << endl;
             status = SsiGetRaidInfo(session, handles[i], &raidInfo);
             if (status == SSI_StatusOk) {
-                cout << "\tmaxDisksPerArray: " << (int)raidInfo.maxDisksPerArray << endl;
-                cout << "\tmaxRaidDisksSupported: " << (int)raidInfo.maxRaidDisksSupported << endl;
-                cout << "\tmaxVolumesPerArray: " << (int)raidInfo.maxVolumesPerArray << endl;
-                cout << "\tmaxVolumesPerHba: " << (int)raidInfo.maxVolumesPerHba << endl;
-                cout << "\traidEnabled: " << (bool)raidInfo.raidEnabled << endl;
-                cout << "\tsupportsGlobalSpare: " << (bool)raidInfo.supportsGlobalSpare << endl;
-                cout << "\tsupportsDedicatedSpare: " << (bool)raidInfo.supportsDedicatedSpare << endl;
-                cout << "\tsupportsCreateFromExisting: " << (bool)raidInfo.supportsCreateFromExisting << endl;
-                cout << "\tsupportsEmptyArrays: " << (bool)raidInfo.supportsEmptyArrays << endl;
+                cout << "\t\tmaxDisksPerArray: " << (int)raidInfo.maxDisksPerArray << endl;
+                cout << "\t\tmaxRaidDisksSupported: " << (int)raidInfo.maxRaidDisksSupported << endl;
+                cout << "\t\tmaxVolumesPerArray: " << (int)raidInfo.maxVolumesPerArray << endl;
+                cout << "\t\tmaxVolumesPerHba: " << (int)raidInfo.maxVolumesPerHba << endl;
+                cout << "\t\traidEnabled: " << (bool)raidInfo.raidEnabled << endl;
+                cout << "\t\tsupportsGlobalSpare: " << (bool)raidInfo.supportsGlobalSpare << endl;
+                cout << "\t\tsupportsDedicatedSpare: " << (bool)raidInfo.supportsDedicatedSpare << endl;
+                cout << "\t\tsupportsCreateFromExisting: " << (bool)raidInfo.supportsCreateFromExisting << endl;
+                cout << "\t\tsupportsEmptyArrays: " << (bool)raidInfo.supportsEmptyArrays << endl;
 //                cout << "\t: " << ()raidInfo. << endl;
             } else {
                 cout << "E. unable to get RaidInfo information" << endl;
@@ -87,19 +87,22 @@ int main(int argc, char *argv[])
 
     SSI_RaidLevelInfo info;
     if (count > 0 && count != MAX_COUNT) {
+        cout << "    RaidLevelInfo: " << endl;
         SSI_RaidLevel a[] = {SSI_Raid0, SSI_Raid1, SSI_Raid10, SSI_Raid5, SSI_Raid6, SSI_RaidUnknown};
+        string b[] = {"SSI_Raid0", "SSI_Raid1", "SSI_Raid10", "SSI_Raid5", "SSI_Raid6", "SSI_RaidUnknown"};
         for (j = 0; j < 6 ; j++) {
             status = SsiGetRaidLevelInfo(session, handles[0], (SSI_RaidLevel) a[j], &info);
             if (status == SSI_StatusOk) {
-                cout << "\tsupported: " << (bool)info.supported << endl;
-                cout << "\tminDisks: " << (int)info.minDisks << endl;
-                cout << "\tmaxDisks: " << (int)info.maxDisks << endl;
-                cout << "\tdefaultStripSize: " << (int)info.defaultStripSize << endl;
-                cout << "\tmigrSupport: " << (int)info.migrSupport << endl;
-                cout << "\tmigrDiskAdd: " << (int)info.migrDiskAdd << endl;
-                cout << "\tevenDiskCount: " << (bool)info.evenDiskCount << endl;
-                cout << "\toddDiskCount: " << (bool)info.oddDiskCount << endl;
-                cout << "\tstripSizesSupported: " << (int)info.stripSizesSupported << endl;
+                cout << "\tRaid Level: " << b[j] << endl;
+                cout << "\t\tsupported: " << (bool)info.supported << endl;
+                cout << "\t\tminDisks: " << (int)info.minDisks << endl;
+                cout << "\t\tmaxDisks: " << (int)info.maxDisks << endl;
+                cout << "\t\tdefaultStripSize: " << (int)info.defaultStripSize << endl;
+                cout << "\t\tmigrSupport: " << (int)info.migrSupport << endl;
+                cout << "\t\tmigrDiskAdd: " << (int)info.migrDiskAdd << endl;
+                cout << "\t\tevenDiskCount: " << (bool)info.evenDiskCount << endl;
+                cout << "\t\toddDiskCount: " << (bool)info.oddDiskCount << endl;
+                cout << "\t\tstripSizesSupported: " << (int)info.stripSizesSupported << endl;
             }
         }
     }
