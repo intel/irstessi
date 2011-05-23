@@ -34,7 +34,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 Phy::Phy(const String &path, unsigned int number)
-    : StorageObject(path), m_pRemotePhy(0), m_pPort(0), m_Number(number)
+    : StorageObject(path), m_pRemotePhy(0), m_pPort(0), m_Number(number),
+      m_Protocol(SSI_PhyProtocolUnknown)
 {
 }
 
@@ -56,7 +57,7 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     catch (...) {
     }
     pInfo->phyNumber = m_Number;
-    pInfo->protocol = getPhyProtocol();
+    pInfo->protocol = m_Protocol;
     if (m_pPort != 0) {
         pInfo->associatedPort = m_pPort->getId();
     } else {

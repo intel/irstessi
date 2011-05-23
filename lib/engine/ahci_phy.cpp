@@ -61,6 +61,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 AHCI_Phy::AHCI_Phy(const String &path, unsigned int number)
     : Phy(path, number), m_PhyPath(CanonicalPath(path + "/scsi_host" + path.reverse_right("/host")))
 {
+    m_Protocol = SSI_PhyProtocolSATA;
 }
 
 /* */
@@ -76,7 +77,9 @@ void AHCI_Phy::discover()
             EndDevice *pEndDevice = __internal_attach_end_device(dir);
             pEndDevice->setParent(m_pParent);
             if (pEndDevice != 0) {
+                Phy *pPhy = pEndDevice->getPhy();
                 m_pPort->attachPort(pEndDevice->getPort());
+                pPhy->setProtocol(m_Protocol);
             }
         } else {
             AHCI_Multiplier *pMultiplier = new AHCI_Multiplier(m_Path, dir);

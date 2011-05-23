@@ -28,10 +28,6 @@ public:
     ISCI_Phy(const String &path, unsigned int number);
     void discover();
     SSI_Status locate(bool mode) const;
-    SSI_PhyProtocol getPhyProtocol() const {
-        /* TODO */
-        return SSI_PhyProtocolUnknown;
-    }
 };
 
 #endif /* __ISCI_PHY_H__INCLUDED__ */

@@ -63,8 +63,11 @@ public:
     unsigned int getNumber() const {
         return m_Number;
     }
-    virtual SSI_PhyProtocol getPhyProtocol() const {
-        return SSI_PhyProtocolUnknown;
+    void setProtocol(SSI_PhyProtocol protocol) {
+        m_Protocol = protocol;
+    }
+    SSI_PhyProtocol getProtocol() const {
+        return m_Protocol;
     }
     virtual SSI_Status locate(bool mode) const;
     SSI_Status getInfo(SSI_PhyInfo *pInfo) const;
@@ -73,6 +76,7 @@ protected:
     Phy *m_pRemotePhy;
     Port *m_pPort;
     unsigned int m_Number;
+    SSI_PhyProtocol m_Protocol;
 };
 
 #endif /* __PHY_H__INCLUDED__ */

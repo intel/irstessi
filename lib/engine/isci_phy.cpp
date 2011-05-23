@@ -43,6 +43,7 @@ ISCI_Phy::ISCI_Phy(const String &path, unsigned int number)
     : Phy(path, number)
 {
 /* m_SasPath(CanonicalPath(path + "/sas_phy" + path.reverse_right("/")), number) */
+    m_Protocol = SSI_PhyProtocolUnknown;
 }
 
 void ISCI_Phy::discover()

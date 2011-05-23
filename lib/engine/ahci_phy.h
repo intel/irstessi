@@ -28,9 +28,6 @@ public:
     AHCI_Phy(const String &path, unsigned int number);
     void discover();
     SSI_Status locate(bool mode) const;
-    SSI_PhyProtocol getPhyProtocol() const {
-        return SSI_PhyProtocolSATA;
-    }
 private:
     String m_PhyPath;
     EndDevice * __internal_attach_end_device(Iterator<Directory *> i);
