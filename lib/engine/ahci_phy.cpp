@@ -83,6 +83,8 @@ void AHCI_Phy::discover()
             }
         } else {
             AHCI_Multiplier *pMultiplier = new AHCI_Multiplier(m_Path, dir);
+            Phy *pPhy = pMultiplier->getPhy();
+            pPhy->setProtocol(m_Protocol);
             pMultiplier->setParent(m_pParent);
             m_pPort->attachPort(pMultiplier->getSubtractivePort());
         }

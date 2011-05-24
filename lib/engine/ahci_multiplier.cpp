@@ -50,6 +50,7 @@ AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
     : RoutingDevice(path), m_pPhy(0)
 {
     m_pPhy = new Phy(path, 0, this);
+    m_pPhy->setProtocol(SSI_PhyProtocolSATA);
     m_pSubtractivePort = new RemotePort(path);
     m_pSubtractivePort->setParent(this);
     m_pSubtractivePort->attachPhy(m_pPhy);
@@ -81,6 +82,7 @@ bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned in
     if (pEndDevice != 0) {
         Phy *pPhy = new Phy(path, number, this);
         attachPhy(pPhy);
+        pPhy->setProtocol(SSI_PhyProtocolSATA);
         Port *pPort = new Port(path);
         attachPort(pPort);
         pPort->setParent(this);
