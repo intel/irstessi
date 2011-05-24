@@ -34,9 +34,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 Phy::Phy(const String &path, unsigned int number, StorageObject *pParent)
-    : StorageObject(path, pParent), m_pRemotePhy(0), m_pPort(0), m_Number(number),
-      m_Protocol(SSI_PhyProtocolUnknown)
+    : StorageObject(path, pParent), m_pRemotePhy(0), m_pPort(0), m_Number(number)
 {
+    setProperties();
 }
 
 /* */
@@ -79,11 +79,11 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     pInfo->deviceHandle = m_pParent->getId();
     pInfo->isExternal = SSI_FALSE;
     pInfo->hotPlugCap = SSI_FALSE;
-    /* TODO: pInfo->minHWLinkSpeed */
-    /* TODO: pInfo->maxHWLinkSpeed */
-    /* TODO: pInfo->minLinkSpeed */
-    /* TODO: pInfo->maxLinkSpeed */
-    /* TODO: pInfo->negotiatedLinkSpeed */
+    pInfo->minHWLinkSpeed = m_minHWLinkSpeed;
+    pInfo->maxHWLinkSpeed = m_maxHWLinkSpeed;
+    pInfo->minLinkSpeed = m_minLinkSpeed;
+    pInfo->maxLinkSpeed = m_maxLinkSpeed;
+    pInfo->negotiatedLinkSpeed = m_negotiatedLinkSpeed;
     pInfo->countsValid = SSI_FALSE;
     return SSI_StatusOk;
 }
@@ -92,6 +92,17 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
 SSI_Status Phy::locate(bool mode) const
 {
     return SSI_StatusNotSupported;
+}
+
+/* */
+void Phy::setProperties()
+{
+    m_Protocol = SSI_PhyProtocolUnknown;
+    m_minHWLinkSpeed = SSI_PhySpeedUnknown;
+    m_maxHWLinkSpeed = SSI_PhySpeedUnknown;
+    m_minLinkSpeed = SSI_PhySpeedUnknown;
+    m_maxLinkSpeed = SSI_PhySpeedUnknown;
+    m_negotiatedLinkSpeed = SSI_PhySpeedUnknown;
 }
 
 /* */

@@ -70,6 +70,7 @@ public:
         return m_Protocol;
     }
     virtual SSI_Status locate(bool mode) const;
+    virtual void setProperties();
     SSI_Status getInfo(SSI_PhyInfo *pInfo) const;
 
 protected:
@@ -77,6 +78,11 @@ protected:
     Port *m_pPort;
     unsigned int m_Number;
     SSI_PhyProtocol m_Protocol;
+    SSI_PhySpeed m_minHWLinkSpeed;
+    SSI_PhySpeed m_maxHWLinkSpeed;
+    SSI_PhySpeed m_minLinkSpeed;
+    SSI_PhySpeed m_maxLinkSpeed;
+    SSI_PhySpeed m_negotiatedLinkSpeed;
 };
 
 #endif /* __PHY_H__INCLUDED__ */
