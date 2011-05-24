@@ -103,9 +103,8 @@ void AHCI::discover()
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath temp = *(*i) + "scsi_host";
         if (temp) {
-            AHCI_Phy *pPhy = new AHCI_Phy(CanonicalPath(*(*i)), number++);
+            AHCI_Phy *pPhy = new AHCI_Phy(CanonicalPath(*(*i)), number++, this);
             attachPhy(pPhy);
-            pPhy->setParent(this);
             pPhy->discover();
         }
     }

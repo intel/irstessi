@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class AHCI_Phy : public Phy {
 public:
-    AHCI_Phy(const String &path, unsigned int number);
+    AHCI_Phy(const String &path, unsigned int number, StorageObject *pParent = 0);
     void discover();
     SSI_Status locate(bool mode) const;
 private:

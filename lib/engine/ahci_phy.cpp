@@ -58,8 +58,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define EM_MSG_WAIT     1500
 
 /* */
-AHCI_Phy::AHCI_Phy(const String &path, unsigned int number)
-    : Phy(path, number), m_PhyPath(CanonicalPath(path + "/scsi_host" + path.reverse_right("/host")))
+AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, StorageObject *pParent)
+    : Phy(path, number, pParent), m_PhyPath(CanonicalPath(path + "/scsi_host" + path.reverse_right("/host")))
 {
     m_Protocol = SSI_PhyProtocolSATA;
 }

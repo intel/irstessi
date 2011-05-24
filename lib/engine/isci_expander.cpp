@@ -83,9 +83,8 @@ void ISCI_Expander::discover()
     Directory dir(m_Path, "phy");
     unsigned int number = 0;
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
-        Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++);
+        Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++, this);
         attachPhy(pPhy);
-        pPhy->setParent(this);
     }
     for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
         (*i)->discover();

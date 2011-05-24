@@ -90,9 +90,8 @@ void ISCI::discover()
         Directory phys(*(*i), "phy");
         number *= 4;
         for (Iterator<Directory *> j = phys; *j != 0; ++j, ++number) {
-            Phy *pPhy = new ISCI_Phy(*(*j), number);
+            Phy *pPhy = new ISCI_Phy(*(*j), number, this);
             attachPhy(pPhy);
-            pPhy->setParent(this);
         }
     }
     for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {

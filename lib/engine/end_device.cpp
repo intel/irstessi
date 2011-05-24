@@ -87,8 +87,7 @@ EndDevice::EndDevice(const String &path)
       m_SASAddress(0),
       m_WriteCachePolicy(SSI_WriteCachePolicyOff)
 {
-    m_pPhy = new Phy(path, 0);
-    m_pPhy->setParent(this);
+    m_pPhy = new Phy(path, 0, this);
     m_pPort = new RemotePort(path);
     m_pPort->setParent(this);
     m_pPort->attachPhy(m_pPhy);

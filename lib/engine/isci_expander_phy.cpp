@@ -39,8 +39,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_expander_phy.h"
 
 /* */
-ISCI_Expander_Phy::ISCI_Expander_Phy(const String &path, unsigned int number)
-    : Phy(path, number)
+ISCI_Expander_Phy::ISCI_Expander_Phy(const String &path, unsigned int number, StorageObject *pParent)
+    : Phy(path, number, pParent)
 {
 }
 

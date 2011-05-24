@@ -33,8 +33,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 
 /* */
-Phy::Phy(const String &path, unsigned int number)
-    : StorageObject(path), m_pRemotePhy(0), m_pPort(0), m_Number(number),
+Phy::Phy(const String &path, unsigned int number, StorageObject *pParent)
+    : StorageObject(path, pParent), m_pRemotePhy(0), m_pPort(0), m_Number(number),
       m_Protocol(SSI_PhyProtocolUnknown)
 {
 }

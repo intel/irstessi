@@ -39,8 +39,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_phy.h"
 
 /* */
-ISCI_Phy::ISCI_Phy(const String &path, unsigned int number)
-    : Phy(path, number)
+ISCI_Phy::ISCI_Phy(const String &path, unsigned int number, StorageObject *pParent)
+    : Phy(path, number, pParent)
 {
 /* m_SasPath(CanonicalPath(path + "/sas_phy" + path.reverse_right("/")), number) */
     m_Protocol = SSI_PhyProtocolUnknown;
