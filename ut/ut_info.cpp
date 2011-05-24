@@ -34,7 +34,10 @@ enum InfoOption {
 };
 
 string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy"};
-string dt[]={"SSI_DeviceTypeUnknown", "SSI_DeviceTypeController", "SSI_DeviceTypeEndDevice", "SSI_DeviceTypeRoutingDevice"};
+string devtype[] = {"SSI_DeviceTypeUnknown", "SSI_DeviceTypeController", "SSI_DeviceTypeEndDevice", "SSI_DeviceTypeRoutingDevice"};
+string physpeed[] = {"SSI_PhySpeedUnknown" , "SSI_PhySpeed_1_5_GEN1", "SSI_PhySpeed_3_0_GEN2", "SSI_PhySpeed_6_0_GEN3"};
+string phyprotocol[] = {"SSI_PhyProtocolUnknown", "SSI_PhyProtocolSATA", "SSI_PhyProtocolSMP", "SSI_PhyProtocolSTP", "SSI_PhyProtocolSSP"};
+
 int main(int argc, char *argv[])
 {
     SSI_Status status;
@@ -207,8 +210,9 @@ int main(int argc, char *argv[])
                     status = SsiGetPhyInfo(session, handles[i], &phyInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.lun << endl;
-                        cout << "\tphy protocol: " << phyInfo.protocol << endl;
-                        cout << "\tdeviceType: " << dt[phyInfo.deviceType] << endl;
+                        cout << "\tphy protocol: " << phyprotocol[phyInfo.protocol] << endl;
+                        cout << "\tdeviceType: " << devtype[phyInfo.deviceType] << endl;
+                        cout << "\tnegotiated link speed: " << physpeed[phyInfo.negotiatedLinkSpeed] << endl;
 #if 0
                         SSI_Address phyAddress;
                         /** Indicates which phy on the parent device this represents */
