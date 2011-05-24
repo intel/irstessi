@@ -83,6 +83,10 @@ protected:
     SSI_PhySpeed m_minLinkSpeed;
     SSI_PhySpeed m_maxLinkSpeed;
     SSI_PhySpeed m_negotiatedLinkSpeed;
+
+private:
+    SSI_PhyProtocol __internal_parse_protocol(const String &protocol);
+    SSI_PhySpeed __internal_parse_linkrate(const String &linkrate);
 };
 
 #endif /* __PHY_H__INCLUDED__ */

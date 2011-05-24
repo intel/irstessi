@@ -31,6 +31,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "phy.h"
 #include "port.h"
 #include "session.h"
+#include "filesystem.h"
+#include "log/log.h"
 
 /* */
 Phy::Phy(const String &path, unsigned int number, StorageObject *pParent)
@@ -97,12 +99,130 @@ SSI_Status Phy::locate(bool mode) const
 /* */
 void Phy::setProperties()
 {
+    Path tmp = m_Path.reverse_left("/");
+    Directory dir;
+
     m_Protocol = SSI_PhyProtocolUnknown;
     m_minHWLinkSpeed = SSI_PhySpeedUnknown;
     m_maxHWLinkSpeed = SSI_PhySpeedUnknown;
     m_minLinkSpeed = SSI_PhySpeedUnknown;
     m_maxLinkSpeed = SSI_PhySpeedUnknown;
     m_negotiatedLinkSpeed = SSI_PhySpeedUnknown;
+
+    dlog(" phy path = %s", (const char*)m_Path);
+    switch (m_pParent->getType()) {
+        case ObjectType_EndDevice:
+            tmp = tmp.reverse_left("/");
+            dir = tmp + "sas_device";
+            dlog(" dir =%s", (const char*)dir);
+            for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+                try {
+                    SysfsAttr attr;
+                    String protocol;
+                    attr = *(*i) + "target_port_protocols";
+                    attr >> protocol;
+                    m_Protocol = __internal_parse_protocol(protocol);
+                } catch (...) {
+                    /* TODO: report read failure of attribtue. */
+                }
+            }
+            break;
+        case ObjectType_Controller:
+        case ObjectType_RoutingDevice:
+            dir = m_Path + "/sas_phy";
+            dlog(" dir =%s", (const char*)dir);
+            for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+                SysfsAttr attr;
+                String linkrate;
+                try {
+                    String protocol;
+                    attr = *(*i) + "target_port_protocols";
+                    attr >> protocol;
+                    m_Protocol = __internal_parse_protocol(protocol);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "maximum_linkrate";
+                    attr >> linkrate;
+                    m_maxLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "maximum_linkrate_hw";
+                    attr >> linkrate;
+                    m_maxHWLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "minimum_linkrate";
+                    attr >> linkrate;
+                    m_minLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "minimum_linkrate_hw";
+                    attr >> linkrate;
+                    m_minHWLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "negotiated_linkrate";
+                    attr >> linkrate;
+                    m_negotiatedLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+            }
+            break;
+        default:
+            ;
+    }
+}
+
+/* */
+SSI_PhyProtocol Phy::__internal_parse_protocol(const String &protocol)
+{
+    try {
+        protocol.find("sata");
+        return SSI_PhyProtocolSATA;
+    } catch (...) {
+    }
+    try {
+        protocol.find("ssp");
+        return SSI_PhyProtocolSSP;
+    } catch (...) {
+    }
+    try {
+        protocol.find("smp");
+        return SSI_PhyProtocolSMP;
+    } catch (...) {
+    }
+    try {
+        protocol.find("stp");
+        return SSI_PhyProtocolSTP;
+    } catch (...) {
+    }
+    return SSI_PhyProtocolUnknown;
+}
+
+/* */
+SSI_PhySpeed Phy::__internal_parse_linkrate(const String &linkrate)
+{
+    try {
+        linkrate.find("1.5");
+        return SSI_PhySpeed_1_5_GEN1;
+    } catch (...) {
+    }
+    try {
+        linkrate.find("3.0");
+        return SSI_PhySpeed_3_0_GEN2;
+    } catch (...) {
+    }
+    try {
+        linkrate.find("6.0");
+        return SSI_PhySpeed_6_0_GEN3;
+    } catch (...) {
+    }
+    return SSI_PhySpeedUnknown;
 }
 
 /* */
