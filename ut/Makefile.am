@@ -1,6 +1,6 @@
 # Process this file with automake to create Makefile.in
 
-noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string
+noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string ut_info
 
 ACLOCAL_AMFLAGS = -I m4 nostdinc
 
@@ -22,6 +22,16 @@ ut_session_CPPFLAGS = \
 	-I$(top_srcdir)/include
 
 ut_session_LDADD = \
+	../src/libssi.la
+
+ut_info_SOURCES = \
+	ut_info.cpp
+
+ut_info_CPPFLAGS = \
+	-g3 -I$(top_srcdir) \
+	-I$(top_srcdir)/include
+
+ut_info_LDADD = \
 	../src/libssi.la
 
 ut_filesystem_SOURCES = \
