@@ -72,6 +72,8 @@ public:
     virtual SSI_Status locate(bool mode) const;
     virtual void setProperties();
     SSI_Status getInfo(SSI_PhyInfo *pInfo) const;
+    void fetchSpeeds(SSI_PhyInfo *pInfo) const;
+    void setSpeeds(SSI_PhyInfo *pInfo) const;
 
 protected:
     Phy *m_pRemotePhy;

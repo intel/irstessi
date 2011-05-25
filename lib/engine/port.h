@@ -68,6 +68,9 @@ public:
 public:
     SSI_Status getInfo(SSI_PortInfo *pInfo) const;
     virtual RaidInfo * getRaidInfo() const;
+    Port *getRemotePort() const {
+        return m_pRemotePort;
+    }
 
 protected:
     Port *m_pRemotePort;

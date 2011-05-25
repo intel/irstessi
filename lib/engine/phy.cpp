@@ -81,11 +81,13 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     pInfo->deviceHandle = m_pParent->getId();
     pInfo->isExternal = SSI_FALSE;
     pInfo->hotPlugCap = SSI_FALSE;
-    pInfo->minHWLinkSpeed = m_minHWLinkSpeed;
-    pInfo->maxHWLinkSpeed = m_maxHWLinkSpeed;
-    pInfo->minLinkSpeed = m_minLinkSpeed;
-    pInfo->maxLinkSpeed = m_maxLinkSpeed;
-    pInfo->negotiatedLinkSpeed = m_negotiatedLinkSpeed;
+    switch (m_pParent->getType()) {
+        case ObjectType_EndDevice:
+            fetchSpeeds(pInfo);
+            break;
+        default:
+            setSpeeds(pInfo);
+    }
     pInfo->countsValid = SSI_FALSE;
     return SSI_StatusOk;
 }
@@ -94,6 +96,34 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
 SSI_Status Phy::locate(bool mode) const
 {
     return SSI_StatusNotSupported;
+}
+
+/* */
+void Phy::fetchSpeeds(SSI_PhyInfo *pInfo) const
+{
+    if (m_pRemotePhy != 0) {
+        m_pRemotePhy->setSpeeds(pInfo);
+        return;
+    }
+    if (m_pPort != 0) {
+        Port *pPort = m_pPort->getRemotePort();
+        if (pPort != 0) {
+            Container<Phy> container;
+            pPort->getPhys(container);
+            for(Iterator<Phy *> i = container; *i != 0; i++)
+                (*i)->setSpeeds(pInfo);
+        }
+    }
+}
+
+/* */
+void Phy::setSpeeds(SSI_PhyInfo *pInfo) const
+{
+    pInfo->minHWLinkSpeed = m_minHWLinkSpeed;
+    pInfo->maxHWLinkSpeed = m_maxHWLinkSpeed;
+    pInfo->minLinkSpeed = m_minLinkSpeed;
+    pInfo->maxLinkSpeed = m_maxLinkSpeed;
+    pInfo->negotiatedLinkSpeed = m_negotiatedLinkSpeed;
 }
 
 /* */
