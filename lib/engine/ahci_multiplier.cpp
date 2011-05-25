@@ -43,13 +43,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci_cdrom.h"
 #include "ahci_tape.h"
 #include "ahci_multiplier.h"
+#include "ahci_phy.h"
 #include "remote_port.h"
 
 /* */
 AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
     : RoutingDevice(path), m_pPhy(0)
 {
-    m_pPhy = new Phy(path, 0, this);
+    m_pPhy = new AHCI_Phy(path, 0, this);
     m_pPhy->setProtocol(SSI_PhyProtocolSATA);
     m_pSubtractivePort = new RemotePort(path);
     m_pSubtractivePort->setParent(this);
