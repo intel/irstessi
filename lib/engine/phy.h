@@ -73,7 +73,7 @@ public:
     virtual void setProperties();
     SSI_Status getInfo(SSI_PhyInfo *pInfo) const;
     void fetchSpeeds(SSI_PhyInfo *pInfo) const;
-    void setSpeeds(SSI_PhyInfo *pInfo) const;
+    virtual void setSpeeds(SSI_PhyInfo *pInfo) const;
 
 protected:
     Phy *m_pRemotePhy;

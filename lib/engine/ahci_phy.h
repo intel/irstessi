@@ -28,6 +28,7 @@ public:
     AHCI_Phy(const String &path, unsigned int number, StorageObject *pParent = 0);
     void discover();
     SSI_Status locate(bool mode) const;
+    void setSpeeds(SSI_PhyInfo *pInfo) const;
 private:
     String m_PhyPath;
     EndDevice * __internal_attach_end_device(Iterator<Directory *> i);
