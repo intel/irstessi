@@ -49,30 +49,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 AHCI::AHCI(const String &path)
     : Controller(path)
 {
-    SysfsAttr attr;
-    struct PCIHeader pciInfo;
-
     /* TODO: read the name of controller from PCI bar */
     m_Name = "AHCI at " + m_Path.reverse_right("0000:");
-
-    try {
-        attr = m_Path + "/driver/module/version";
-        attr >> m_DriverVersion;
-    } catch (...) {
-        /* TODO: log that version of the driver cannot be determined. */
-    }
-    try {
-        attr = m_Path + "/config";
-        attr.read(&pciInfo, sizeof(struct PCIHeader));
-        m_PciVendorId = pciInfo.vendorId;
-        m_PciDeviceId = pciInfo.deviceId;
-        m_SubSystemId = pciInfo.subSystemId;
-        m_HardwareRevisionId = pciInfo.revisionId;
-        m_SubClassCode = pciInfo.subClassId;
-        m_SubVendorId = pciInfo.subSystemVendorId;
-    } catch (...) {
-        /* TODO: log that PCI header cannot be read from sysfs. */
-    }
 
     struct orom_info *pInfo = orom_get(m_PciDeviceId);
     if (pInfo != 0) {

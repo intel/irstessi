@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <asm/types.h>
 
 #include <ssi.h>
+#include <orom/orom.h>
 
 #include "exception.h"
 #include "list.h"
@@ -42,36 +43,33 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_phy.h"
 #include "port.h"
 #include "pci_header.h"
+#include "isci_raid_info.h"
 
 /* */
 ISCI::ISCI(const String &path)
     : Controller(path)
 {
-    SysfsAttr attr;
-    struct PCIHeader pciInfo;
-
     m_Name = "ISCI at " + m_Path.reverse_right("0000:");
 
-    try {
-        attr = m_Path + "/driver/module/version";
-        attr >> m_DriverVersion;
-    } catch (...) {
-        m_DriverVersion = "Unknown";
-    }
-    try {
-        attr = m_Path + "/config";
-        attr.read(&pciInfo, sizeof(struct PCIHeader));
-        m_PciVendorId = pciInfo.vendorId;
-        m_PciDeviceId = pciInfo.deviceId;
-        m_SubSystemId = pciInfo.subSystemId;
-        m_HardwareRevisionId = pciInfo.revisionId;
-        m_SubClassCode = pciInfo.subClassId;
-        m_SubVendorId = pciInfo.subSystemVendorId;
-    } catch (...) {
-        /* TODO: log that PCI header cannot be read from sysfs. */
-    }
+    struct orom_info *pInfo = orom_get(m_PciDeviceId);
+    if (pInfo != 0) {
+        m_PrebootMgrVersion =
+            String(pInfo->prod_ver.major) + String(".") +
+            String(pInfo->prod_ver.minor) + String(".") +
+            String(pInfo->prod_ver.hotfix) + String(".") +
+            String(pInfo->prod_ver.build);
+        m_twoTbVolumePrebootSupported = pInfo->a_2tb_vol;
+        m_twoTbDiskPrebootSupported = pInfo->a_2tb_disk;
+        m_ESATASpanning = pInfo->c_esata;
+        m_NVSRAMSupported = pInfo->a_nvm;
+        m_HWXORSupported = pInfo->f_hardware_xor;
+        m_PhyLocate = pInfo->f_led_locate;
+        m_DiskUnlock = pInfo->c_hdd_passwd;
+        m_PatrolReadSupport = pInfo->f_read_patrol;
 
-    /* TODO: Read RAID info parameters from EFI variables if any */
+        m_pRaidInfo = new ISCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
+                                        pInfo->vpa, pInfo->vphba, pInfo->chk);
+    }
 }
 
 /* */

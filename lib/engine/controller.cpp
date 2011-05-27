@@ -20,8 +20,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
+#include <asm/types.h>
 
 #include <ssi.h>
+#include <orom/orom.h>
 
 #include "exception.h"
 #include "list.h"
@@ -41,6 +43,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "enclosure.h"
 #include "array.h"
 #include "session.h"
+#include "filesystem.h"
+#include "pci_header.h"
 
 /* */
 Controller::Controller(const String &path)
@@ -61,6 +65,27 @@ Controller::Controller(const String &path)
       m_DiskUnlock(false),
       m_PatrolReadSupport(false)
 {
+    SysfsAttr attr;
+    struct PCIHeader pciInfo;
+
+    try {
+        attr = m_Path + "/driver/module/version";
+        attr >> m_DriverVersion;
+    } catch (...) {
+        /* TODO: log that version of the driver cannot be determined. */
+    }
+    try {
+        attr = m_Path + "/config";
+        attr.read(&pciInfo, sizeof(struct PCIHeader));
+        m_PciVendorId = pciInfo.vendorId;
+        m_PciDeviceId = pciInfo.deviceId;
+        m_SubSystemId = pciInfo.subSystemId;
+        m_HardwareRevisionId = pciInfo.revisionId;
+        m_SubClassCode = pciInfo.subClassId;
+        m_SubVendorId = pciInfo.subSystemVendorId;
+    } catch (...) {
+        /* TODO: log that PCI header cannot be read from sysfs. */
+    }
 }
 
 /* */
