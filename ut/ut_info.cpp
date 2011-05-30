@@ -88,7 +88,7 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "Raid Infos: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "\thandle=0x" << hex << handles[i] << endl;
+                    cout << "\thandle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetRaidInfo(session, handles[i], &raidInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\t\tmaxDisksPerArray: " << (int)raidInfo.maxDisksPerArray << endl;
@@ -138,7 +138,7 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "Controllers: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "handle=0x" << hex << handles[i] << endl;
+                    cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetControllerInfo(session, handles[i], &controllerInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\tcontrollerName: " << (const char *)controllerInfo.controllerName << endl;
@@ -182,10 +182,10 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "volumes: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "\thandle=0x" << hex << handles[i] << endl;
+                    cout << "\thandle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetVolumeInfo(session, handles[i], &volumeInfo);
                     if (status == SSI_StatusOk) {
-                        cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle<< endl;
+                        cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle << dec << endl;
                         cout << "\tarrayOrdinal" << volumeInfo.arrayOrdinal << endl;
                         cout << "\tvolumeName" << volumeInfo.volumeName << endl;
                         cout << "\tvolume state: " << volumeInfo.state << endl;
@@ -206,7 +206,7 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "Phys: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "\thandle=0x" << hex << handles[i] << endl;
+                    cout << "\thandle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetPhyInfo(session, handles[i], &phyInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.lun << endl;
