@@ -39,7 +39,6 @@ public:
     SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeSCU;
     }
-    SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *info) const;
 };
 
 #endif /* __ISCI_RAID_INFO_H__INCLUDED__ */

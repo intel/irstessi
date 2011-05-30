@@ -67,7 +67,7 @@ public:
     void acquireId(Session *pSession);
 
     virtual SSI_ControllerType getControllerType() const = 0;
-    virtual SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const = 0;
+    SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const;
     virtual SSI_Status getInfo(SSI_RaidInfo *info) const;
 };
 
