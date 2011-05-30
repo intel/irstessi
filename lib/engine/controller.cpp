@@ -86,6 +86,22 @@ Controller::Controller(const String &path)
     } catch (...) {
         /* TODO: log that PCI header cannot be read from sysfs. */
     }
+    struct orom_info *pInfo = orom_get(m_PciDeviceId);
+    if (pInfo != 0) {
+        m_PrebootMgrVersion =
+            String(pInfo->prod_ver.major) + String(".") +
+            String(pInfo->prod_ver.minor) + String(".") +
+            String(pInfo->prod_ver.hotfix) + String(".") +
+            String(pInfo->prod_ver.build);
+        m_twoTbVolumePrebootSupported = pInfo->a_2tb_vol;
+        m_twoTbDiskPrebootSupported = pInfo->a_2tb_disk;
+        m_ESATASpanning = pInfo->c_esata;
+        m_NVSRAMSupported = pInfo->a_nvm;
+        m_HWXORSupported = pInfo->f_hardware_xor;
+        m_PhyLocate = pInfo->f_led_locate;
+        m_DiskUnlock = pInfo->c_hdd_passwd;
+        m_PatrolReadSupport = pInfo->f_read_patrol;
+    }
 }
 
 /* */
