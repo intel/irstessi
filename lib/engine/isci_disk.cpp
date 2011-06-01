@@ -33,6 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "end_device.h"
 #include "block_device.h"
 #include "isci_disk.h"
+#include "phy.h"
 
 /* */
 ISCI_Disk::ISCI_Disk(const String &path)
@@ -43,7 +44,10 @@ ISCI_Disk::ISCI_Disk(const String &path)
 /* */
 SSI_DiskType ISCI_Disk::getDiskType() const
 {
-    /* TODO */
+    if (m_pPhy != 0) {
+        if (m_pPhy->getProtocol() == SSI_PhyProtocolSATA)
+            return SSI_DiskTypeSATA;
+    }
     return SSI_DiskTypeSAS;
 }
 
