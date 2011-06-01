@@ -30,10 +30,11 @@ enum InfoOption {
     ocontroller,
     ovolume,
     ophy,
+    oenddevice,
     olast
 };
 
-string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy"};
+string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy", "enddevice"};
 string devtype[] = {"SSI_DeviceTypeUnknown", "SSI_DeviceTypeController", "SSI_DeviceTypeEndDevice", "SSI_DeviceTypeRoutingDevice"};
 string physpeed[] = {"SSI_PhySpeedUnknown" , "SSI_PhySpeed_1_5_GEN1", "SSI_PhySpeed_3_0_GEN2", "SSI_PhySpeed_6_0_GEN3"};
 string phyprotocol[] = {"SSI_PhyProtocolUnknown", "SSI_PhyProtocolSATA", "SSI_PhyProtocolSMP", "SSI_PhyProtocolSTP", "SSI_PhyProtocolSSP"};
@@ -88,7 +89,7 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "Raid Infos: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "\thandle=0x" << hex << handles[i] << dec << endl;
+                    cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetRaidInfo(session, handles[i], &raidInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\t\tmaxDisksPerArray: " << (int)raidInfo.maxDisksPerArray << endl;
@@ -182,7 +183,7 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "volumes: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "\thandle=0x" << hex << handles[i] << dec << endl;
+                    cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetVolumeInfo(session, handles[i], &volumeInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle << dec << endl;
@@ -206,7 +207,7 @@ int main(int argc, char *argv[])
             if (status == SSI_StatusOk) {
                 cout << "Phys: " << count << endl;
                 for (unsigned int i = 0; i < count; ++i) {
-                    cout << "\thandle=0x" << hex << handles[i] << dec << endl;
+                    cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetPhyInfo(session, handles[i], &phyInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.lun << endl;
@@ -247,27 +248,6 @@ int main(int argc, char *argv[])
                         /** If true, following counts contain valid */
                         SSI_Bool   countsValid;
                         /** Number of invalid DWORDs that have been received since PWR reset */
-                        SSI_Uint32 invalildDWORDsCount;
-                        /** Number of frames received */
-                        SSI_Uint32 receivedFramesCount;
-                        /** Number of frames transmitted */
-                        SSI_Uint32 transmittedFramesCount;
-                        /** Number of DWORDs received */
-                        SSI_Uint32 receivedDWORDsCount;
-                        /** Number of DWORDs transmitted */
-                        SSI_Uint32 transmittedDWORDsCount;
-                        /** Number of times the py has restarted the link reset sequence due to lost DWORD synchronization */
-                        SSI_Uint32 syncLostCount;
-                        /** Number of DWORDs containing running disparity errors */
-                        SSI_Uint32 runningDisparityErrorsCount;
-                        /** Number of CRC errors */
-                        SSI_Uint32 crcErrorsCount;
-                        /** Number of short frames received */
-                        SSI_Uint32 shortFramesReceivedCount;
-                        /** Number of done frames received */
-                        SSI_Uint32 doneFrameReceivedCount;
-                        /** Number of times the phy reset problem has occurred */
-                        SSI_Uint32 PHYResetCount;
 #endif
                     } else {
                         cout << "E: unable to get phy info (status=" << status << ")" << endl;
@@ -275,6 +255,82 @@ int main(int argc, char *argv[])
                 }
             } else {
                 cout << "E: unable to get phy handles (status=" << status << ")" << endl;
+            }
+            break;
+
+        case oenddevice:
+            SSI_EndDeviceInfo edInfo;
+            count = MAX_COUNT;
+            status = SsiGetEndDeviceHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
+            if (status == SSI_StatusOk) {
+                cout << "End Devices: " << count << endl;
+                for (unsigned int i = 0; i < count; ++i) {
+                    cout << "handle=0x" << hex << handles[i] << dec << endl;
+                    status = SsiGetEndDeviceInfo(session, handles[i], &edInfo);
+                    if (status == SSI_StatusOk) {
+                        /*cout << "\t: " << edInfo. << endl;*/
+                        cout << "\tserialNo: " << edInfo.serialNo << endl;
+                        cout << "\tscsiAddress: " << (unsigned) edInfo.endDeviceAddress.scsiAddress.host << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.bus << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.target << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.lun << endl;
+                        cout << "\tsasAddress: " << edInfo.endDeviceAddress.sasAddress << endl;
+                        cout << "\tdeviceType: " << edInfo.deviceType << endl;
+                        cout << "\tdiskType: " << edInfo.diskType << endl;
+
+#if 0
+                        SSI_Handle endDeviceHandle;
+                        /** Address of end device */
+                        SSI_Address endDeviceAddress;
+                        /** Type of end device */
+                        SSI_EndDeviceType deviceType;
+
+                        /** Handle to the raidinfo for this enddevice */
+                        SSI_Handle raidInfoHandle;
+
+                        /** Handle to the associated array */
+                        SSI_Handle arrayHandle;
+                        /** Handle to the associated enclosure */
+                        SSI_Handle enclosureHandle;
+                        /** Address of enclosure slot that the device is plugged into */
+                        SSI_Address slotAddress;
+                        /** Associated storage pool this device */
+                        SSI_Uint32 storagePool;
+
+                        /** Serial number reported by device */
+                        SSI_Char serialNo[SSI_END_DEVICE_SERIALNO_LENGTH];
+                        /** Model number of device */
+                        SSI_Char model[SSI_END_DEVICE_MODEL_LENGTH];
+                        /** Firmware revision of device */
+                        SSI_Char firmware[SSI_END_DEVICE_FIRMWARE_LENGTH];
+                        /** Disk type, if end device is a disk */
+                        SSI_DiskType diskType;
+                        /** State of device */
+                        SSI_DiskState state;
+                        /** (RAID) Usage of device */
+                        SSI_DiskUsage usage;
+                        /** Size of storage device in Bytes */
+                        SSI_Uint64 totalSize;
+                        /** Size of the storage device in blocks */
+                        SSI_Uint64 blockSize;
+                        /** Total blocks of storage device in bytes */
+                        SSI_Uint64 blocksTotal;
+                        /** Total blocks free in the storage device in bytes */
+                        SSI_Uint64 blocksFree;
+                        /** Write cache policy */
+                        SSI_WriteCachePolicy writeCachePolicy;
+                        /** If true, disk contains files that the system requires to boot */
+                        SSI_Bool systemDisk;
+                        /** If disk part of an enclosure and enclosure provides slot information, the slot number of the disk */
+                        SSI_Uint32 slotNumber;
+                        /** If true, disk is blinkable via SGPIO */
+                        SSI_Bool locateLEDSupport;
+                        /** If true, disk is visible to PreBoot OROM or EFI */
+                        SSI_Bool isPreBootVisible;
+#endif
+                    } else {
+                        cout << "E: unable to get end device info (status=" << status << ")" << endl;
+                    }
+                }
+            } else {
+                cout << "E: unable to get end device handles (status=" << status << ")" << endl;
             }
             break;
 
