@@ -41,7 +41,11 @@ int main(int argc, char *argv[])
     if (status == SSI_StatusOk) {
         cout << "Session\tHandle = 0x" << hex << session << dec << endl;
         SessionStats(session);
-
+        cout << "---------------------------------------------------------------" << endl;
+        if (argc > 1) {
+            cout << "Press Enter to continue" << endl;
+            cin.ignore();
+        }
         // open another session to see if handles are reused
         status = SsiSessionOpen(&session1);
         if (status == SSI_StatusOk) {
