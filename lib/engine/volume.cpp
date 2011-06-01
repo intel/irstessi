@@ -596,7 +596,7 @@ void Volume::create()
     if (m_ComponentSize == 0) {
         componentSize = "max";
     } else {
-        componentSize = m_ComponentSize;
+        componentSize = m_ComponentSize / 1024;
     }
     if (shell("mdadm -CR " + m_Name + " -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
             " --chunk=" + String(m_StripSize / 1024) + " -n" + String(m_BlockDevices) + devices) != 0) {
