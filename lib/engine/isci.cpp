@@ -26,6 +26,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssi.h>
 #include <orom/orom.h>
+#include <efi/efi.h>
 
 #include "exception.h"
 #include "list.h"
@@ -50,7 +51,9 @@ ISCI::ISCI(const String &path)
     : Controller(path)
 {
     m_Name = "ISCI at " + m_Path.reverse_right("0000:");
-    struct orom_info *pInfo = orom_get(m_PciDeviceId);
+    struct orom_info *pInfo = efi_get(SSI_ControllerTypeSCU);
+    if (pInfo == 0)
+        pInfo = orom_get(m_PciDeviceId);
     if (pInfo != 0) {
         m_pRaidInfo = new ISCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
                                         pInfo->vpa, pInfo->vphba, pInfo->chk);

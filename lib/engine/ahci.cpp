@@ -28,6 +28,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <ssi.h>
 #include <orom/orom.h>
+#include <efi/efi.h>
 
 #include "exception.h"
 #include "list.h"
@@ -52,7 +53,9 @@ AHCI::AHCI(const String &path)
     /* TODO: read the name of controller from PCI bar */
     m_Name = "AHCI at " + m_Path.reverse_right("0000:");
 
-    struct orom_info *pInfo = orom_get(m_PciDeviceId);
+    struct orom_info *pInfo = efi_get(SSI_ControllerTypeAHCI);
+    if (pInfo == 0)
+        pInfo = orom_get(m_PciDeviceId);
     if (pInfo != 0) {
         m_pRaidInfo = new AHCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
             pInfo->vpa, pInfo->vphba, pInfo->chk);

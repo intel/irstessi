@@ -26,6 +26,26 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 extern "C" {
 #endif /* __cplusplus */
 
+#define GUID_STR_MAX    37  /* according to GUID format:
+    * xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" */
+
+#define EFI_GUID(a, b, c, d0, d1, d2, d3, d4, d5, d6, d7) \
+    ((struct efi_guid) \
+{{ (a) & 0xff, ((a) >> 8) & 0xff, ((a) >> 16) & 0xff, ((a) >> 24) & 0xff, \
+    (b) & 0xff, ((b) >> 8) & 0xff, \
+    (c) & 0xff, ((c) >> 8) & 0xff, \
+(d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
+
+#define EFI_VAR_DIR "/sys/firmware/efi/vars"
+#define SCU_VAR "RstScuV"
+#define AHCI_VAR "RstSataV"
+
+#define VENDOR_GUID \
+    EFI_GUID(0x193dfefa, 0xa445, 0x4302, 0x99, 0xd8, 0xef, 0x3a, 0xad, 0x1a, 0x04, 0xc6)
+
+struct orom_info * efi_get(SSI_ControllerType controllerType);
+void efi_fini(void);
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

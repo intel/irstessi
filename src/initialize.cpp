@@ -30,6 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/context_manager.h>
 #include <log/log.h>
 #include <orom/orom.h>
+#include <efi/efi.h>
 
 /* */
 ContextManager *pContextMgr = 0;
@@ -65,6 +66,7 @@ SSI_Status SsiFinalize(void)
         // intentionally left blank
     }
     orom_fini();
+    efi_fini();
     pContextMgr = 0;
     log_fini();
     return SSI_StatusOk;

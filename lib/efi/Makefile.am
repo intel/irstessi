@@ -3,5 +3,5 @@
 noinst_LTLIBRARIES = libefi.la
 
 libefi_la_SOURCES =             \
-    efi.c                       \
+    efi.cpp                       \
     efi.h
