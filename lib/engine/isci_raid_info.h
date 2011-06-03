@@ -25,8 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ISCI_RaidInfo : public RaidInfo {
 public:
-    ISCI_RaidInfo(ISCI *pISCI, int disksPerArray, int totalRaidDisks,
-                  int volsPerArray, int volsPerHBA, unsigned short supportedChunkSize);
+    ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo);
 
     // Object
 

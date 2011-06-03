@@ -57,8 +57,7 @@ AHCI::AHCI(const String &path)
     if (pInfo == 0)
         pInfo = orom_get(m_PciDeviceId);
     if (pInfo != 0) {
-        m_pRaidInfo = new AHCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
-            pInfo->vpa, pInfo->vphba, pInfo->chk);
+        m_pRaidInfo = new AHCI_RaidInfo(this, pInfo);
     }
 }
 

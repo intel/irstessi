@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <asm/types.h>
 
 #include <ssi.h>
+#include <orom/orom.h>
 
 #include "exception.h"
 #include "list.h"
@@ -36,10 +37,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci_raid_info.h"
 #include "utils.h"
 
+
 /* */
-AHCI_RaidInfo::AHCI_RaidInfo(AHCI *pAHCI, int disksPerArray, int totalRaidDisks,
-    int volsPerArray, int volsPerHBA, unsigned short supportedChunkSize)
-    : RaidInfo(disksPerArray, totalRaidDisks, volsPerArray, volsPerHBA, supportedChunkSize)
+AHCI_RaidInfo::AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo)
+    : RaidInfo(pInfo)
 {
     attachController(pAHCI);
 }

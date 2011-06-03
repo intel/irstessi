@@ -55,8 +55,7 @@ ISCI::ISCI(const String &path)
     if (pInfo == 0)
         pInfo = orom_get(m_PciDeviceId);
     if (pInfo != 0) {
-        m_pRaidInfo = new ISCI_RaidInfo(this, pInfo->dpa, pInfo->tds,
-                                        pInfo->vpa, pInfo->vphba, pInfo->chk);
+        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo);
     }
 }
 

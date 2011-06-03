@@ -20,8 +20,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
+#include <asm/types.h>
 
 #include <ssi.h>
+#include <orom/orom.h>
 
 #include "exception.h"
 #include "list.h"
@@ -31,17 +33,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "raid_info.h"
 #include "session.h"
 #include "utils.h"
-
-/* */
-RaidInfo::RaidInfo(int disksPerArray, int totalRaidDisks, int volumesPerArray,
-    int volumesPerHBA, unsigned short supportedChunkSize)
-    : m_DisksPerArray(disksPerArray),
-      m_RaidDisksSupported(totalRaidDisks),
-      m_VolumesPerHBA(volumesPerHBA),
-      m_VolumesPerArray(volumesPerArray),
-      m_SupportedStripSizes(supportedChunkSize)
-{
-}
 
 /* */
 void RaidInfo::getControllers(Container<Controller> &container) const
@@ -62,13 +53,13 @@ SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->raidHandle = getId();
-    pInfo->maxDisksPerArray = m_DisksPerArray;
-    pInfo->maxRaidDisksSupported = m_RaidDisksSupported;
-    pInfo->maxVolumesPerHba = m_VolumesPerHBA;
-    pInfo->maxVolumesPerArray = m_VolumesPerArray;
+    pInfo->maxDisksPerArray = m_pInfo->dpa;
+    pInfo->maxRaidDisksSupported = m_pInfo->tds;
+    pInfo->maxVolumesPerHba = m_pInfo->vphba;
+    pInfo->maxVolumesPerArray = m_pInfo->vpa;
     pInfo->raidEnabled = SSI_TRUE;
     pInfo->supportsDedicatedSpare = SSI_TRUE;
-    pInfo->supportsGlobalSpare = SSI_TRUE;
+    pInfo->supportsGlobalSpare = SSI_FALSE;
     pInfo->supportsCreateFromExisting = SSI_TRUE;
     pInfo->supportsEmptyArrays = SSI_TRUE;
 
@@ -84,49 +75,49 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
     }
 
     pInfo->defaultStripSize = SSI_StripSize64kB;
-    pInfo->stripSizesSupported = static_cast<SSI_StripSize>(m_SupportedStripSizes);
+    pInfo->stripSizesSupported = static_cast<SSI_StripSize>(m_pInfo->chk);
 
     switch (raidLevel) {
         case SSI_Raid0:
-            pInfo->supported = SSI_TRUE;
-            pInfo->minDisks = min(1, m_RaidDisksSupported);
-            pInfo->maxDisks = m_RaidDisksSupported;
+            pInfo->supported = m_pInfo->rlc0?SSI_TRUE:SSI_FALSE;
+            pInfo->minDisks = min(1, m_pInfo->tds);
+            pInfo->maxDisks = m_pInfo->tds;
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid1 | SSI_Raid10 | SSI_Raid5);
             pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid10 | SSI_Raid5);
             pInfo->evenDiskCount = SSI_FALSE;
             pInfo->oddDiskCount = SSI_FALSE;
             break;
         case SSI_Raid1:
-            pInfo->supported = SSI_TRUE;
-            pInfo->minDisks = min(2, m_RaidDisksSupported);
-            pInfo->maxDisks = min(2, m_RaidDisksSupported);
+            pInfo->supported = m_pInfo->rlc1?SSI_TRUE:SSI_FALSE;
+            pInfo->minDisks = min(2, m_pInfo->tds);
+            pInfo->maxDisks = min(2, m_pInfo->tds);
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid5);
             pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid5);
             pInfo->evenDiskCount = SSI_TRUE;
             pInfo->oddDiskCount = SSI_FALSE;
             break;
         case SSI_Raid10:
-            pInfo->supported = SSI_TRUE;
-            pInfo->minDisks = min(4, m_RaidDisksSupported);
-            pInfo->maxDisks = min(4, m_RaidDisksSupported);
+            pInfo->supported = m_pInfo->rlc10?SSI_TRUE:SSI_FALSE;
+            pInfo->minDisks = min(4, m_pInfo->tds);
+            pInfo->maxDisks = min(4, m_pInfo->tds);
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid5 | SSI_Raid1);
             pInfo->migrDiskAdd = SSI_RaidInvalid;
             pInfo->evenDiskCount = SSI_TRUE;
             pInfo->oddDiskCount = SSI_FALSE;
             break;
         case SSI_Raid5:
-            pInfo->supported = SSI_TRUE;
-            pInfo->minDisks = min(3, m_RaidDisksSupported);
-            pInfo->maxDisks = m_RaidDisksSupported;
+            pInfo->supported = m_pInfo->rlc5?SSI_TRUE:SSI_FALSE;
+            pInfo->minDisks = min(3, m_pInfo->tds);
+            pInfo->maxDisks = m_pInfo->tds;
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid10);
             pInfo->migrDiskAdd = SSI_Raid10;
-            pInfo->evenDiskCount = SSI_TRUE;
+            pInfo->evenDiskCount = SSI_FALSE;
             pInfo->oddDiskCount = SSI_FALSE;
             break;
         case SSI_Raid6:
-            pInfo->supported = SSI_FALSE;
-            pInfo->minDisks = 0;
-            pInfo->maxDisks = 0;
+            pInfo->supported = m_pInfo->rlc6?SSI_TRUE:SSI_FALSE;
+            pInfo->minDisks = min(4, m_pInfo->tds);
+            pInfo->maxDisks = m_pInfo->tds;
             pInfo->migrSupport = SSI_RaidInvalid;
             pInfo->migrDiskAdd = SSI_RaidInvalid;
             pInfo->evenDiskCount = SSI_FALSE;

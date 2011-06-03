@@ -30,8 +30,9 @@ class RaidInfo : public ScopeObject {
 public:
     virtual ~RaidInfo() {
     }
-    RaidInfo(int disksPerArray, int toatalRaidDisks, int volsPerArray,
-        int volsPerHBA, unsigned short supportedChunkSize);
+    RaidInfo(struct orom_info *pInfo) {
+        m_pInfo = pInfo;
+    }
 
     // Object
 
@@ -53,11 +54,7 @@ public:
 
 protected:
     Container<Controller> m_Controllers;
-    int m_DisksPerArray;
-    int m_RaidDisksSupported;
-    int m_VolumesPerHBA;
-    int m_VolumesPerArray;
-    short m_SupportedStripSizes;
+    struct orom_info * m_pInfo;
 
     void attachController(Controller *pController) {
         m_Controllers.add(pController);
