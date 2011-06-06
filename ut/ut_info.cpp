@@ -38,7 +38,8 @@ string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "p
 string devtype[] = {"SSI_DeviceTypeUnknown", "SSI_DeviceTypeController", "SSI_DeviceTypeEndDevice", "SSI_DeviceTypeRoutingDevice"};
 string physpeed[] = {"SSI_PhySpeedUnknown" , "SSI_PhySpeed_1_5_GEN1", "SSI_PhySpeed_3_0_GEN2", "SSI_PhySpeed_6_0_GEN3"};
 string phyprotocol[] = {"SSI_PhyProtocolUnknown", "SSI_PhyProtocolSATA", "SSI_PhyProtocolSMP", "SSI_PhyProtocolSTP", "SSI_PhyProtocolSSP"};
-
+string diskstate[] = {"SSI_DiskStateUnknown", "SSI_DiskStateOffline", "SSI_DiskStateMissing", "SSI_DiskStateFailed", "SSI_DiskStateSmartEventTriggered", "SSI_DiskStateConfigIsUprev", "SSI_DiskStateNormal", "SSI_DiskStateLocked"};
+string diskusage[] = {"SSI_DiskUsageUnknown", "SSI_DiskUsageArrayMember", "SSI_DiskUsagePassThru", "SSI_DiskUsageOfflineArray", "SSI_DiskUsageSpare", "SSI_DiskUsageArrayMemberReadOnlyMount", "SSI_DiskUsagePassThruReadOnlyMount"};
 int main(int argc, char *argv[])
 {
     SSI_Status status;
@@ -226,25 +227,16 @@ int main(int argc, char *argv[])
                         cout << "\tdeviceType: " << devtype[phyInfo.deviceType] << endl;
                         cout << "\tnegotiated link speed: " << physpeed[phyInfo.negotiatedLinkSpeed] << endl;
 #if 0
-                        SSI_Address phyAddress;
-                        /** Indicates which phy on the parent device this represents */
                         SSI_Uint32 phyNumber;
-                        /** Connection protocol */
-                        SSI_PhyProtocol protocol;
                         /** Logical port object that identifies connection between phys.
                             Value is SSI_INVALID_HANDLE if phy is not connected. */
                         SSI_Handle associatedPort;
-
-                        /** Type of device that phy is contained in */
-                        SSI_DeviceType deviceType;
                         /** Handle to the device that phy is contained in */
                         SSI_Handle deviceHandle;
-
                         /** If true, phy is external */
                         SSI_Bool isExternal;
                         /** If true, hot plug even can be detected */
                         SSI_Bool hotPlugCap;
-
                         /** Minimum hardware speed phy can operate at */
                         SSI_PhySpeed minHWLinkSpeed;
                         /** Maximum hardware speed phy can operate at */
@@ -253,9 +245,6 @@ int main(int argc, char *argv[])
                         SSI_PhySpeed minLinkSpeed;
                         /** Maximum programmed speed phy can operate at */
                         SSI_PhySpeed maxLinkSpeed;
-                        /** Negotiated link speed */
-                        SSI_PhySpeed negotiatedLinkSpeed;
-
                         /** If true, following counts contain valid */
                         SSI_Bool   countsValid;
                         /** Number of invalid DWORDs that have been received since PWR reset */
@@ -281,56 +270,40 @@ int main(int argc, char *argv[])
                     if (status == SSI_StatusOk) {
                         /*cout << "\t: " << edInfo. << endl;*/
                         cout << "\tserialNo: " << edInfo.serialNo << endl;
-                        cout << "\tscsiAddress: " << (unsigned) edInfo.endDeviceAddress.scsiAddress.host << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.bus << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.target << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.lun << endl;
+                        cout << "\tscsiAddress: " << (unsigned) edInfo.endDeviceAddress.scsiAddress.host
+                             << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.bus
+                             << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.target
+                             << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.lun << endl;
                         cout << "\tsasAddress: 0x" << hex << edInfo.endDeviceAddress.sasAddress << dec << endl;
                         cout << "\tdeviceType: " << edInfo.deviceType << endl;
                         cout << "\tdiskType: " << edInfo.diskType << endl;
-
+                        cout << "\tRaid Info handle: 0x" << hex << edInfo.raidInfoHandle << dec << endl;
+                        cout << "\tArray handle: 0x" << hex << edInfo.arrayHandle << dec << endl;
+                        cout << "\tEnclosure handle: 0x" << hex << edInfo.enclosureHandle << dec << endl;
+                        if (edInfo.enclosureHandle) {
+                            cout << "\t\tslot Address (scsi): " << (unsigned) edInfo.slotAddress.scsiAddress.host
+                                 << ":"<< (unsigned) edInfo.slotAddress.scsiAddress.bus
+                                 << ":"<< (unsigned) edInfo.slotAddress.scsiAddress.target
+                                 << ":"<< (unsigned) edInfo.slotAddress.scsiAddress.lun << endl;
+                            cout << "\t\tslot Address (sas): 0x" << hex << edInfo.slotAddress.sasAddress << dec << endl;
+                            cout << "\t\tslotNumber: " << edInfo.slotNumber << endl;
+                        }
+                        cout << "\tstate: " << diskstate[edInfo.state] << endl;
+                        cout << "\tusage: " << diskusage[edInfo.usage] << endl;
+                        cout << "\ttotalSize: " << edInfo.totalSize << endl;
+                        cout << "\tblockSize: " << edInfo.blockSize << endl;
+                        cout << "\tblocksTotal: " << edInfo.blocksTotal << endl;
+                        cout << "\tblocksFree: " << edInfo.blocksFree << endl;
+                        cout << "\tsystemDisk: " << edInfo.systemDisk << endl;
 #if 0
-                        SSI_Handle endDeviceHandle;
-                        /** Address of end device */
-                        SSI_Address endDeviceAddress;
-                        /** Type of end device */
-                        SSI_EndDeviceType deviceType;
-
-                        /** Handle to the raidinfo for this enddevice */
-                        SSI_Handle raidInfoHandle;
-
-                        /** Handle to the associated array */
-                        SSI_Handle arrayHandle;
-                        /** Handle to the associated enclosure */
-                        SSI_Handle enclosureHandle;
-                        /** Address of enclosure slot that the device is plugged into */
-                        SSI_Address slotAddress;
-                        /** Associated storage pool this device */
                         SSI_Uint32 storagePool;
 
-                        /** Serial number reported by device */
-                        SSI_Char serialNo[SSI_END_DEVICE_SERIALNO_LENGTH];
                         /** Model number of device */
                         SSI_Char model[SSI_END_DEVICE_MODEL_LENGTH];
                         /** Firmware revision of device */
                         SSI_Char firmware[SSI_END_DEVICE_FIRMWARE_LENGTH];
-                        /** Disk type, if end device is a disk */
-                        SSI_DiskType diskType;
-                        /** State of device */
-                        SSI_DiskState state;
-                        /** (RAID) Usage of device */
-                        SSI_DiskUsage usage;
-                        /** Size of storage device in Bytes */
-                        SSI_Uint64 totalSize;
-                        /** Size of the storage device in blocks */
-                        SSI_Uint64 blockSize;
-                        /** Total blocks of storage device in bytes */
-                        SSI_Uint64 blocksTotal;
-                        /** Total blocks free in the storage device in bytes */
-                        SSI_Uint64 blocksFree;
                         /** Write cache policy */
                         SSI_WriteCachePolicy writeCachePolicy;
-                        /** If true, disk contains files that the system requires to boot */
-                        SSI_Bool systemDisk;
-                        /** If disk part of an enclosure and enclosure provides slot information, the slot number of the disk */
-                        SSI_Uint32 slotNumber;
                         /** If true, disk is blinkable via SGPIO */
                         SSI_Bool locateLEDSupport;
                         /** If true, disk is visible to PreBoot OROM or EFI */
