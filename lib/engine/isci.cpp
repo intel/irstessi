@@ -101,6 +101,22 @@ Port * ISCI::getPortByPath(const String &path) const
 /* */
 void ISCI::getAddress(SSI_Address &address) const
 {
+    address.scsiAddress.host = 0;
+    address.scsiAddress.bus = 0;
+    address.scsiAddress.target = 0;
+    address.scsiAddress.lun = 0;
+    address.sasAddressPresent = m_Address.sasAddressPresent;
+    address.sasAddress = m_Address.sasAddress;
 }
 
+/* */
+void ISCI::setAddress(SSI_Address &address)
+{
+    m_Address.scsiAddress.host = 0;
+    m_Address.scsiAddress.bus = 0;
+    m_Address.scsiAddress.target = 0;
+    m_Address.scsiAddress.lun = 0;
+    m_Address.sasAddressPresent = address.sasAddressPresent;
+    m_Address.sasAddress = address.sasAddress;
+}
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

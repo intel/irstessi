@@ -46,19 +46,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "log/log.h"
 /* */
 ISCI_Expander::ISCI_Expander(const String &path)
-    : RoutingDevice(path)
+    : RoutingDevice(path),
+      m_SASAddress(0)
 {
-	Directory dir(m_Path + "/sas_device", "expander");
-	SysfsAttr attr;
-	for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    Directory dir(m_Path + "/sas_device");
+    SysfsAttr attr;
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         try {
             attr = *(*i) + "sas_address";
-            attr >> m_SasAddress;
+            attr >> m_SASAddress;
         } catch (...) {
             /* TODO: report read failure of attribtue. */
         }
-	}
-	dlog(" sas adress expandera %s\n%s\n", (const char *) path, (const char *) m_SasAddress);
+    }
+    dlog(" sas adress %s\n%llu\n", (const char *) path, m_SASAddress);
 }
 
 /* */
@@ -75,6 +76,17 @@ Port * ISCI_Expander::getPortByPath(const String &path) const
         }
     }
     return 0;
+}
+
+/* */
+void ISCI_Expander::getAddress(SSI_Address &address) const
+{
+    address.scsiAddress.host = 0;
+    address.scsiAddress.bus = 0;
+    address.scsiAddress.target = 0;
+    address.scsiAddress.lun = 0;
+    address.sasAddressPresent = m_SASAddress?SSI_TRUE:SSI_FALSE;
+    address.sasAddress = m_SASAddress;
 }
 
 /* */

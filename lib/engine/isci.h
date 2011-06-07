@@ -32,6 +32,7 @@ public:
 public:
     void discover();
     void getAddress(SSI_Address &address) const;
+    void setAddress(SSI_Address &);
     Port * getPortByPath(const String &) const;
 
     // Controller
@@ -42,6 +43,7 @@ protected:
     }
 
     // ISCI
+    SSI_Address m_Address;
 
 private:
     void __internal_discover_phys(const String &);

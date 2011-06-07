@@ -53,11 +53,7 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->phyHandle = getId();
-    try {
-        m_pParent->getAddress(pInfo->phyAddress);
-    }
-    catch (...) {
-    }
+    m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
     pInfo->protocol = m_Protocol;
     if (m_pPort != 0) {
@@ -199,6 +195,18 @@ void Phy::setProperties()
                     attr = *(*i) + "negotiated_linkrate";
                     attr >> linkrate;
                     m_negotiatedLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    unsigned long long sasAddress;
+                    attr = *(*i) + "sas_address";
+                    attr >> sasAddress;
+                    if (sasAddress) {
+                        SSI_Address address;
+                        address.sasAddressPresent = SSI_TRUE;
+                        address.sasAddress = sasAddress;
+                        m_pParent->setAddress(address);
+                    }
                 } catch (...) {
                 }
             }

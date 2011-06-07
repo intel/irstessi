@@ -39,6 +39,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ISCI_Disk::ISCI_Disk(const String &path)
     : BlockDevice(path)
 {
+    Path end_path = path.reverse_left("/");
+    end_path = end_path.reverse_left("/");
+    Directory dir(end_path + "/sas_device");
+    SysfsAttr attr;
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        try {
+            attr = *(*i) + "sas_address";
+            attr >> m_SASAddress;
+        } catch (...) {
+            /* TODO: report read failure of attribtue. */
+        }
+    }
 }
 
 /* */

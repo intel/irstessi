@@ -265,6 +265,9 @@ public:
     virtual void getAddress(SSI_Address &) const {
         throw E_INVALID_OPERATION;
     }
+    virtual void setAddress(SSI_Address &) {
+        throw E_INVALID_OPERATION;
+    }
 
 public:
     virtual Port * getPort() const {
