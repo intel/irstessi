@@ -48,8 +48,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 ISCI::ISCI(const String &path)
-    : Controller(path)
+    : Controller(path + "/..")
 {
+    m_Path = path;
     m_Name = "ISCI at " + m_Path.reverse_right("0000:");
     struct orom_info *pInfo = efi_get(SSI_ControllerTypeSCU);
     if (pInfo == 0)
@@ -62,22 +63,11 @@ ISCI::ISCI(const String &path)
 /* */
 void ISCI::discover()
 {
-    Directory dir(m_Path, "host");
-    SysfsAttr attr;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
-        unsigned int number = 0;
-        try {
-            attr = *(*i) + "scsi_host" + (*i)->reverse_after("/") + "isci_id";
-            attr >> number;
-        } catch (Exception) {
-            /* TODO: report read failure of attribtue. */
-        }
-        Directory phys(*(*i), "phy");
-        number *= 4;
-        for (Iterator<Directory *> j = phys; *j != 0; ++j, ++number) {
+    Directory phys(m_Path, "phy");
+    unsigned int number = 0;
+    for (Iterator<Directory *> j = phys; *j != 0; ++j, ++number) {
             Phy *pPhy = new ISCI_Phy(*(*j), number, this);
             attachPhy(pPhy);
-        }
     }
     for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
         (*i)->discover();
