@@ -143,6 +143,12 @@ int main(int argc, char *argv[])
                     status = SsiGetControllerInfo(session, handles[i], &controllerInfo);
                     if (status == SSI_StatusOk) {
                         cout << "\tcontrollerName: " << (const char *)controllerInfo.controllerName << endl;
+                        cout << "\tSCSI Address: " << (unsigned) controllerInfo.controllerAddress.scsiAddress.host
+                             << ":"<< (unsigned) controllerInfo.controllerAddress.scsiAddress.bus
+                             << ":"<< (unsigned) controllerInfo.controllerAddress.scsiAddress.target
+                             << ":"<< (unsigned) controllerInfo.controllerAddress.scsiAddress.lun << endl;
+                        if (controllerInfo.controllerAddress.sasAddressPresent == SSI_TRUE)
+                            cout << "\tSAS Address: 0x" << hex << controllerInfo.controllerAddress.sasAddress << dec << endl;
                         cout << "\tcontrollerType: " << (int)controllerInfo.controllerType << endl;
                         cout << "\traidInfoHandle: " << hex << controllerInfo.raidInfoHandle << dec << endl;
                         cout << "\tdriverVer: " << controllerInfo.driverVer << endl;
@@ -210,7 +216,12 @@ int main(int argc, char *argv[])
                     cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetPhyInfo(session, handles[i], &phyInfo);
                     if (status == SSI_StatusOk) {
-                        cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.lun << endl;
+                        cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host
+                             << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus
+                             << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target
+                             << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.lun << endl;
+                        if (phyInfo.phyAddress.sasAddressPresent == SSI_TRUE)
+                            cout << "\tSAS Address: 0x" << hex << phyInfo.phyAddress.sasAddress << dec << endl;
                         cout << "\tphy protocol: " << phyprotocol[phyInfo.protocol] << endl;
                         cout << "\tdeviceType: " << devtype[phyInfo.deviceType] << endl;
                         cout << "\tnegotiated link speed: " << physpeed[phyInfo.negotiatedLinkSpeed] << endl;
@@ -271,7 +282,7 @@ int main(int argc, char *argv[])
                         /*cout << "\t: " << edInfo. << endl;*/
                         cout << "\tserialNo: " << edInfo.serialNo << endl;
                         cout << "\tscsiAddress: " << (unsigned) edInfo.endDeviceAddress.scsiAddress.host << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.bus << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.target << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.lun << endl;
-                        cout << "\tsasAddress: " << edInfo.endDeviceAddress.sasAddress << endl;
+                        cout << "\tsasAddress: 0x" << hex << edInfo.endDeviceAddress.sasAddress << dec << endl;
                         cout << "\tdeviceType: " << edInfo.deviceType << endl;
                         cout << "\tdiskType: " << edInfo.diskType << endl;
 
