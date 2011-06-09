@@ -31,7 +31,7 @@ class EndDevice;
 class Array : public RaidDevice {
 public:
     Array()
-        : RaidDevice(0) {
+        : RaidDevice() {
     }
     Array(const String &path);
     ~Array();
