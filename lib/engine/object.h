@@ -259,6 +259,9 @@ public:
             m_pParent = pParent;
         }
     }
+    virtual Controller * getController() {
+        return 0;
+    }
     virtual RaidInfo * getRaidInfo() const {
         return 0;
     }

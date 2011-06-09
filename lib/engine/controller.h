@@ -123,6 +123,9 @@ public:
     RaidInfo * getRaidInfo() const {
         return m_pRaidInfo;
     }
+    Controller * getController() {
+        return this;
+    }
 };
 
 #endif /* __CONTROLLER_H__INCLUDED__ */

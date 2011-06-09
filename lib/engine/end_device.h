@@ -83,6 +83,9 @@ protected:
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     RaidInfo * getRaidInfo() const;
+    Controller * getController() {
+        return m_pParent?m_pParent->getController():0;
+    }
 
     String getSerialNum() const {
         return m_SerialNum;
