@@ -48,6 +48,7 @@ public:
     unsigned char getStoragePoolId() const {
         return m_StoragePoolId;
     }
+    SSI_Status makeSpare();
 
     // BlockDevice
 

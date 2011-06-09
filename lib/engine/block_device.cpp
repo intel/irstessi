@@ -65,6 +65,12 @@ SSI_Status BlockDevice::unlock(SSI_DiskUnlockInfo *pInfo)
 }
 
 /* */
+SSI_Status BlockDevice::makeSpare()
+{
+    return SSI_StatusNotSupported;
+}
+
+/* */
 SSI_Status BlockDevice::clearMetadata()
 {
     if (m_DiskState != SSI_DiskStateNormal) {

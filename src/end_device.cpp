@@ -128,12 +128,15 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
     if (pSession == 0) {
         return SSI_StatusFailed;
     }
-    Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == 0) {
-        return SSI_StatusInvalidHandle;
-    }
     EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
     if (pEndDevice == 0) {
+        return SSI_StatusInvalidHandle;
+    }
+    if (arrayHandle == SSI_NULL_HANDLE) {
+        return pEndDevice->makeSpare();
+    }
+    Array *pArray = pSession->getArray(arrayHandle);
+    if (pArray == 0) {
         return SSI_StatusInvalidHandle;
     }
     if (pEndDevice->getArray() == pArray) {

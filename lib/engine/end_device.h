@@ -140,6 +140,9 @@ public:
     }
     virtual SSI_Status passthroughCmd(void *pInfo, void *pData, unsigned int dataSize,
         SSI_DataDirection dir);
+    virtual SSI_Status makeSpare() {
+        return SSI_StatusInvalidState;
+    }
 };
 
 #endif /* __END_DEVICE_H__INCLUDED__ */
