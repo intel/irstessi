@@ -4,5 +4,3 @@ cd `pwd`/`dirname $0`
 CXXFLAGS=-g3 ./configure --libdir='${prefix}/lib64'
 make
 make install
-cd ut
-./ut_session
