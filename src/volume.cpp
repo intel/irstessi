@@ -222,8 +222,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         *volumeHandle = pVolume->getId();
         return SSI_StatusOk;
     } catch (Exception ex) {
-        if (pVolume)
-			delete pVolume;
+        delete pVolume;
         delete pArray;
         switch (ex) {
         case E_INVALID_STRIP_SIZE:
