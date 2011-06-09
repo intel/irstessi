@@ -291,7 +291,7 @@ void Array::create()
     for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
         devices += " /dev/" + (*i)->getDevName();
     }
-    if (shell("mdadm -CR " + m_Name + " -amd -eimsm -n" + String(m_BlockDevices) + devices) != 0) {
+    if (shell("mdadm -CR " + m_Name + " -f -amd -eimsm -n" + String(m_BlockDevices) + devices) != 0) {
         throw E_ARRAY_CREATE_FAILED;
     }
 }
