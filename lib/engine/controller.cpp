@@ -172,6 +172,36 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     return SSI_StatusOk;
 }
 
+SSI_Status Controller::makeSpare(EndDevice *pEndDevice)
+{
+    for (Iterator<Array *> i = m_Arrays; *i != 0; i++) {
+        if ((*i)->addSpare(pEndDevice) == SSI_StatusOk)
+            return SSI_StatusOk;
+    }
+    Array *pArray = 0;
+    Container<EndDevice> container;
+    container.add(pEndDevice);
+    try {
+       pArray = new Array();
+    } catch (...) {
+        return SSI_StatusInsufficientResources;
+    }
+    try {
+        pArray->setEndDevices(container);
+    } catch (...) {
+        delete pArray;
+        return SSI_StatusInvalidState;
+    }
+    try {
+        pArray->create();
+    } catch (...) {
+        delete pArray;
+        return SSI_StatusFailed;
+    }
+    delete pArray;
+    return SSI_StatusOk;
+}
+
 /* */
 void Controller::getPhys(Container<Phy> &container) const
 {

@@ -126,6 +126,7 @@ public:
     Controller * getController() {
         return this;
     }
+    SSI_Status makeSpare(EndDevice *pEndDevice);
 };
 
 #endif /* __CONTROLLER_H__INCLUDED__ */

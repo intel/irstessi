@@ -42,6 +42,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "array.h"
 #include "utils.h"
 #include "filesystem.h"
+#include "controller.h"
 
 /* */
 BlockDevice::BlockDevice(const String &path)
@@ -67,7 +68,10 @@ SSI_Status BlockDevice::unlock(SSI_DiskUnlockInfo *pInfo)
 /* */
 SSI_Status BlockDevice::makeSpare()
 {
-    return SSI_StatusNotSupported;
+    Controller *pController = getController();
+    if (pController == 0)
+           return SSI_StatusFailed;
+    return pController->makeSpare(this);
 }
 
 /* */
