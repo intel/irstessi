@@ -81,7 +81,6 @@ unsigned int SessionManager::openSession()
         delete pSession;
         return 0; /* Out of resources, no more sessions allowed. */
     }
-    return pSession->getId();
 }
 
 /* */
