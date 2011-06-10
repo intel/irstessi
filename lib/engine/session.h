@@ -90,6 +90,7 @@ private:
 
     void __internal_attach_imsm_array(const String &path);
     void __internal_attach_imsm_device(const String &path);
+    void __internal_check_configuration();
 
 public:
     ScopeObject * getObject(unsigned int id) const;
@@ -105,7 +106,7 @@ public:
     RaidInfo * getRaidInfo(unsigned int id) const;
 
 public:
-	bool equal(const Object *pObject) const;
+    bool equal(const Object *pObject) const;
     ObjectType getType() const {
         return ObjectType_Session;
     }

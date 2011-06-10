@@ -26,6 +26,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 
 #include <ssi.h>
+#include <log/log.h>
 
 #include "exception.h"
 #include "list.h"
@@ -57,6 +58,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Session::Session() : m_pNoneScopeObj(0)
 {
     Directory dir;
+
+    __internal_check_configuration();
 
     dir = "/sys/bus/pci/drivers/ahci";
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
@@ -415,6 +418,21 @@ void Session::__internal_attach_imsm_array(const String &path)
     } catch (...) {
         /* TODO: log that there's not enough resources in the system. */
     }
+}
+
+/* */
+void Session::__internal_check_configuration()
+{
+    SysfsAttr attr = String("/etc/mdadm.conf");
+    String config;
+    try {
+        attr >> config;
+    } catch (Exception ex) {
+        if (ex != E_NOT_FOUND)
+            dlog("Warning: mdadm config file cannot be read");
+    }
+    /* TODO check that config is correct
+       if not then write new one and restart monitor */
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
