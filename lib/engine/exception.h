@@ -53,7 +53,7 @@ enum Exception {
     E_LAST
 };
 
-int errno_to_exception_code(int err);
+Exception errno_to_exception_code(int err);
 
 #endif /* __EXCEPTION_H__INCLUDED__ */
 

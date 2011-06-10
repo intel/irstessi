@@ -24,7 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "exception.h"
 
 /* */
-int errno_to_exception_code(int err)
+Exception errno_to_exception_code(int err)
 {
     switch (err) {
     case EACCES:
