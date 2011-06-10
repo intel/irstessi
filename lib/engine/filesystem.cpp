@@ -238,7 +238,7 @@ long long File::__internal_to_longlong()
 /* */
 void File::__internal_write(char *buffer, unsigned long long size)
 {
-    int fd = open(get(), O_WRONLY | O_TRUNC | O_NONBLOCK);
+    int fd = open(get(), O_WRONLY | O_TRUNC | O_NONBLOCK | O_CREAT);
     if (fd < 0) {
         throw errno_to_exception_code(errno);
     }
