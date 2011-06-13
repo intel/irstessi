@@ -37,6 +37,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "filesystem.h"
 #include "utils.h"
 #include "block_device.h"
+#include "raid_info.h"
 
 SSI_RaidLevel ui2raidlevel(unsigned int level);
 SSI_StripSize ui2stripsize(unsigned int chunk);
@@ -221,7 +222,7 @@ SSI_Status Volume::rebuild(EndDevice *pEndDevice)
 SSI_Status Volume::expand(unsigned long long newSize)
 {
     (void)newSize;
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */
@@ -293,7 +294,22 @@ SSI_Status Volume::modify(SSI_StripSize chunk, SSI_RaidLevel raidLevel,
     (void)raidLevel;
     (void)disks;
     (void)newSize;
-    return SSI_StatusOk;
+
+    RaidInfo *pRaidInfo = getRaidInfo();
+    /* get raidinfo for this volume*/
+    SSI_RaidLevelInfo info;
+    /* get raidlevel info for this volume */
+    pRaidInfo->getRaidLevelInfo(ui2raidlevel(m_RaidLevel), &info);
+    /* check new chunk is valid for this level */
+    if ((chunk & info.stripSizesSupported) == 0)
+        return SSI_StatusInvalidStripSize;
+    /* check migration to new level is possible */
+    if ((raidLevel & info.migrSupport) == 0)
+        return SSI_StatusInvalidRaidLevel;
+    /* check new size is valid */
+
+    /* migrate */
+    return SSI_StatusNotSupported;
 }
 
 /* */
