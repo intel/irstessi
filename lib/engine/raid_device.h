@@ -58,6 +58,7 @@ public:
     String getUuid() const {
         return m_Uuid;
     }
+    RaidInfo * getRaidInfo() const;
 
     void update();
     virtual SSI_Status remove() = 0;

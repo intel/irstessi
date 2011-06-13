@@ -40,6 +40,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "block_device.h"
 #include "session.h"
 #include "raid_device.h"
+#include "raid_info.h"
 
 /* */
 RaidDevice::RaidDevice(const String &path)
@@ -70,6 +71,18 @@ RaidDevice::~RaidDevice()
     for (Iterator<String *> i = m_Components; *i != 0; ++i) {
         delete *i;
     }
+}
+
+/* */
+RaidInfo * RaidDevice::getRaidInfo() const
+{
+    RaidInfo *pinfo;
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        pinfo = (*i)->getRaidInfo();
+        if ( pinfo != 0)
+            return pinfo;
+    }
+    return 0;
 }
 
 /* */
