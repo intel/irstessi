@@ -75,6 +75,8 @@ libengine_la_SOURCES =          \
         isci_tape.cpp           \
         isci_tape.h             \
         list.h                  \
+        mdadm_config.cpp        \
+        mdadm_config.h          \
         multimedia_device.h     \
         nondisk_device.h        \
         object.cpp              \
