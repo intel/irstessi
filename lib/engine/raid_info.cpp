@@ -58,8 +58,8 @@ SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
     pInfo->maxVolumesPerHba = m_pInfo->vphba;
     pInfo->maxVolumesPerArray = m_pInfo->vpa;
     pInfo->raidEnabled = SSI_TRUE;
-    pInfo->supportsDedicatedSpare = SSI_TRUE;
-    pInfo->supportsGlobalSpare = SSI_FALSE;
+    pInfo->supportsDedicatedSpare = SSI_FALSE;
+    pInfo->supportsGlobalSpare = SSI_TRUE;
     pInfo->supportsCreateFromExisting = SSI_TRUE;
     pInfo->supportsEmptyArrays = SSI_TRUE;
 
