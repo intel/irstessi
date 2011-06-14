@@ -22,6 +22,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __ENCLOSURE_H__INCLUDED__
 #define __ENCLOSURE_H__INCLUDED__
 
+typedef struct __Slot {
+    unsigned int slotNumber;
+    unsigned long long sasAddress;
+} Slot;
+
 /* */
 class Enclosure : public StorageObject {
 public:
@@ -38,6 +43,7 @@ public:
     void attachEndDevice(EndDevice *);
     void attachEndDevices(Container<EndDevice> &EndDevices);
     void attachRoutingDevice(RoutingDevice *);
+    unsigned int getSlotNumber(unsigned long long sasAddress) const;
     void getSlotAddress(SSI_Address &address, unsigned int number);
 
     ObjectType getType() const {
@@ -53,6 +59,10 @@ protected:
     String m_SgName;
     String m_LogicalId;
     String m_VendorId;
+    Container<Slot> m_Slots;
+
+private:
+    void __get_slot_info(String &buffer);
 };
 
 #endif /* __ENCLOSURE_H__INCLUDED__ */

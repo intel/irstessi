@@ -51,11 +51,17 @@ Enclosure::Enclosure(const String &path)
         m_VendorId = sbuffer.between("vendor: ", "product");
         m_VendorId.trim();
     }
+    shell_cap("sg_ses -p 0xa /dev/" + m_SgName, sbuffer);
+    if (sbuffer)
+        __get_slot_info(sbuffer);
+
 }
 
 /* */
 Enclosure::~Enclosure()
 {
+    for (Iterator<Slot *> i = m_Slots; *i != 0; ++i)
+        delete *i;
 }
 
 /* */
@@ -126,10 +132,48 @@ void Enclosure::acquireId(Session *pSession)
 }
 
 /* */
+unsigned int Enclosure::getSlotNumber(unsigned long long sasAddress) const
+{
+    for (Iterator<Slot *> i = m_Slots; *i != 0; ++i)
+        if ((*i)->sasAddress == sasAddress)
+            return (*i)->slotNumber;
+    return -1U;
+}
+
+/* */
 void Enclosure::getSlotAddress(SSI_Address &address, unsigned int number)
 {
     (void)address;
     (void)number;
+}
+
+/* */
+void Enclosure::__get_slot_info(String &buffer)
+{
+    String info, right;
+    unsigned int offset;
+    right = buffer.after("element index");
+    while (right) {
+        try {
+            /* find start of next info block */
+            offset = right.find("element index");
+        }
+        catch (...) {
+            offset = 0;
+        }
+        info = offset?right.left(offset):right;
+        /* get info */
+        String tmp = info.between("bay number: ", "\n");
+        if (tmp) {
+            Slot *pSlot = new Slot;
+            pSlot->slotNumber = tmp;
+            tmp = info.reverse_after("SAS address:");
+            tmp = tmp.left("\n");
+            pSlot->sasAddress = tmp;
+            m_Slots.add(pSlot);
+        }
+        right = offset?right.get(offset+13):"";
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

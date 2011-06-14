@@ -114,9 +114,7 @@ public:
     virtual bool isSystemDisk() const {
         return false;
     }
-    virtual unsigned int getSlotNumber() const {
-        return -1U;
-    }
+    virtual unsigned int getSlotNumber() const;
     virtual SSI_DiskUsage getDiskUsage() const {
         return SSI_DiskUsageUnknown;
     }

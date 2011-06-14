@@ -254,6 +254,13 @@ RaidInfo * EndDevice::getRaidInfo() const
     return m_pPort ? m_pPort->getRaidInfo() : 0;
 }
 
+unsigned int EndDevice::getSlotNumber() const
+{
+    if (m_pEnclosure == 0)
+        return -1U;
+    return m_pEnclosure->getSlotNumber(m_SASAddress);
+}
+
 /* */
 void EndDevice::getAddress(SSI_Address &address) const
 {
