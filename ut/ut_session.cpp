@@ -126,6 +126,23 @@ int ControllerScopeStats(SSI_Handle session, SSI_Handle handle)
     } else {
         cout << "E: Unable to retrieve Port handles." << endl;
     }
+    // ******* Enclosures *************
+    handleCount = INITIAL_COUNT;
+    status = SsiGetEnclosureHandles(session, SSI_ScopeTypeControllerDirect, handle, handleList, &handleCount);
+    if (status == SSI_StatusOk) {
+        cout << handleCount << "\tEnclosures direct" << endl;
+        ShowHandles(handleList, handleCount);
+    } else {
+        cout << "E: Unable to retrieve Enclosure handles." << endl;
+    }
+    handleCount = INITIAL_COUNT;
+    status = SsiGetEnclosureHandles(session, SSI_ScopeTypeControllerAll, handle, handleList, &handleCount);
+    if (status == SSI_StatusOk) {
+        cout << handleCount << "\tEnclosures all" << endl;
+        ShowHandles(handleList, handleCount);
+    } else {
+        cout << "E: Unable to retrieve Enclosure handles." << endl;
+    }
     return 0;
 }
 
@@ -159,6 +176,15 @@ int RoutingDeviceScopeStats(SSI_Handle session, SSI_Handle handle)
         cout << handleCount << "\tPorts" << endl;
     } else {
         cout << "E: Unable to retrieve Port handles." << endl;
+    }
+    // ******* Enclosures *************
+    handleCount = INITIAL_COUNT;
+    status = SsiGetEnclosureHandles(session, SSI_ScopeTypeRoutingDevice, handle, handleList, &handleCount);
+    if (status == SSI_StatusOk) {
+        cout << handleCount << "\tEnclosures" << endl;
+        ShowHandles(handleList, handleCount);
+    } else {
+        cout << "E: Unable to retrieve Enclosure handles." << endl;
     }
     return 0;
 }
@@ -242,10 +268,12 @@ int SessionStats(SSI_Handle session)
     status = SsiGetRoutingDeviceHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handleList, &handleCount);
     if (status == SSI_StatusOk) {
         cout << handleCount << "\tRoutingDevices " << endl;
+        for (unsigned int i = 0; i < handleCount; i++)
+            RoutingDeviceScopeStats(session, handleList[i]);
     } else {
         cout << "E: Unable to retrieve RoutingDevice handles." << endl;
     }
-    ShowHandles(handleList, handleCount);
+
 
     // ******* Enclosures *************
     handleCount = INITIAL_COUNT;
