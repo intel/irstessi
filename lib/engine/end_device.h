@@ -83,7 +83,7 @@ protected:
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     RaidInfo * getRaidInfo() const;
-    Controller * getController() {
+    Controller * getController() const {
         return m_pParent?m_pParent->getController():0;
     }
 

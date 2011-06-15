@@ -123,8 +123,8 @@ public:
     RaidInfo * getRaidInfo() const {
         return m_pRaidInfo;
     }
-    Controller * getController() {
-        return this;
+    Controller * getController() const {
+        return const_cast<Controller *>(this);
     }
     SSI_Status makeSpare(EndDevice *pEndDevice);
 };
