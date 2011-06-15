@@ -450,31 +450,4 @@ unsigned char String::__internal_to_uchar() const
     return static_cast<unsigned char>(strtoul(m_buffer, NULL, 0));
 }
 
-int show(const char *fname, int nline, char *s) {
-	FILE *f = fopen("/root/log.txt", "a+");
-	if (f == 0) {
-		fprintf(stderr, "Can no open log file\n");
-		return -1;
-	}
-	fprintf(f, "%s:%d  %s\n", fname, nline, s);
-	fclose(f);
-	return 0;
-}
-
-int show(const char *fname, int nline, const char *s) {
-	show(fname, nline, const_cast<char *>(s));
-	return 0;
-}
-int show(const char *fname, int nline, const String &s) {
-	show(fname, nline, (const char *)(s));
-	return 0;
-}
-
-int show(const char *fname, int nline, int nr) {
-	char s[8];
-	sprintf(s, "%d", nr);
-	show(fname, nline, s);
-	return 0;
-}
-
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
