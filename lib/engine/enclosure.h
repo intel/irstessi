@@ -52,6 +52,7 @@ public:
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeEnclosure;
     }
+    bool attachedTo(StorageObject *pObject) const;
 
 protected:
     Container<EndDevice> m_EndDevices;

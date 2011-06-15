@@ -176,4 +176,13 @@ void Enclosure::__get_slot_info(String &buffer)
     }
 }
 
+/* */
+bool Enclosure::attachedTo(StorageObject *pObject) const
+{
+    for(Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; ++i)
+        if ((*i)->getParent() == pObject)
+            return true;
+    return false;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

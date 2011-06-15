@@ -211,10 +211,13 @@ void Controller::getPhys(Container<Phy> &container) const
 /* */
 void Controller::getEnclosures(Container<Enclosure> &container, bool all) const
 {
-    container = m_Enclosures_Direct;
     if (all) {
-        container.add(m_Enclosures);
+        container = m_Enclosures_Direct;
+        return;
     }
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; ++i)
+        if ((*i)->attachedTo(const_cast<Controller *>(this)))
+            container.add(*i);
 }
 
 /* */
