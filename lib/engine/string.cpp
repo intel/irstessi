@@ -356,14 +356,12 @@ void String::__get(char *buf, unsigned int size, unsigned int offset) const
 /* */
 int String::__compare(const String &s, unsigned int offset) const
 {
-    if (m_length < s.length() - offset) {
-        return -1;
-    } else
-    if (m_length > s.length() - offset) {
-        return  1;
-    } else {
-        return strncmp(m_buffer, s.get(offset), m_size);
-    }
+    int rv;
+    unsigned int min_size = s.size();
+    if (min_size > m_size)
+        min_size = m_size;
+    rv = strncmp(m_buffer, s.get(), min_size);
+    return rv?rv:(m_size - s.size());
 }
 
 /* */
