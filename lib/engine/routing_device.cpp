@@ -35,6 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "end_device.h"
 #include "session.h"
 #include "enclosure.h"
+#include "controller.h"
 
 /* */
 RoutingDevice::RoutingDevice(const String &path)
@@ -95,6 +96,14 @@ void RoutingDevice::getRoutingDevices(Container<RoutingDevice> &container, bool 
     if (all) {
         container.add(m_RoutingDevices);
     }
+}
+
+/* */
+void RoutingDevice::getEnclosures(Container<Enclosure> &container, bool all) const
+{
+    Controller *pController = getController();
+    if (pController)
+        pController->getEnclosures(const_cast<RoutingDevice *>(this), container);
 }
 
 /* */

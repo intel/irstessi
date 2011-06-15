@@ -50,6 +50,7 @@ class RoutingDevice : public StorageObject {
     void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
     void getPorts(Container<Port> &) const;
     void getEndDevices(Container<EndDevice> &, bool all) const;
+    void getEnclosures(Container<Enclosure> &, bool all) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRoutingDevice;

@@ -127,6 +127,7 @@ public:
         return const_cast<Controller *>(this);
     }
     SSI_Status makeSpare(EndDevice *pEndDevice);
+    void getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container);
 };
 
 #endif /* __CONTROLLER_H__INCLUDED__ */
