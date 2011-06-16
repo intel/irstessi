@@ -288,29 +288,26 @@ SSI_Status Volume::cancelVerify()
 }
 
 /* */
-SSI_Status Volume::modify(SSI_StripSize chunk, SSI_RaidLevel raidLevel,
+SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     unsigned long long newSize, const Container<EndDevice> &disks)
 {
-    (void)chunk;
-    (void)raidLevel;
-    (void)disks;
-    (void)newSize;
-
     RaidInfo *pRaidInfo = getRaidInfo();
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
     /* get raidlevel info for this volume */
     pRaidInfo->getRaidLevelInfo(ui2raidlevel(m_RaidLevel), &info);
     /* check new chunk is valid for this level */
-    if ((chunk & info.stripSizesSupported) == 0)
+    if ((stripSize & info.stripSizesSupported) == 0)
         return SSI_StatusInvalidStripSize;
     /* check migration to new level is possible */
     if ((raidLevel & info.migrSupport) == 0)
         return SSI_StatusInvalidRaidLevel;
-    /* check new size is valid */
-
+    /* size change is not supported */
+    if (newSize && newSize != m_TotalSize)
+        return SSI_StatusInvalidSize;
     /* migrate */
-    return SSI_StatusNotSupported;
+
+    return SSI_StatusNotImplemented;
 }
 
 /* */
