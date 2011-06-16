@@ -138,7 +138,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
     status = this->addSpare(container);
     this->getEndDevices(tmp,false);
     if (status == SSI_StatusOk)
-        if (shell("echo mdadm --grow /dev/" + m_DevName + " --raid-devices " +
+        if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " +
                   String(tmp.count() + container.count())) != 0) {
             status = SSI_StatusFailed;
         }
