@@ -291,11 +291,13 @@ SSI_Status Volume::cancelVerify()
 SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     unsigned long long newSize, const Container<EndDevice> &disks)
 {
+    SSI_Status status;
+    SSI_RaidLevel volumeLevel = ui2raidlevel(m_RaidLevel);
     RaidInfo *pRaidInfo = getRaidInfo();
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
     /* get raidlevel info for this volume */
-    pRaidInfo->getRaidLevelInfo(ui2raidlevel(m_RaidLevel), &info);
+    pRaidInfo->getRaidLevelInfo(volumeLevel, &info);
     /* check new chunk is valid for this level */
     if ((stripSize & info.stripSizesSupported) == 0)
         return SSI_StatusInvalidStripSize;
@@ -306,7 +308,26 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     if (newSize && newSize != m_TotalSize)
         return SSI_StatusInvalidSize;
     /* migrate */
-
+    Array *pArray = dynamic_cast<Array *>(m_pParent);
+    switch (raidLevel) {
+    case SSI_Raid10:
+        if (volumeLevel != SSI_Raid0 || m_BlockDevices != 2  || disks < 2)
+            return SSI_StatusNotSupported;
+        if (stripSize && stripSize != ui2stripsize(m_StripSize))
+            return SSI_StatusInvalidStripSize;
+        if (pArray == 0)
+            return SSI_StatusFailed;
+        status = pArray->addSpare(disks);
+        if (status != SSI_StatusOk)
+            return status;
+        if (shell("mdadm /dev/" + m_DevName + " --grow  -l10") == 0) {
+            return SSI_StatusOk;
+        }
+        return SSI_StatusFailed;
+        break;
+    default:
+        ;
+    }
     return SSI_StatusNotImplemented;
 }
 
