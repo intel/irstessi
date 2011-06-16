@@ -41,6 +41,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 SSI_RaidLevel ui2raidlevel(unsigned int level);
 SSI_StripSize ui2stripsize(unsigned int chunk);
+unsigned int stripsize2ui(SSI_StripSize chunk);
 
 /* */
 Volume::Volume() : RaidDevice(),
@@ -438,58 +439,7 @@ void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
 /* */
 void Volume::setStripSize(SSI_StripSize stripSize)
 {
-    switch (stripSize) {
-    case SSI_StripSize2kB:
-        m_StripSize = 2 * 1024;
-        break;
-    case SSI_StripSize4kB:
-        m_StripSize = 4 * 1024;
-        break;
-    case SSI_StripSize8kB:
-        m_StripSize = 8 * 1024;
-        break;
-    case SSI_StripSize16kB:
-        m_StripSize = 16 * 1024;
-        break;
-    case SSI_StripSize32kB:
-        m_StripSize = 32 * 1024;
-        break;
-    case SSI_StripSize64kB:
-        m_StripSize = 64 * 1024;
-        break;
-    case SSI_StripSize128kB:
-        m_StripSize = 128 * 1024;
-        break;
-    case SSI_StripSize256kB:
-        m_StripSize = 256 * 1024;
-        break;
-    case SSI_StripSize512kB:
-        m_StripSize = 512 * 1024;
-        break;
-    case SSI_StripSize1MB:
-        m_StripSize = 1 * 1024 * 1024;
-        break;
-    case SSI_StripSize2MB:
-        m_StripSize = 2 * 1024 * 1024;
-        break;
-    case SSI_StripSize4MB:
-        m_StripSize = 4 * 1024 * 1024;
-        break;
-    case SSI_StripSize8MB:
-        m_StripSize = 8 * 1024 * 1024;
-        break;
-    case SSI_StripSize16MB:
-        m_StripSize = 16 * 1024 * 1024;
-        break;
-    case SSI_StripSize32MB:
-        m_StripSize = 32 * 1024 * 1024;
-        break;
-    case SSI_StripSize64MB:
-        m_StripSize = 64 * 1024 * 1024;
-        break;
-    default:
-        throw E_INVALID_STRIP_SIZE;
-    }
+    m_StripSize = stripsize2ui(stripSize);
 }
 
 /* */
@@ -572,6 +522,47 @@ SSI_StripSize ui2stripsize(unsigned int chunk)
             return SSI_StripSize64MB;
         default:
             return SSI_StripSizeUnknown;
+    }
+}
+
+/* */
+unsigned int stripsize2ui(SSI_StripSize stripSize)
+{
+    switch (stripSize) {
+        case SSI_StripSize2kB:
+            return 2 * 1024;
+        case SSI_StripSize4kB:
+            return 4 * 1024;
+        case SSI_StripSize8kB:
+            return 8 * 1024;
+        case SSI_StripSize16kB:
+            return 16 * 1024;
+        case SSI_StripSize32kB:
+            return 32 * 1024;
+        case SSI_StripSize64kB:
+            return 64 * 1024;
+        case SSI_StripSize128kB:
+            return 128 * 1024;
+        case SSI_StripSize256kB:
+            return 256 * 1024;
+        case SSI_StripSize512kB:
+            return 512 * 1024;
+        case SSI_StripSize1MB:
+            return 1 * 1024 * 1024;
+        case SSI_StripSize2MB:
+            return 2 * 1024 * 1024;
+        case SSI_StripSize4MB:
+            return 4 * 1024 * 1024;
+        case SSI_StripSize8MB:
+            return 8 * 1024 * 1024;
+        case SSI_StripSize16MB:
+            return 16 * 1024 * 1024;
+        case SSI_StripSize32MB:
+            return 32 * 1024 * 1024;
+        case SSI_StripSize64MB:
+            return 64 * 1024 * 1024;
+        default:
+            throw E_INVALID_STRIP_SIZE;
     }
 }
 
