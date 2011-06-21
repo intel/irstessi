@@ -106,6 +106,9 @@ public:
 
 private:
     void __internal_initialize();
+    SSI_Status __toRaid0(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
+    SSI_Status __toRaid10(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
+    SSI_Status __toRaid5(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
