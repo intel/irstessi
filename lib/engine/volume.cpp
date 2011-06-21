@@ -308,14 +308,14 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
         return SSI_StatusInvalidSize;
     /* migrate */
     switch (raidLevel) {
-    case SSI_Raid0:
-        return __toRaid0(stripSize, newSize, disks);
-    case SSI_Raid10:
-        return __toRaid10(stripSize, newSize, disks);
-    case SSI_Raid5:
-        return __toRaid5(stripSize, newSize, disks);
-    default:
-        return SSI_StatusNotSupported;
+        case SSI_Raid0:
+            return __toRaid0(stripSize, newSize, disks);
+        case SSI_Raid10:
+            return __toRaid10(stripSize, newSize, disks);
+        case SSI_Raid5:
+            return __toRaid5(stripSize, newSize, disks);
+        default:
+            return SSI_StatusNotSupported;
     }
 }
 
@@ -338,11 +338,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     if (m_CachingEnabled == false) {
         pInfo->cachePolicy = SSI_VolumeCachePolicyOff;
     } else {
-        if (m_WriteThrough) {
-            pInfo->cachePolicy = SSI_VolumeCachePolicyWriteThrough;
-        } else {
-            pInfo->cachePolicy = SSI_VolumeCachePolicyWriteBack;
-        }
+        pInfo->cachePolicy = m_WriteThrough ? SSI_VolumeCachePolicyWriteThrough : SSI_VolumeCachePolicyWriteBack;
     }
     pInfo->systemVolume = m_SystemVolume ? SSI_TRUE : SSI_FALSE;
     pInfo->initialized = m_State != SSI_VolumeStateInitializing ? SSI_TRUE : SSI_FALSE;
