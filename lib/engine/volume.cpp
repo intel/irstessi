@@ -663,7 +663,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
     }
     switch (m_RaidLevel) {
         case 0:
-            if (disks != 1)
+            if (disks < 1)
                 /* check if there are any spares */
                 return SSI_StatusNotSupported;
             status = pArray->addSpare(disks);
