@@ -51,7 +51,7 @@ int shell_cap(const String &s, String &r)
 int shell(const String &s)
 {
     String buffer;
-    return shell_cap(s, buffer);
+    return shell_cap("export MDADM_EXPERIMENTAL=1; " + s, buffer);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
