@@ -21,14 +21,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssi.h>
 #define HANDLE_COUNT 100
 
+enum TestResult {
+    NotRun = -1,
+    Passed = 0,
+    Failed = 1
+};
+
+TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count);
 using namespace std;
 
 int main(int argc, char *argv[])
 {
     SSI_Handle session;
     SSI_Status status;
-    SSI_Handle volumeHandle0 = 0;
-    SSI_Handle volumeHandle1 = 0;
 
     SSI_Handle controllerHandle[HANDLE_COUNT];
     SSI_Uint32 controllerCount;
@@ -38,6 +43,9 @@ int main(int argc, char *argv[])
     SSI_Handle scuDevice[HANDLE_COUNT];
     unsigned int ahciCount = 0;
     unsigned int scuCount = 0;
+    unsigned int passed = 0;
+    unsigned int failed = 0;
+    unsigned int notrun = 0;
 
     (void)argc;
     (void)argv;
@@ -107,65 +115,72 @@ int main(int argc, char *argv[])
         return -2;
     }
 
+    int rv = raid1_to_raid0(ahciDevice, ahciCount);
+    switch (rv) {
+        case 0:
+            passed++;
+            break;
+        case -1:
+            notrun++;
+            break;
+        default:
+            failed++;
+    }
+
+    cout << "Passed: " << passed << endl;
+    cout << "Failed: " << failed << endl;
+
+    status = SsiFinalize();
+    if (status != SSI_StatusOk) {
+        return -2;
+    }
+    return 0;
+}
+
+TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
+{
+    SSI_Status status;
+    SSI_Handle volumeHandle0 = 0;
     /* create raid0 volume on AHCI */
     SSI_CreateFromDisksParams params;
-    params.disks = ahciDevice;
-    params.numDisks = 3;
+    params.disks = pDevice;
+    params.numDisks = 2;
     params.sourceDisk = SSI_NULL_HANDLE;
-    strcpy(params.volumeName, "ahciR0");
-    params.stripSize = SSI_StripSize64kB;
-    params.raidLevel = SSI_Raid0;
-    params.sizeInBytes = 1024000;
+    strcpy(params.volumeName, "ahciR1");
+    params.stripSize = SSI_StripSizeUnknown;
+    params.raidLevel = SSI_Raid1;
+    params.sizeInBytes = 1024*1024*128;
 
     cout << "-->SsiVolumeCreateFromDisks..." << endl;
     status = SsiVolumeCreateFromDisks(params, &volumeHandle0);
     if (status == SSI_StatusOk) {
         cout << "Created volume: volumeHandle=0x" << hex << volumeHandle0 << endl;
-    }
-
-    /* create raid10 volume on SCU */
-    params.disks = scuDevice;
-    params.numDisks = 4;
-    params.sourceDisk = SSI_NULL_HANDLE;
-    strcpy(params.volumeName, "scuR10");
-    params.stripSize = SSI_StripSize64kB;
-    params.raidLevel = SSI_Raid10;
-    params.sizeInBytes = 1024000;
-
-    cout << "-->SsiVolumeCreateFromDisks..." << endl;
-    status = SsiVolumeCreateFromDisks(params, &volumeHandle1);
-    if (status == SSI_StatusOk) {
-        cout << "Created volume: volumeHandle=0x" << hex << volumeHandle1 << endl;
-    }
-
-    /* find array handle */
-    cout << "-->SsiGetArrayHandles..." << endl;
-    count = 10;
-    status = SsiGetArrayHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handle, &count);
-    if (status == SSI_StatusOk) {
-        cout << "arrays: " << count << endl;
-        for (unsigned int i = 0; i < count; ++i) {
-            cout << "\thandle=0x" << hex << handle[i] << endl;
-        }
     } else {
-        cout << "E: unable to get array handles (status=" << status << ")" << endl;
+        return NotRun;
     }
+
     /* wait for resync to finish */
     system("while grep -i resync /proc/mdstat; do sleep 1; done");
 
     /* modify volume */
+
+    /* 1 -> 0 */
     SSI_RaidLevelModifyParams modifyParams;
     modifyParams.newStripSize = SSI_StripSizeUnknown;
-    modifyParams.newRaidLevel = SSI_Raid5;
+    modifyParams.newRaidLevel = SSI_Raid0;
     modifyParams.newSizeInBytes = 0;
-    modifyParams.diskHandles = 0;
-    modifyParams.diskHandleCount = 0;
-    status = SsiRaidLevelModify(volumeHandle1, modifyParams);
+    modifyParams.diskHandles = pDevice + 2;
+    modifyParams.diskHandleCount = 2;
+    status = SsiRaidLevelModify(volumeHandle0, modifyParams);
     if (status != SSI_StatusOk) {
-        cout << "E: Modify volume failed" << endl;
+        cout << "E: Modify volume failed (status = " << status << ")"<< endl;
+        return Failed;
+    } else {
+        cout << "Modify volume succeeded" << endl;
+        return Passed;
     }
 
-    /* delete both volumes */
+    /* delete both volumes
     cout << "-->SsiVolumeDelete..." << endl;
     status = SsiVolumeDelete(volumeHandle0);
     if (status != SSI_StatusOk) {
@@ -175,12 +190,6 @@ int main(int argc, char *argv[])
     if (status != SSI_StatusOk) {
         cout << "E: unable to delete volume from the array." << endl;
     }
-
-    status = SsiFinalize();
-    if (status != SSI_StatusOk) {
-        return -2;
-    }
-    return 0;
+    */
 }
-
 // ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 noexpandtab:
