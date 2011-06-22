@@ -296,6 +296,8 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
     /* get raidlevel info for this volume */
+    if (pRaidInfo == 0)
+        return SSI_StatusFailed;
     pRaidInfo->getRaidLevelInfo(volumeLevel, &info);
     /* check new chunk is valid for this level */
     if ((stripSize & info.stripSizesSupported) == 0)
