@@ -65,7 +65,7 @@ SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
     pInfo->libraryVersion[0] = '\0'; /* TODO */
     pInfo->maxSessions = -1U;
     pInfo->setVolCacheSizeSupport = SSI_FALSE;
-    pInfo->passthroughCommandSupport = SSI_TRUE;
+    pInfo->passthroughCommandSupport = SSI_FALSE;
 
     return SSI_StatusOk;
 }
