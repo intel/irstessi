@@ -579,7 +579,12 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
         return SSI_StatusFailed;
 
     bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
-    String ch = chunkChange ? " -c " + String(stripsize2ui(stripSize)/1024) : "";
+    String ch = "";
+    try {
+        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize)/1024) : "";
+    } catch (...) {
+        return SSI_StatusInvalidStripSize;
+    }
     switch (m_RaidLevel) {
         case 0:
             if (disks == 0 && !chunkChange)
@@ -650,7 +655,12 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
         return SSI_StatusFailed;
 
     bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
-    String ch = chunkChange ? " -c " + String(stripsize2ui(stripSize)/1024) : "";
+    String ch = "";
+    try {
+        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize)/1024) : "";
+    } catch (...) {
+        return SSI_StatusInvalidStripSize;
+    }
     switch (m_RaidLevel) {
         case 0:
             if (disks != 1)
