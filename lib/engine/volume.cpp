@@ -300,7 +300,7 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
         return SSI_StatusFailed;
     pRaidInfo->getRaidLevelInfo(volumeLevel, &info);
     /* check new chunk is valid for this level */
-    if ((stripSize & info.stripSizesSupported) == 0)
+    if ((stripSize & info.stripSizesSupported) == 0 && stripSize != SSI_StripSizeUnknown)
         return SSI_StatusInvalidStripSize;
     /* check migration to new level is possible */
     if ((raidLevel & info.migrSupport) == 0)
