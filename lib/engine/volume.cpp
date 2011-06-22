@@ -465,8 +465,9 @@ void Volume::create()
     } else {
         componentSize = m_ComponentSize / 1024;
     }
+    String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
     if (shell("mdadm -CR " + m_Name + " -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
-            " --chunk=" + String(m_StripSize / 1024) + " -n" + String(m_BlockDevices) + devices) != 0) {
+            chunk + " -n" + String(m_BlockDevices) + devices) != 0) {
         throw E_VOLUME_CREATE_FAILED;
     }
 }

@@ -212,8 +212,9 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pVolume->setEndDevices(container);
         pVolume->setComponentSize(params.sizeInBytes / container);
         pVolume->setName(params.volumeName);
-        pVolume->setStripSize(params.stripSize);
         pVolume->setRaidLevel(params.raidLevel);
+        if (params.raidLevel != SSI_Raid1)
+            pVolume->setStripSize(params.stripSize);
         pVolume->create();
         pArray->update();
         pVolume->update();
