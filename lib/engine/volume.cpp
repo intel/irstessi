@@ -591,7 +591,9 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
             if (shell("mdadm /dev/" + m_DevName + " --grow -l0" + ch) == 0)
                 return SSI_StatusOk;
         case 1:
-            if (shell("mdadm /dev/" + m_DevName + " --grow -l0" + ch) == 0) {
+            if (chunkChange)
+                return SSI_StatusInvalidStripSize;
+            if (shell("mdadm /dev/" + m_DevName + " --grow -l0") == 0) {
                 if (disks > 0)
                     return pArray->grow(disks);
                 return SSI_StatusOk;
