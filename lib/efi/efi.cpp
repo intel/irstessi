@@ -66,27 +66,27 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 {
     unsigned int esize = 0;
     unsigned int size = sizeof(struct orom_info);
-    struct orom_info *edata = new struct orom_info;
+    struct orom_info *edata = 0;
     Directory dir(EFI_VAR_DIR);
 
     dir.setFilter((controllerType == SSI_ControllerTypeAHCI)?AHCI_VAR:SCU_VAR);
     try {
         for (Iterator<Directory *> i = dir; *i != 0; i++) {
             SysfsAttr attr = *(*i) + "size";
-            dlog("efi path/size: %s", (const char *)attr);
             attr >> esize;
         }
     } catch (...) {
     }
     if (esize != size)
         return 0;
+    edata = new struct orom_info;
     try {
         for (Iterator<Directory *> i = dir; *i != 0; i++) {
             SysfsAttr attr = *(*i) + "data";
-            dlog("efi path/data: %s", (const char *)attr);
             attr.read(edata, esize);
         }
     } catch (...) {
+        delete edata;
         return 0;
     }
     return edata;
