@@ -241,7 +241,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 /* */
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
-    Volume *pVolume;
+    Volume *pVolume = 0;
 
     if (pContextMgr == 0) {
         return SSI_StatusNotInitialized;
