@@ -92,6 +92,14 @@ public:
     }
 
 public:
+    File & operator = (const File &file) {
+        __internal_clear_content();
+        assign(file);
+        m_pContent = file.m_pContent;
+        m_ContentCapacity = file.m_ContentCapacity;
+        m_ContentSize = file.m_ContentSize;
+        return *this;
+    }
     virtual void read(void *buffer, unsigned int size);
     virtual void read(long long &value) {
         __internal_read_content();

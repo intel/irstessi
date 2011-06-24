@@ -143,6 +143,7 @@ void File::__internal_clear_content()
     m_ContentSize = 0;
     if (m_pContent != 0) {
         delete [] m_pContent;
+        m_pContent = 0;
     }
 }
 
