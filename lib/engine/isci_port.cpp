@@ -83,7 +83,7 @@ void ISCI_Port::discover()
                         attachEnclosure(dynamic_cast<Enclosure *>(pStorageObject));
                         break;
                     default:
-                        dlog("neither end device nor enclosure??? (%s)", (const char *)(pStorageObject->getPath()));
+                        delete pStorageObject;
                 }
         }
         return;
