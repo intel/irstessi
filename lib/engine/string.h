@@ -62,7 +62,11 @@ public:
         : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
         assign(value);
     }
-    String(const String &s, unsigned int count = -1U)
+    String(const String &s)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(s);
+    }
+    String(const String &s, unsigned int count)
         : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
         assign(s, count);
     }
