@@ -56,11 +56,10 @@ protected:
     Container<Controller> m_Controllers;
     struct orom_info * m_pInfo;
 
+public:
     void attachController(Controller *pController) {
         m_Controllers.add(pController);
     }
-
-public:
     void acquireId(Session *pSession);
 
     virtual SSI_ControllerType getControllerType() const = 0;

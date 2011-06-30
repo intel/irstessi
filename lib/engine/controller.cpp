@@ -110,6 +110,24 @@ Controller::~Controller()
 }
 
 /* */
+RaidInfo * Controller::findRaidInfo()
+{
+    return 0;
+}
+
+/* */
+RaidInfo * Controller::findRaidInfo(Container<RaidInfo> &container)
+{
+    for (Iterator<RaidInfo *> i = container; *i != 0; ++i)
+        if ((*i)->getControllerType() == getControllerType()) {
+            m_pRaidInfo = *i;
+            m_pRaidInfo->attachController(this);
+            return 0;
+        }
+    return findRaidInfo();
+}
+
+/* */
 SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
 {
     if (pInfo == 0) {
@@ -357,9 +375,6 @@ void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosur
 void Controller::acquireId(Session *pSession)
 {
     pSession->addController(this);
-    if (m_pRaidInfo != 0) {
-        m_pRaidInfo->acquireId(pSession);
-    }
 
     for (Iterator<EndDevice *> i = m_EndDevices_Direct; *i != 0; ++i) {
         (*i)->acquireId(pSession);

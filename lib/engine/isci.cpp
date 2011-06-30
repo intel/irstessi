@@ -52,12 +52,6 @@ ISCI::ISCI(const String &path)
 {
     m_Path = path;
     m_Name = "ISCI at " + m_Path.reverse_right("0000:");
-    struct orom_info *pInfo = efi_get(SSI_ControllerTypeSCU);
-    if (pInfo == 0)
-        pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != 0) {
-        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo);
-    }
 }
 
 /* */
@@ -109,4 +103,17 @@ void ISCI::setAddress(SSI_Address &address)
     m_Address.sasAddressPresent = address.sasAddressPresent;
     m_Address.sasAddress = address.sasAddress;
 }
+
+RaidInfo *ISCI::findRaidInfo()
+{
+    struct orom_info *pInfo = efi_get(getControllerType());
+    if (pInfo == 0)
+        pInfo = orom_get(m_PciDeviceId);
+    if (pInfo != 0) {
+        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo);
+        return m_pRaidInfo;
+    }
+    return 0;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

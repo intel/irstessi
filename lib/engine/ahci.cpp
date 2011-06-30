@@ -52,13 +52,6 @@ AHCI::AHCI(const String &path)
 {
     /* TODO: read the name of controller from PCI bar */
     m_Name = "AHCI at " + m_Path.reverse_right("0000:");
-
-    struct orom_info *pInfo = efi_get(SSI_ControllerTypeAHCI);
-    if (pInfo == 0)
-        pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != 0) {
-        m_pRaidInfo = new AHCI_RaidInfo(this, pInfo);
-    }
 }
 
 /* */
@@ -85,6 +78,18 @@ void AHCI::getAddress(SSI_Address &address) const
     address.scsiAddress.lun = 0;
     address.sasAddressPresent = SSI_FALSE;
     address.sasAddress = 0ULL;
+}
+
+RaidInfo *AHCI::findRaidInfo()
+{
+    struct orom_info *pInfo = efi_get(getControllerType());
+    if (pInfo == 0)
+        pInfo = orom_get(m_PciDeviceId);
+    if (pInfo != 0) {
+        m_pRaidInfo = new AHCI_RaidInfo(this,pInfo);
+        return m_pRaidInfo;
+    }
+    return 0;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

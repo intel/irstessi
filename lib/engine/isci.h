@@ -41,6 +41,7 @@ protected:
     SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeSCU;
     }
+    RaidInfo *findRaidInfo();
 
     // ISCI
     SSI_Address m_Address;

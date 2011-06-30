@@ -94,6 +94,11 @@ Session::Session() : m_pNoneScopeObj(0)
             }
         }
     }
+    for (Iterator<Controller *> i = m_Controllers; *i != 0; ++i) {
+        RaidInfo *pRaidInfo = (*i)->findRaidInfo(m_RaidInfo);
+        if (pRaidInfo)
+            pRaidInfo->acquireId(this);
+    }
     if (m_EndDevices > 0) {
         dir = "/sys/devices/virtual/block";
         for (Iterator<Directory *> i = dir; *i != 0; ++i) {
