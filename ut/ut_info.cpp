@@ -103,6 +103,26 @@ int main(int argc, char *argv[])
                         cout << "\t\tsupportsCreateFromExisting: " << (bool)raidInfo.supportsCreateFromExisting << endl;
                         cout << "\t\tsupportsEmptyArrays: " << (bool)raidInfo.supportsEmptyArrays << endl;
         //                cout << "\t: " << ()raidInfo. << endl;
+
+                        SSI_RaidLevelInfo info;
+                        cout << "    RaidLevelInfo: " << endl;
+                        SSI_RaidLevel a[] = {SSI_Raid0, SSI_Raid1, SSI_Raid10, SSI_Raid5, SSI_Raid6, SSI_RaidUnknown};
+                        string b[] = {"SSI_Raid0", "SSI_Raid1", "SSI_Raid10", "SSI_Raid5", "SSI_Raid6", "SSI_RaidUnknown"};
+                        for (j = 0; j < 6 ; j++) {
+                            status = SsiGetRaidLevelInfo(session, handles[i], a[j], &info);
+                            if (status == SSI_StatusOk) {
+                                cout << "\tRaid Level: " << b[j] << endl;
+                                cout << "\t\tsupported: " << (bool)info.supported << endl;
+                                cout << "\t\tminDisks: " << (int)info.minDisks << endl;
+                                cout << "\t\tmaxDisks: " << (int)info.maxDisks << endl;
+                                cout << "\t\tdefaultStripSize: " << (int)info.defaultStripSize << endl;
+                                cout << "\t\tmigrSupport: " << (int)info.migrSupport << endl;
+                                cout << "\t\tmigrDiskAdd: " << (int)info.migrDiskAdd << endl;
+                                cout << "\t\tevenDiskCount: " << (bool)info.evenDiskCount << endl;
+                                cout << "\t\toddDiskCount: " << (bool)info.oddDiskCount << endl;
+                                cout << "\t\tstripSizesSupported: " << (int)info.stripSizesSupported << endl;
+                            }
+                        }
                     } else {
                         cout << "E. unable to get RaidInfo information" << endl;
                     }
@@ -110,27 +130,7 @@ int main(int argc, char *argv[])
             } else {
                 cout << "E. Unable to get raid info handles" << endl;
             }
-            SSI_RaidLevelInfo info;
-            if (count > 0 && count != MAX_COUNT) {
-                cout << "    RaidLevelInfo: " << endl;
-                SSI_RaidLevel a[] = {SSI_Raid0, SSI_Raid1, SSI_Raid10, SSI_Raid5, SSI_Raid6, SSI_RaidUnknown};
-                string b[] = {"SSI_Raid0", "SSI_Raid1", "SSI_Raid10", "SSI_Raid5", "SSI_Raid6", "SSI_RaidUnknown"};
-                for (j = 0; j < 6 ; j++) {
-                    status = SsiGetRaidLevelInfo(session, handles[0], a[j], &info);
-                    if (status == SSI_StatusOk) {
-                        cout << "\tRaid Level: " << b[j] << endl;
-                        cout << "\t\tsupported: " << (bool)info.supported << endl;
-                        cout << "\t\tminDisks: " << (int)info.minDisks << endl;
-                        cout << "\t\tmaxDisks: " << (int)info.maxDisks << endl;
-                        cout << "\t\tdefaultStripSize: " << (int)info.defaultStripSize << endl;
-                        cout << "\t\tmigrSupport: " << (int)info.migrSupport << endl;
-                        cout << "\t\tmigrDiskAdd: " << (int)info.migrDiskAdd << endl;
-                        cout << "\t\tevenDiskCount: " << (bool)info.evenDiskCount << endl;
-                        cout << "\t\toddDiskCount: " << (bool)info.oddDiskCount << endl;
-                        cout << "\t\tstripSizesSupported: " << (int)info.stripSizesSupported << endl;
-                    }
-                }
-            }
+
             break;
 
         case ocontroller:
