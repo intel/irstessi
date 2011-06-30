@@ -22,6 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 
 #include <asm/types.h>
+#include <cstdio>
 
 #include "include/ssi.h"
 #include "lib/engine/exception.h"
@@ -64,32 +65,42 @@ static struct orom_info *__efi_add_info(SSI_ControllerType controllerType, struc
 /* */
 struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 {
-    unsigned int esize = 0;
-    unsigned int size = sizeof(struct orom_info);
-    struct orom_info *edata = 0;
+    unsigned int size = 0;
+    struct orom_info *data = 0;
+    unsigned int var_size = sizeof(struct orom_info);
     Directory dir(EFI_VAR_DIR);
+    Path var_path = "";
+    char buf[GUID_STR_MAX];
 
+    guid2str(buf, VENDOR_GUID);
     dir.setFilter((controllerType == SSI_ControllerTypeAHCI)?AHCI_VAR:SCU_VAR);
-    try {
-        for (Iterator<Directory *> i = dir; *i != 0; i++) {
-            SysfsAttr attr = *(*i) + "size";
-            attr >> esize;
+    for (Iterator<Directory *> i = dir; *i != 0; i++) {
+        try {
+            (*i)->find(buf);
+            var_path = *(*i);
+            break;
+        } catch (...) {
+            continue;
         }
+    }
+    if (var_path  == "")
+        return 0;
+    try {
+        SysfsAttr attr = var_path + "size";
+        attr >> size;
     } catch (...) {
     }
-    if (esize != size)
+    if (size != var_size)
         return 0;
-    edata = new struct orom_info;
+    data = new struct orom_info;
     try {
-        for (Iterator<Directory *> i = dir; *i != 0; i++) {
-            SysfsAttr attr = *(*i) + "data";
-            attr.read(edata, esize);
-        }
+        SysfsAttr attr = var_path + "data";
+        attr.read(data, size);
     } catch (...) {
-        delete edata;
+        delete data;
         return 0;
     }
-    return edata;
+    return data;
 }
 
 /* */
@@ -141,4 +152,16 @@ struct orom_info * efi_get(SSI_ControllerType controllerType)
     }
     return result;
 }
+
+char *guid2str(char *buffer, struct efi_guid guid)
+{
+    sprintf(buffer, "%02x%02x%02x%02x-%02x%02x-%02x%02x-"
+            "%02x%02x-%02x%02x%02x%02x%02x%02x",
+            guid.b[3], guid.b[2], guid.b[1], guid.b[0],
+            guid.b[5], guid.b[4], guid.b[7], guid.b[6],
+            guid.b[8], guid.b[9], guid.b[10], guid.b[11],
+            guid.b[12], guid.b[13], guid.b[14], guid.b[15]);
+    return buffer;
+}
+
 /* ex: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

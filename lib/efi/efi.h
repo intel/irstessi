@@ -43,6 +43,11 @@ extern "C" {
 #define VENDOR_GUID \
     EFI_GUID(0x193dfefa, 0xa445, 0x4302, 0x99, 0xd8, 0xef, 0x3a, 0xad, 0x1a, 0x04, 0xc6)
 
+struct efi_guid {
+    __u8 b[16];
+};
+
+char *guid2str(char *buffer, struct efi_guid guid);
 struct orom_info * efi_get(SSI_ControllerType controllerType);
 void efi_fini(void);
 
