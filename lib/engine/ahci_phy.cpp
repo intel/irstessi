@@ -75,8 +75,8 @@ void AHCI_Phy::discover()
 
         if (dir.count() == 1) {
             EndDevice *pEndDevice = __internal_attach_end_device(dir);
-            pEndDevice->setParent(m_pParent);
             if (pEndDevice != 0) {
+                pEndDevice->setParent(m_pParent);
                 Phy *pPhy = pEndDevice->getPhy();
                 m_pPort->attachPort(pEndDevice->getPort());
                 pPhy->setProtocol(m_Protocol);
