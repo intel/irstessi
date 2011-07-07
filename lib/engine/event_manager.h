@@ -31,6 +31,9 @@ public:
     EventManager();
     ~EventManager();
 
+private:
+    Container<Event> m_Events;
+
 public:
     unsigned int registerEvent();
     SSI_Status unregisterEvent(unsigned int id);

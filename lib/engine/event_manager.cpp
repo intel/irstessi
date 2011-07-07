@@ -32,6 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "event.h"
 #include "unique_id_manager.h"
 #include "event_manager.h"
+#include "context_manager.h"
 
 /* */
 EventManager::EventManager()
@@ -41,26 +42,51 @@ EventManager::EventManager()
 /* */
 EventManager::~EventManager()
 {
+    for (Iterator<Event *> i = m_Events; *i != 0; ++i) {
+        pContextMgr->releaseId(*i);
+    }
 }
 
 /* */
 unsigned int EventManager::registerEvent()
 {
+    Event *pEvent;
+    try {
+        pEvent = new Event();
+    } catch (...) {
+        return SSI_NULL_HANDLE; /* Out of memory */
+    }
+    try {
+        pContextMgr->acquireId(pEvent);
+        m_Events.add(pEvent);
+        return pEvent->getId();
+    } catch (...) {
+        delete pEvent;
+        return SSI_NULL_HANDLE; /* Out of resources */
+    }
     return SSI_NULL_HANDLE;
 }
 
 /* */
 SSI_Status EventManager::unregisterEvent(unsigned int id)
 {
-    (void)id;
+    if (id == 0) {
+        return SSI_StatusInvalidParameter;
+    }
+    Event *pEvent;
+    try {
+        pEvent = m_Events.remove(id);
+        pContextMgr->releaseId(pEvent);
+    } catch (...) {
+        return SSI_StatusInvalidParameter;
+    }
     return SSI_StatusOk;
 }
 
 /* */
 Event * EventManager::getEvent(unsigned int id) const
 {
-    (void)id;
-    return 0;
+    return m_Events.find(id);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

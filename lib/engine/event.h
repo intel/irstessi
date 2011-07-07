@@ -30,6 +30,9 @@ public:
     virtual ~Event();
 
 public:
+    bool equal(const Object *pObject) const {
+        return pObject == this;
+    }
     ObjectType getType() const {
         return ObjectType_Event;
     }
