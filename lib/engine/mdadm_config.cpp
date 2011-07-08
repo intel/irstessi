@@ -59,7 +59,7 @@ void restart_monitor()
         shell("kill -n 15 " + pid);
     } catch (...) {
     }
-    shell("mdadm --monitor --scan --daemonise");
+    shell("mdadm --monitor --scan --daemonise -p ssimsg");
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
