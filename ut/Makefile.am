@@ -1,8 +1,18 @@
 # Process this file with automake to create Makefile.in
 
-noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string ut_info ut_markasspare ut_migration
+noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string ut_info ut_markasspare ut_migration ut_events
 
 ACLOCAL_AMFLAGS = -I m4 nostdinc
+
+ut_events_SOURCES = \
+	ut_events.cpp
+
+ut_events_CPPFLAGS = \
+	-I$(top_srcdir) \
+	-I$(top_srcdir)/include
+
+ut_events_LDADD = \
+	../src/libssi.la
 
 ut_volume_SOURCES = \
 	ut_volume.cpp
