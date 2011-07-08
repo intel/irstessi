@@ -61,10 +61,15 @@ unsigned int EventManager::registerEvent()
     try {
         pContextMgr->acquireId(pEvent);
         m_Events.add(pEvent);
-        return pEvent->getId();
     } catch (...) {
         delete pEvent;
         return SSI_NULL_HANDLE; /* Out of resources */
+    }
+    try {
+        pEvent->registerEvent();
+        return pEvent->getId();
+    } catch (...) {
+        unregisterEvent(pEvent->getId()); /* failed to create semaphore*/
     }
     return SSI_NULL_HANDLE;
 }
