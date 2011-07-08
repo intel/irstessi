@@ -13,15 +13,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
 
+#include <cerrno>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/sem.h>
+#include <time.h>
+
 #include <ssi.h>
+#include <log/log.h>
 
 #include "exception.h"
 #include "list.h"
@@ -32,13 +37,59 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "event.h"
 
 /* */
+Event::Event()
+    :m_semId(0)
+{
+}
+
+/* */
 Event::~Event()
 {
+    /* delete semaphore */
+    if(semctl(m_semId, 0, IPC_RMID) < 0)
+        dlog("Failed to delete semaphore");
 }
 
 /* */
 SSI_Status Event::wait(unsigned int timeout)
 {
-    (void)timeout;
+    struct timespec t;
+    struct sembuf op;
+
+    op.sem_num = 0;
+    op.sem_op = -1;
+    op.sem_flg = 0;
+
+    t.tv_sec = timeout / 1000;
+    t.tv_nsec = (timeout % 1000) * 1000;
+
+    int rv = semtimedop(m_semId, &op, 1, &t);
+    if (rv == -1) {
+        switch (errno) {
+            case EAGAIN:
+                return SSI_StatusTimeout;
+            default:
+                dlog("semtimedop() failed");
+                return SSI_StatusFailed;
+        }
+    }
+    dlog("Event recorded");
     return SSI_StatusOk;
+}
+
+void Event::registerEvent()
+{
+    /* create semaphore */
+    key_t key = ftok(KEY_GEN_PATH, KEY_GEN_NUM);
+
+    if (key == (key_t)-1) {
+        dlog("ftok() failed");
+        throw E_NOT_AVAILABLE;
+    }
+
+    m_semId = semget(key, 1, IPC_CREAT | 0600);
+    if (m_semId == -1) {
+        dlog("semget() failed");
+        throw E_NOT_AVAILABLE;
+    }
 }
