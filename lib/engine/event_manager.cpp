@@ -51,6 +51,8 @@ EventManager::~EventManager()
 unsigned int EventManager::registerEvent()
 {
     Event *pEvent;
+    if (m_Events == MAX_EVENT_HANDLES)
+        return SSI_NULL_HANDLE;
     try {
         pEvent = new Event();
     } catch (...) {
