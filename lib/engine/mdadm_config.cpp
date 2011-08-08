@@ -50,7 +50,7 @@ int write_config(String file, String &config)
     return 0;
 }
 
-void restart_monitor()
+int restart_monitor()
 {
     SysfsAttr attr = String("/var/run/mdadm/autorebuild.pid");
     String pid;
@@ -59,12 +59,27 @@ void restart_monitor()
         shell("kill -n 15 " + pid);
     } catch (...) {
     }
-    shell("mdadm --monitor --scan --daemonise -p ssimsg");
+    return shell("mdadm --monitor --scan --daemonise -p ssimsg");
 }
 
 bool monitor_running()
 {
-    return true;
+    SysfsAttr attr = String("/var/run/mdadm/autorebuild.pid");
+    String pid, buffer;
+    try {
+        attr >> pid;
+    } catch (...) {
+        return false;
+    }
+    if (shell_cap("ps " + pid, buffer) == 0) {
+        try {
+            buffer.find("mdadm");
+        } catch (...) {
+            return false;
+        }
+        return true;
+    }
+    return false;
 }
 
 /* */
@@ -72,22 +87,32 @@ void check_configuration()
 {
     SysfsAttr attr = String(MDADM_CONFIG_PATH);
     String config;
+    bool monitor = false;
+    bool configOk = false;
     bool backup = true;
 
+    /*check mdadm.conf*/
     try {
         attr >> config;
-        if (correct_config(config))
-            return;
+        configOk = correct_config(config);
     } catch (Exception ex) {
         if (ex != E_NOT_FOUND)
             dlog("Warning: mdadm config file cannot be read");
-        backup = false;
+            backup = false;
     }
-    if (backup) {
-        backup_config(config);
+    /*check mdadm Monitor*/
+    monitor = monitor_running();
+
+    if (configOk && monitor)
+        return;
+
+    if (!configOk) {
+        if (backup)
+            backup_config(config);
+        if (write_config(MDADM_CONFIG_PATH, stdConfig) != 0)
+            dlog("Warning: failed to update mdadm.conf");
     }
-    if (write_config(MDADM_CONFIG_PATH, stdConfig) == 0)
-        restart_monitor();
+    restart_monitor();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
