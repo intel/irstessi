@@ -106,7 +106,7 @@ Session::Session() : m_pNoneScopeObj(0)
         }
     }
     m_pNoneScopeObj = new NoneScopeObject(this);
-    __internal_check_configuration();
+    check_configuration();
 }
 
 /* */
@@ -424,29 +424,6 @@ void Session::__internal_attach_imsm_array(const String &path)
     } catch (...) {
         /* TODO: log that there's not enough resources in the system. */
     }
-}
-
-/* */
-void Session::__internal_check_configuration()
-{
-    SysfsAttr attr = String(MDADM_CONFIG_PATH);
-    String config;
-    bool backup = true;
-
-    try {
-        attr >> config;
-        if (correct_config(config))
-            return;
-    } catch (Exception ex) {
-        if (ex != E_NOT_FOUND)
-            dlog("Warning: mdadm config file cannot be read");
-        backup = false;
-    }
-    if (backup) {
-        backup_config(config);
-    }
-    if (write_config(MDADM_CONFIG_PATH, stdConfig) == 0)
-        restart_monitor();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -31,5 +31,7 @@ bool correct_config(String &config);
 void backup_config(String &config);
 int write_config(String file, String &config);
 void restart_monitor();
+bool monitor_running();
+void check_configuration();
 
 #endif /* __MDADM_CONFIG_H__INCLUDED__ */
