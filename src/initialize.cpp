@@ -31,6 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <log/log.h>
 #include <orom/orom.h>
 #include <efi/efi.h>
+#include <engine/mdadm_config.h>
 
 /* */
 ContextManager *pContextMgr = 0;
@@ -46,6 +47,7 @@ SSI_Status SsiInitialize(void)
     }
     log_init(LOG_ALL, "ssi.log");
     orom_init();
+    check_configuration();
     try {
         pContextMgr = new ContextManager();
     } catch (...) {
