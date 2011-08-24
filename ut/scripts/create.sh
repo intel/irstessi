@@ -35,7 +35,7 @@ if [ "$the_devices" == "" ]; then
 fi
 
 # Determine which disk or MD device holds the root file system.
-the_system_device=`df -v | grep /$ | awk '{print $1}'`
+the_system_device=`df -v | grep /boot$ | awk '{print $1}'| sed 's/1$//g'`
 
 # Filter out non-disk and non-storage devices attached to the adaper.
 for device in `echo $the_devices`; do
