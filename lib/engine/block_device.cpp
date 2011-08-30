@@ -152,13 +152,26 @@ void BlockDevice::setWriteCache(bool enable)
 /* */
 void BlockDevice::__internal_determine_disk_usage()
 {
-    bool isSpare = shell("mdadm -Es /dev/" + m_DevName + " | grep spares") == 0;
-    if (m_pArray) {
-        m_DiskUsage = isSpare ? SSI_DiskUsageSpare : SSI_DiskUsageArrayMember;
-    } else {
-        m_DiskUsage = isSpare ? SSI_DiskUsagePassThruReadOnlyMount : SSI_DiskUsagePassThru;
+    String result;
+    if (shell_cap("mdadm -Es /dev/" + m_DevName, result) != 0) {
+        m_DiskUsage = SSI_DiskUsagePassThru;
+        return;
     }
+    try {
+	result.find("spare");
+	m_DiskUsage = m_pArray ? SSI_DiskUsageSpare : SSI_DiskUsagePassThruReadOnlyMount;
+	return;
+    } catch (...) {
+    }
+    try {
+	result.find("ARRAY");
+	m_DiskUsage = m_pArray ? SSI_DiskUsageArrayMember : SSI_DiskUsageOfflineArray;
+	return;
+    } catch (...) {
+    }
+    m_DiskUsage = SSI_DiskUsagePassThru;
 }
+
 
 /* */
 void BlockDevice::__internal_determine_disk_state()
