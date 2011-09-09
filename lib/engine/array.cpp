@@ -205,13 +205,32 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
     return SSI_StatusFailed;
 }
 
-/**/
+/* */
 SSI_Status Array::removeVolume(const unsigned int ordinal)
 {
     if (1 == m_Volumes) {
         return SSI_StatusOk;
     }
     if (shell("mdadm --kill-subarray=" + String(ordinal) + " /dev/" + m_DevName) == 0) {
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
+}
+
+/* */
+SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
+{
+
+    if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N " + newName + " /dev/md/" + m_Name) == 0) {
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
+}
+
+/* */
+SSI_Status Array::assemble()
+{
+    if (shell("mdadm -I /dev/md/" + m_Name) == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;

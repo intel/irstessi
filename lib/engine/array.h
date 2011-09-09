@@ -87,7 +87,8 @@ public:
     SSI_Status setWriteCacheState(bool enable);
     SSI_Status removeSpare(const EndDevice *pEndDevice);
     SSI_Status removeVolume(const unsigned int ordinal);
-
+    SSI_Status renameVolume(const unsigned int ordinal, String newName);
+    SSI_Status assemble();
     SSI_Status getInfo(SSI_ArrayInfo *pInfo) const;
 
 private:
