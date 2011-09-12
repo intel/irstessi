@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
     strcpy(params.volumeName, "ut_Volume_r5_01");
     params.stripSize = SSI_StripSize64kB;
     params.raidLevel = SSI_Raid5;
-    params.sizeInBytes = 1024000;
+    params.sizeInBytes = 1024000*2;
 
     cout << "-->SsiVolumeCreateFromDisks..." << endl;
     status = SsiVolumeCreateFromDisks(params, &volumeHandle);
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
     /* wait for resync to finish */
     system("while grep -i resync /proc/mdstat; do sleep 1; done");
 
-    /* add a spare */
+    /* grow
     cout << "-->Adding spare 1 (SsiAddDisksToArray)..." << endl;
     if (arrayHandle && pSpare) {
         status = SsiAddDisksToArray(arrayHandle, pSpare, 1);
@@ -140,6 +140,27 @@ int main(int argc, char *argv[])
         } else {
             cout << "E: unable to add disk to array (status=" << status << ")" << endl;
         }
+    }
+*/
+
+    cout << "-->Adding spare (SsiDiskMarkAsSpare)..." << endl;
+    /* add a spare*/
+    if (arrayHandle && pSpare) {
+        status = SsiDiskMarkAsSpare( *pSpare, arrayHandle);
+        if (status == SSI_StatusOk) {
+            cout << "Added disk 0x"<< hex<< *pSpare << " to array 0x" << arrayHandle << dec << endl;
+        } else {
+            cout << "E: unable to add disk to array (status=" << status << ")" << endl;
+        }
+        system("sleep 2");
+        /*
+        status = SsiDiskUnmarkAsSpare( *pSpare);
+        if (status == SSI_StatusOk) {
+            cout << "Removed spare " << hex << *pSpare << dec << endl;
+        } else {
+            cout << "E: unable to remove disk from array (status=" << status << ")" << endl;
+        }
+        */
     }
 
     /* create raid0 volume on the same array */
@@ -169,10 +190,7 @@ int main(int argc, char *argv[])
         cout << "E: unable to get volume handles (status=" << status << ")" << endl;
     }
 
-    /* wait for resync to finish */
-    system("while grep -i resync /proc/mdstat; do sleep 1; done");
-
-    /* add a spare */
+    /* grow
     cout << "-->Adding spare 1 again (SsiAddDisksToArray)..." << endl;
     if (arrayHandle && pSpare) {
         status = SsiAddDisksToArray(arrayHandle, pSpare, 1);
@@ -182,25 +200,9 @@ int main(int argc, char *argv[])
             cout << "E: unable to add disk to array (status=" << status << ")" << endl;
         }
     }
+*/
 
-    cout << "-->Adding spare 2 (SsiDiskMarkAsSpare)..." << endl;
-    /* add a spare */
-    if (arrayHandle && pSpare2) {
-        status = SsiDiskMarkAsSpare( *pSpare2, arrayHandle);
-        if (status == SSI_StatusOk) {
-            cout << "Added disk 0x"<< hex<< *pSpare2 << " to array 0x" << arrayHandle << dec << endl;
-        } else {
-            cout << "E: unable to add disk to array (status=" << status << ")" << endl;
-        }
-        system("sleep 2");
-        status = SsiDiskUnmarkAsSpare( *pSpare2);
-        if (status == SSI_StatusOk) {
-            cout << "Removed spare " << hex << *pSpare2 << dec << endl;
-        } else {
-            cout << "E: unable to add disk to array (status=" << status << ")" << endl;
-        }
-
-    }
+    if (count<2) {
 
     /* delete both volumes */
     cout << "-->SsiVolumeDelete..." << endl;
@@ -216,7 +218,19 @@ int main(int argc, char *argv[])
             }
         }
     }
+    goto fin;
+    }
 
+    status=SsiVolumeRename(handles[0], "vol0");
+    if (status != SSI_StatusOk) {
+        cout << "E: unable to rename volume " << handles[0] << endl;
+    }
+    status=SsiVolumeRename(handles[1], "vol1");
+    if (status != SSI_StatusOk) {
+        cout << "E: unable to rename volume " << handles[1] << endl;
+    }
+
+    fin:
     status = SsiFinalize();
     if (status != SSI_StatusOk) {
         return -2;
