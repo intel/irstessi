@@ -69,7 +69,7 @@ SSI_Status Event::wait(unsigned int timeout)
             case EAGAIN:
                 return SSI_StatusTimeout;
             default:
-                dlog("semtimedop() failed");
+                dlog("semtimedop() failed, errno: %d", errno);
                 return SSI_StatusFailed;
         }
     }
