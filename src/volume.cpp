@@ -138,6 +138,9 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
     if (pEndDevice == 0) {
         return SSI_StatusInvalidHandle;
     }
+    if (pVolume->getState() != SSI_VolumeStateDegraded)
+        return SSI_StatusInvalidState;
+
     return pVolume->rebuild(pEndDevice);
 }
 
