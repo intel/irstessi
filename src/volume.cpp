@@ -405,6 +405,9 @@ SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
     if (pVolume == 0) {
         return SSI_StatusInvalidHandle;
     }
+    if (pVolume->getState() != SSI_VolumeStateNormal)
+        return SSI_StatusInvalidState;
+
     return pVolume->verify(repair == SSI_TRUE);
 }
 
@@ -427,6 +430,10 @@ SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
     if (pVolume == 0) {
         return SSI_StatusInvalidHandle;
     }
+    if (pVolume->getState() != SSI_VolumeStateVerifying &&
+        pVolume->getState() != SSI_VolumeStateVerifyingAndFix)
+        return SSI_StatusInvalidState;
+
     return pVolume->cancelVerify();
 }
 
