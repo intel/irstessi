@@ -67,12 +67,13 @@ int EventManager::stopEventMonitor(void)
    pid_t pid = readPidFile("/var/run/ssieventmonitor.pid");
    if (pid <= 0) /* not found or invalid pid file */
        return 0;
-   return kill(pid, SIGQUIT);
+   return kill(pid, SIGTERM);
 }
 /* */
 unsigned int EventManager::registerEvent()
 {
     Event *pEvent;
+    unsigned int eventId;
     if (m_Events == MAX_EVENT_HANDLES)
         return SSI_NULL_HANDLE;
     try {
@@ -89,15 +90,16 @@ unsigned int EventManager::registerEvent()
     }
     try {
         pEvent->registerEvent();
-        return pEvent->getId();
+        eventId = pEvent->getId();
     } catch (...) {
         unregisterEvent(pEvent->getId()); /* failed to create semaphore*/
+	return SSI_NULL_HANDLE;
     }
     /* everything went OK, so start event trigger */
     if (m_Events != 0) {
 	startEventMonitor();
     }
-    return SSI_NULL_HANDLE;
+    return eventId;
 }
 
 /* */
