@@ -34,6 +34,8 @@ public:
     ~EventManager();
 
 private:
+    int startEventMonitor(void);
+    int stopEventMonitor(void);
     Container<Event> m_Events;
 
 public:

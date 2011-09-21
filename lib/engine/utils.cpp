@@ -129,4 +129,50 @@ int shell(const String &s)
     return ret;
 }
 
+/* Look if process is already running
+ * */
+int processExist(int pid, const String &s)
+{
+    FILE *name;
+    char buffer[1023];
+
+    snprintf(buffer, sizeof(buffer), "/proc/%d/cmdline", pid);
+    name = fopen(buffer, "r");
+    if (!name)
+	return 0;
+    if (fgets(buffer, sizeof(buffer) - 1, name)) {
+	fclose(name);
+	return 0;
+    }
+    if (s.equal(buffer)) {
+	return 1;
+    }
+    return 0;
+}
+
+int readPidFile(const String &s)
+{
+    FILE *fpid;
+    pid_t pid = 0;
+    char buffer[1024];
+    fpid = fopen("/var/run/ssieventmonitor.pid", "r");
+    if (!fpid) {
+	return -1;
+    }
+
+    if (fgets(buffer, sizeof(buffer) -1, fpid) < 0) {
+	fclose(fpid);
+	return -1;
+    }
+    if (buffer[0] >= '0' && buffer[0] <= '9') {
+	pid = atoi(buffer);
+	if (pid == 0 || !processExist(pid, "ssieventmonitor")) {
+	    pid = 0;
+	}
+    }
+
+    fclose(fpid);
+    return pid;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

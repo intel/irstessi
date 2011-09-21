@@ -22,6 +22,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 
 #include <ssi.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <signal.h>
 
 #include "exception.h"
 #include "list.h"
@@ -33,6 +36,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "unique_id_manager.h"
 #include "event_manager.h"
 #include "context_manager.h"
+#include "utils.h"
 
 /* */
 EventManager::EventManager()
@@ -47,6 +51,24 @@ EventManager::~EventManager()
     }
 }
 
+/* */
+int EventManager::startEventMonitor(void)
+{
+    pid_t pid = readPidFile("/var/run/ssieventmonitor.pid");
+    if (pid <= 0)
+	return shell("ssieventmonitor --daemonise");
+    else
+	return 1;
+}
+
+/* */
+int EventManager::stopEventMonitor(void)
+{
+   pid_t pid = readPidFile("/var/run/ssieventmonitor.pid");
+   if (pid <= 0) /* not found or invalid pid file */
+       return 0;
+   return kill(pid, SIGQUIT);
+}
 /* */
 unsigned int EventManager::registerEvent()
 {
@@ -71,6 +93,10 @@ unsigned int EventManager::registerEvent()
     } catch (...) {
         unregisterEvent(pEvent->getId()); /* failed to create semaphore*/
     }
+    /* everything went OK, so start event trigger */
+    if (m_Events != 0) {
+	startEventMonitor();
+    }
     return SSI_NULL_HANDLE;
 }
 
@@ -86,6 +112,10 @@ SSI_Status EventManager::unregisterEvent(unsigned int id)
         pContextMgr->releaseId(pEvent);
     } catch (...) {
         return SSI_StatusInvalidParameter;
+    }
+    /* everything went OK, so start event trigger */
+    if (m_Events == 0) {
+	stopEventMonitor();
     }
     return SSI_StatusOk;
 }

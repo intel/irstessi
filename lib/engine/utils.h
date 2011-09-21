@@ -35,6 +35,12 @@ int shell_cap(const String &s, String &r);
 int shell(const String &s);
 
 /* */
+int processExist(int pid, const String &s);
+
+/* */
+int readPidFile(const String &s);
+
+/* */
 inline unsigned char sg_make_byte(unsigned char *s) {
     return *s;
 }
