@@ -41,6 +41,7 @@ public:
             return SSI_StatusInvalidParameter;
         }
         if (*bufferSize < List<T *>::m_Count) {
+            *bufferSize = List<T *>::m_Count;
             status = SSI_StatusBufferTooSmall;
         } else {
             for (Iterator<T *> i = List<T *>::first(); *i != 0; ++i, ++pBuffer) {
