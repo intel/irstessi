@@ -45,7 +45,7 @@ SSI_Status SsiInitialize(void)
     if (pContextMgr != 0) {
         return SSI_StatusDuplicate;
     }
-    log_init(LOG_ALL, "ssi.log");
+    log_init(LOG_ALL, "/var/log/ssi.log");
     orom_init();
     check_configuration();
     try {
