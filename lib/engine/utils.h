@@ -38,7 +38,7 @@ int shell(const String &s);
 int processExist(int pid, const String &s);
 
 /* */
-int readPidFile(const String &s);
+int readPidFile(const String &s, const String &proc);
 
 /* */
 inline unsigned char sg_make_byte(unsigned char *s) {

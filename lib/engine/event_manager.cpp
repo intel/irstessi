@@ -54,7 +54,8 @@ EventManager::~EventManager()
 /* */
 int EventManager::startEventMonitor(void)
 {
-    pid_t pid = readPidFile("/var/run/ssieventmonitor.pid");
+    pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
+
     if (pid <= 0)
 	return shell("ssieventmonitor --daemonise");
     else
@@ -64,9 +65,10 @@ int EventManager::startEventMonitor(void)
 /* */
 int EventManager::stopEventMonitor(void)
 {
-   pid_t pid = readPidFile("/var/run/ssieventmonitor.pid");
+   pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
    if (pid <= 0) /* not found or invalid pid file */
        return 0;
+
    return kill(pid, SIGTERM);
 }
 /* */

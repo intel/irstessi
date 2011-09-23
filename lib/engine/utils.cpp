@@ -133,45 +133,31 @@ int shell(const String &s)
  * */
 int processExist(int pid, const String &s)
 {
-    FILE *name;
-    char buffer[1023];
+    File process = String("/proc/") + String(pid) + String("/cmdline");
+    String name;
 
-    snprintf(buffer, sizeof(buffer), "/proc/%d/cmdline", pid);
-    name = fopen(buffer, "r");
-    if (!name)
-	return 0;
-    if (fgets(buffer, sizeof(buffer) - 1, name)) {
-	fclose(name);
-	return 0;
+    try {
+	process >> name;
     }
-    if (s.equal(buffer)) {
-	return 1;
+    catch (...) {
+	name = "";
     }
-    return 0;
+    return name == s;
 }
 
-int readPidFile(const String &s)
+int readPidFile(const String &pidfilename, const String &proc)
 {
-    FILE *fpid;
-    pid_t pid = 0;
-    char buffer[1024];
-    fpid = fopen("/var/run/ssieventmonitor.pid", "r");
-    if (!fpid) {
-	return -1;
+    File pidfile = pidfilename;
+    pid_t pid;
+    try {
+	pidfile >> pid;
     }
-
-    if (fgets(buffer, sizeof(buffer) -1, fpid) < 0) {
-	fclose(fpid);
-	return -1;
+    catch (...) {
+	pid = 0;
     }
-    if (buffer[0] >= '0' && buffer[0] <= '9') {
-	pid = atoi(buffer);
-	if (pid == 0 || !processExist(pid, "ssieventmonitor")) {
-	    pid = 0;
-	}
+    if (!processExist(pid, proc.get())) {
+	pid = 0;
     }
-
-    fclose(fpid);
     return pid;
 }
 
