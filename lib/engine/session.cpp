@@ -85,13 +85,9 @@ Session::Session() : m_pNoneScopeObj(0)
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            Directory cdir(*(*i), "host");
-            SysfsAttr attr;
-            for (Iterator<Directory *> j = cdir; *j != 0; ++j) {
-                ISCI *pISCI = new ISCI(CanonicalPath(*(*j)));
-                pISCI->discover();
-                pISCI->acquireId(this);
-            }
+            ISCI *pISCI = new ISCI(CanonicalPath(*(*i)));
+            pISCI->discover();
+            pISCI->acquireId(this);
         }
     }
     for (Iterator<Controller *> i = m_Controllers; *i != 0; ++i) {
