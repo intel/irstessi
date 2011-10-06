@@ -108,16 +108,16 @@ unsigned int EventManager::registerEvent()
 SSI_Status EventManager::unregisterEvent(unsigned int id)
 {
     if (id == 0) {
-        return SSI_StatusInvalidParameter;
+        return SSI_StatusInvalidHandle;
     }
     Event *pEvent;
     try {
         pEvent = m_Events.remove(id);
         pContextMgr->releaseId(pEvent);
     } catch (...) {
-        return SSI_StatusInvalidParameter;
+        return SSI_StatusInvalidHandle;
     }
-    /* everything went OK, so start event trigger */
+    /* everything went OK, so stop event trigger */
     if (m_Events == 0) {
 	stopEventMonitor();
     }
