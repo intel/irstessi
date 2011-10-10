@@ -1,0 +1,266 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH "SSI Functions" 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SSI functions - description of all SSI API functions
+.SH SYNOPSIS
+.B #include <ssi.h>
+.PP
+.BI "SSI_Status SsiInitialize();"
+.br
+.BI "SSI_Status SsiFinalize();"
+.br
+.BI "SSI_Status SsiSessionOpen(SSI_Handle *" session ");"
+.br
+.BI "SSI_Status SsiSessionClose(SSI_Handle " session ");"
+.br
+.BI "SSI_Status SsiGetEventHandle(SSI_Handle *" eventHandle ");"
+.br
+.BI "SSI_Status SsiFreeEventHandle(SSI_Handle " eventHandle ");"
+.br
+.BI "SSI_Status SsiEventWait(SSI_Uint32 " timeout ", "
+.BI "SSI_Handle " eventHandle ");"
+.br
+.BI "SSI_Status SsiGetSystemInfo(SSI_SystemInfo *" systemInfo ");"
+.br
+.BI "SSI_Status SsiGetRaidInfoHandles(SSI_Handle " session ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetRaidInfo(SSI_Handle " session ", SSI_Handle " handle ", "
+.BI "SSI_RaidInfo *" raidInfo ");"
+.br
+.BI "SSI_Status SsiGetControllerHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetControllerInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " handle ", SSI_ControllerInfo *" controllerInfo ");"
+.br
+.BI "SSI_Status SsiGetPhyHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetPhyInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " phyHandle ", SSI_PhyInfo *" info ");"
+.br
+.BI "SSI_Status SsiGetPortHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetPortInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " portHandle ", SSI_PortInfo *" info ");"
+.br
+.BI "SSI_Status SsiGetEnclosureHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetEnclosureInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " enclosureHandle ", SSI_EnclosureInfo *" info ");"
+.br
+.BI "SSI_Status SsiGetEndDeviceHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetEndDeviceInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " endDeviceHandle ", SSI_EndDeviceInfo *" info ");"
+.br
+.BI "SSI_Status SsiGetRoutingDeviceHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle " routingDeviceHandle ", "
+.BI "SSI_RoutingDeviceInfo *" info ", SSI_Handle " session ");"
+.br
+.BI "SSI_Status SsiGetArrayHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetArrayInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " arrayHandle ", SSI_ArrayInfo *" info ");"
+.br
+.BI "SSI_Status SsiGetVolumeHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.br
+.BI "SSI_Status SsiGetVolumeInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " volumeHandle ", SSI_VolumeInfo *" info ");"
+.br
+.BI "SSI_Status SsiGetRaidLevelInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " raidInfoHandle ", SSI_RaidLevel " raidLevel ", "
+.BI "SSI_RaidLevelInfo *" info ");"
+.br
+.BI "SSI_Status SsiDiskClearMetadata(SSI_Handle " diskHandle ");"
+.br
+.BI "SSI_Status SsiDiskMarkAsSpare(SSI_Handle " diskHandle ", "
+.BI "SSI_Handle " arrayHandle ");"
+.br
+.BI "SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle " diskHandle ");"
+.br
+.BI "SSI_Status SsiDiskMarkAsNormal(SSI_Handle " diskHandle ");"
+.br
+.BI "SSI_Status SsiDiskUnlock(SSI_Handle " diskHandle ", "
+.BI "SSI_DiskUnlockInfo *" unlockInfo ");"
+.br
+.BI "SSI_Status SsiDiskAssignStoragePool(SSI_Handle " diskHandle ", "
+.BI "SSI_Uint8 " storagePool ");"
+.br
+.BI "SSI_Status SsiVolumeMarkAsNormal(SSI_Handle " volumeHandle ");"
+.br
+.BI "SSI_Status SsiVolumeRebuild(SSI_Handle " volumeHandle ", "
+.BI "SSI_Handle " diskHandle ");"
+.br
+.BI "SSI_Status SsiVolumeDelete(SSI_Handle " volumeHandle ");"
+.br
+.BI "SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams " params ");"
+.br
+.BI "SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams " params ");"
+.br
+.BI "SSI_Status SsiRaidLevelModify(SSI_Handle " volumeHandle ", "
+.BI "SSI_RaidLevelModifyParams " params ");"
+.br
+.BI "SSI_Status SsiVolumeRename(SSI_Handle " volumeHandle ", "
+.BI "const SSI_Char " volumeName[SSI_VOLUME_NAME_LENGTH] ");"
+.br
+.BI "SSI_Status SsiAddDisksToArray(SSI_Handle " arrayHandle ", "
+.BI "SSI_Handle *" diskHandles " , SSI_Uint32 " diskHandleCount ");"
+.br
+.BI "SSI_Status SsiExpandVolume(SSI_Handle " volumeHandle ", "
+.BI "SSI_Uint64 " newSizeMB ");"
+.br
+.BI "SSI_Status SsiVolumeSetCachePolicy(SSI_Handle " volumeHandle ", "
+.BI "SSI_VolumeCachePolicy " policy ");"
+.br
+.BI "SSI_Status SsiVolumeInitialize(SSI_Handle " volumeHandle ");"
+.br
+.BI "SSI_Status SsiVolumeVerify(SSI_Handle " volumeHandle ", "
+.BI "SSI_Bool " repair ");"
+.br
+.BI "SSI_Status SsiVolumeCancelVerify(SSI_Handle " handle ");"
+.br
+.BI "SSI_Status SsiArraySetWriteCacheState(SSI_Handle " arrayHandle ", "
+.BI "SSI_Bool " cacheEnabled ");"
+.br
+.BI "SSI_Status SsiPhyLocate(SSI_Handle " phyHandle ", SSI_BOOL " mode ");"
+.br
+.BI "SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize " cacheSize ");"
+.br
+.BI "SSI_Status SsiRescan();"
+.br
+.BI "SSI_Status SsiPassthroughCommand(SSI_Handle " deviceHandle ", "
+.BI "void *" commandInformationUnit ", void *" dataBuffer ", "
+.BI "SSI_Uint32 " dataBufferLength ", SSI_DataDirection " dataDirection ");"
+.br
+.BI "SSI_Status SsiReadStorageArea(SSI_Handle " deviceHandle ", "
+.BI "SSI_StorageArea " storageArea ", void *" buffer ", "
+.BI "SSI_Uint32 " bufferLen ");"
+.br
+.BI "SSI_Status SsiWriteStorageArea(SSI_Handle " deviceHandle ", "
+.BI "SSI_StorageArea " storageArea ", void *" buffer ", "
+.BI "SSI_Uint32 " bufferLen ");"
+.br
+.BI "SSI_Status SsiReadPatrolSetState(SSI_Handle " controllerHandle ", "
+.BI "SSI_Bool " enable ");"
+.br
+.SH DESCRIPTION
+.PP
+This page summarizes all the the functions avaliable in SSI API, there is a 
+separate manual page for each and every single function, describing it in 
+more detail.
+.br
+Some functions have their specific structures and/or defines defined. 
+Those are also described in per function manual page.
+
+With the exception of \fBSsiInitialize()\fR and \fBSsiFinalize()\fR, all 
+functions in this API must be re-entrant. Implementers of the API must ensure 
+that it is safe to call multiple APIs simultaneously from different threads. 
+Consumers of the API must ensure that no API call is being called at the same 
+time of \fBSsiIntialize()\fR or \fBSsiFinalize()\fR.
+.SH SEE ALSO
+.PP 
+\fBssi.h(\fR3\fB),
+ssi_types(\fR3\fB), 
+ssi_functions(\fR3\fB),
+SsiInitialize(\fR3\fB), 
+SsiFinalize(\fR3\fB), 
+SsiSessionOpen(\fR3\fB), 
+SsiSessionClose(\fR3\fB), 
+SsiGetEventHandle(\fR3\fB), 
+SsiFreeEventHandle(\fR3\fB), 
+SsiEventWait(\fR3\fB), 
+SsiGetSystemInfo(\fR3\fB), 
+SsiGetRaidInfoHandles(\fR3\fB), 
+SsiGetRaidInfo(\fR3\fB), 
+SsiGetControllerHandles(\fR3\fB), 
+SsiGetControllerInfo(\fR3\fB), 
+SsiGetPhyHandles(\fR3\fB), 
+SsiGetPhyInfo(\fR3\fB), 
+SsiGetPortHandles(\fR3\fB), 
+SsiGetPortInfo(\fR3\fB), 
+SsiGetEnclosureHandles(\fR3\fB), 
+SsiGetEnclosureInfo(\fR3\fB), 
+SsiGetEndDeviceHandles(\fR3\fB), 
+SsiGetEndDeviceInfo(\fR3\fB), 
+SsiGetRoutingDeviceHandles(\fR3\fB), 
+SsiGetRoutingDeviceInfo(\fR3\fB), 
+SsiGetArrayHandles(\fR3\fB), 
+SsiGetArrayInfo(\fR3\fB), 
+SsiGetVolumeHandles(\fR3\fB), 
+SsiGetVolumeInfo(\fR3\fB), 
+SsiGetRaidLevelInfo(\fR3\fB), 
+SsiDiskClearMetadata(\fR3\fB), 
+SsiDiskMarkAsSpare(\fR3\fB), 
+SsiDiskUnmarkAsSpare(\fR3\fB), 
+SsiDiskMarkAsNormal(\fR3\fB), 
+SsiDiskUnlock(\fR3\fB), 
+SsiDiskAssignStoragePool(\fR3\fB), 
+SsiVolumeMarkAsNormal(\fR3\fB), 
+SsiVolumeRebuild(\fR3\fB), 
+SsiVolumeDelete(\fR3\fB), 
+SsiVolumeCreateFromDisks(\fR3\fB), 
+SsiVolumeCreate(\fR3\fB), 
+SsiRaidLevelModify(\fR3\fB), 
+SsiVolumeRename(\fR3\fB), 
+SsiAddDisksToArray(\fR3\fB), 
+SsiExpandVolume(\fR3\fB), 
+SsiVolumeSetCachePolicy(\fR3\fB), 
+SsiVolumeInitialize(\fR3\fB), 
+SsiVolumeVerify(\fR3\fB), 
+SsiVolumeCancelVerify(\fR3\fB), 
+SsiArraySetWriteCacheState(\fR3\fB), 
+SsiPhyLocate(\fR3\fB), 
+SsiSetVolCacheSize(\fR3\fB), 
+SsiRescan(\fR3\fB), 
+SsiPassthroughCommand(\fR3\fB), 
+SsiReadStorageArea(\fR3\fB), 
+SsiWriteStorageArea(\fR3\fB), 
+SsiReadPatrolSetState(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

@@ -1,0 +1,107 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetPhyHandles 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetPhyHandles - retrieves handles to phys
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetPhyHandles(SSI_Handle " session ", "
+.BI "SSI_ScopeType  " scopeType ", SSI_Handle " scopeHandle ", "
+.BI "SSI_Handle *" handleList ", SSI_Uint32 *" handleCount ");"
+.SH DESCRIPTION
+.PP
+A phy is effectively one traffic lane.  When phys are connected, a port is 
+established between the two devices.  SATA ports can only be x1 (1 phy 
+connected to1 phy) but SAS ports can be x1, x2 or x4 depending on the number 
+of phy connections that make up the port.  The port object exposed in this 
+interface is the link table for mapping the topology of the system.  It 
+contains the mapping between the two connected devices.
+
+This function retrieves handles to all phys.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - The session to be used.  It is valid to pass 
+\fBSSI_NULL_HANDLE\fR to indicate the call should generate and use a 
+temporary session.
+.br
+\fBscopeType\fR - The following scopeTypes are valid for this function:
+.br
+	\fBSSI_ScopeTypeNone\fR
+.br
+	\fBSSI_ScopeTypeControllerDirect\fR - Only phys directly attached to the 
+specified controller.
+.br
+	\fBSSI_ScopeTypeEndDevice\fR - Only phys directly on the specified end device.
+.br
+	\fBSSI_ScopeTypeRoutingDevice\fR - Only phys directly on the specified 
+routing device.
+.br
+	\fBSSI_ScopeTypePort\fR - Only phys associated with the specified port.
+.br
+\fBscopeHandle\fR - The handle associated with the scope.
+.br
+\fBhandleCount\fR - Indicates the number of handles the passed in handleList 
+array can hold.
+.PP
+.B Output parameters
+.IP
+\fBhandleList\fR - A list of handles.  This parameter may validly be passed in 
+as null only if the value passed into *\fBhandleCount\fR is 0.
+.br
+\fBhandleCount\fR - Number of elements returned.  If return value was 
+\fBSSI_StatusBufferTooSmall\fR, this represents the size of the 
+\fBhandleList\fR that needs to be passed in for this function to succeed.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system has not been 
+initialized.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null pointer was passed in.
+.br
+\fBSSI_StatusBufferTooSmall\fR - The size of the buffer passed in is 
+insufficient. See additional information in the description of the parameter 
+\fBhandleCount\fR.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.br
+\fBSSI_StatusInvalidScope\fR - Either the scopeType is not valid for this 
+function, or the scopeHandle does not represent an object of \fBscopeType\fR.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiGetPhyInfo(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

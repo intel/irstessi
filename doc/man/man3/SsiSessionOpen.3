@@ -1,0 +1,157 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiSessionOpen 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiSessionOpen - opens an SSI session
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiSessionOpen(SSI_Handle *" session ");"
+.SH DESCRIPTION
+.PP
+This function will return a session handle.  The intended use for sessions is 
+to be able to make the multiple calls required to get a snapshot of the system, 
+and for all calls to return a coherent dataset (i.e. have all functions return 
+data for the same instant in time.)  The handle can be used as a parameter for 
+any API that takes a Session Handle as a parameter.  The handle must be freed 
+by calling \fBSsiSessionClose()\fR.
+The scope of sessions is per-process.  Session handles (like other handles) 
+only have meaning within the process from which they were generated.
+
+.B Output parameters
+.IP
+\fBsession\fR - A valid Session Handle. Can be used as a parameter for any 
+other API function that takes a Session Handle.  Must be freed to avoid 
+resource leaks.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInsufficientResources\fR - There are insufficient resources to 
+allocate a new session.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.PP
+Sessions are designed to be short-lived constructs to provide a mechanism for 
+getting a "snapshot" of the system data in order to do two things: 
+.IP
+1. To prevent inconsistent data because consumers of this API generally need to 
+call multiple functions to get the data while the underlying system state is 
+changing.
+.IP
+2. To minimize the frequency of data requests to lower level data providers in 
+order to avoid impact to overall system performance.
+.PP
+The system state is dynamic and can change at any time.  Consumers of the API 
+generally need to make numerous function calls in order to acquire needed data.
+.br
+Without special consideration, this introduces a problem whereby the system 
+state changes while the consumer is in the middle of acquiring a full data set.
+Sessions solve this by creating a snapshot when a session is opened which 
+guarantees that any successive SSI calls using that session behave as if they 
+were called at the same instant in time as when \fBSsiSessionOpen()\fR was 
+called.
+.br
+One mechanism to achieve this would be to cache data when \fBSsiSessionOpen\fR 
+is called, however any implementation that meets the requirements of this 
+document would be valid.
+.br
+Handles to data structures with names that end with the suffix "Info" 
+(VolumeInfo, DiskInfo, ControllerInfo, etc.) are valid across ALL sessions for 
+a given instantiation of this interface.  If a given volume has a handle of X, 
+it will always have X for the same instance of SSI.  Note that handles are NOT 
+guaranteed to be the same across different instantiations of an implementation 
+of this interface (i.e. in separate processes, or if the \fBSsiFinalize()\fR 
+is called.)
+.br
+Consumers of this interface must ensure that any sessions that are opened with 
+\fBSsiSessionOpen()\fR are likewise freed by calls to \fBSsiSessionClose()\fR.  
+Implementations may limit the number of concurrent sessions supported. However, 
+an implementation shall support a minimum of 5 concurrent open sessions at any 
+given time.
+.br
+In the event that consumers choose not to use sessions to get data, it may be 
+necessary for this implementation to retrieve more information than is being 
+requested in order to guarantee the consistency of the handles.  For example, 
+if a user requests all end devices, it would probably make sense to gather 
+array information as well. 
+.SH EXAMPLES
+.PP
+Say, a consumer trying to get all the end devices would need to make multiple 
+calls. S\\he would first create a session to "lock" the data while it iterates 
+through the calls: 
+.IP
+\fB// create a new session
+.br
+SsiSessionOpen(&sessionHandle); 
+
+// get all the controllers
+.br
+SsiGetControllerHandles(sessionHandle, &controllers, &controllerCount); 
+.br
+// for each controller
+.br
+for (int i = 0; i < controllerCount; i++)
+.br
+{
+	// get all the end devices
+.br
+	SsiGetEndDeviceHandles(sessionHandle, ...); 
+.br
+	...
+.br
+}
+.br
+// close the session
+.br
+SsiSessionClose(sessionHandle);\fR
+.SH NOTES
+While not enforced, sessions are generally intended to be very short-lived. 
+The intended use case for them is to:
+.IP
+1) get a session handle, 
+.br
+2) enumerate the state of the system using the session handle, 
+.br
+3) free the session handle. 
+.PP
+While there is nothing that prevents a consumer of this API from holding a 
+session open much longer, the data could be outdated and no longer represent 
+the true state of the Storage subsystem. 
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiSessionClose(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

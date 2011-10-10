@@ -1,0 +1,120 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetRaidInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetRaidInfo - returns RAID-specific data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetRaidInfo(SSI_Handle " session ", SSI_Handle " handle ", "
+.BI "SSI_RaidInfo *" raidInfo ");"
+
+\fBtypedef struct _SSI_RaidInfo
+{
+    SSI_Handle raidHandle; 
+  
+    SSI_Uint32 maxDisksPerArray;      
+    SSI_Uint32 maxRaidDisksSupported; 
+    SSI_Uint32 maxVolumesPerArray;    
+    SSI_Uint32 maxVolumesPerHba;      
+
+    SSI_Bool raidEnabled;
+    SSI_Bool supportsGlobalSpare;
+    SSI_Bool supportsDedicatedSpare;
+    SSI_Bool supportsCreateFromExisting;
+    SSI_Bool supportsEmptyArrays;
+.br
+} SSI_RaidInfo;\fR
+
+.SH DESCRIPTION
+.PP
+In order to support future plans for a Raid core that is separate from the 
+specific controllers, the Raid specific information is stored separately from 
+the Controller information.
+
+Returns a data structure containing RAID-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - Either a valid session handle or \fBSSI_NULL_HANDLE\fR.
+\fBhandle\fR - An SSI_Handle to a control retrieved by a call to 
+\fBSsiGetRaidHandles()\fR or in the ControllerInfo struct.
+.PP
+.B Output parameters
+.IP
+\fBraidInfo\fR - Data structure that contains the RAID-specific data.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.PP
+.B SSI_RaidInfo fields
+.IP
+\fBraidHandle\fR - Handle to the raid info structure represented by this table.
+.br
+\fBmaxDisksPerArray\fR - The maximum number of disks allowed in an array.  
+.br
+\fBmaxRaidDisksSupported\fR - The maximum number of disks that are allowed to 
+be used as array members
+.br
+\fBmaxVolumesPerArray\fR - The maximum number of volumes that are allowed to be 
+created on an array
+.br
+\fBmaxVolumesPerHba\fR - The maximum number of volumes that are allowed to be 
+created.
+.br 
+\fBraidEnabled\fR - True if the controller supports RAID, false if not.
+.br
+\fBsupportsGlobalSpare\fR - Spare disks can be created that are not associated 
+with a specific array.
+.br
+\fBsupportsDedicatedSpace\fR - Spare disks can be created that will only 
+rebuild a specific volume.
+.br
+\fBsupportsCreateFromExisting\fR - A new volume can be created where the 
+partitioned data on one of the member disks is preserved.
+.br
+\fBsupportsEmptyArrays\fR - Indicates that this controller supports empty 
+arrays.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiGetRaidHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

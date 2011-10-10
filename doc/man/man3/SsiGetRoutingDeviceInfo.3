@@ -1,0 +1,206 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetRoutingDeviceInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetRoutingDeviceInfo - Returns a data structure containing 
+RoutingDevice-specific data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle " routingDeviceHandle ", "
+.BI "SSI_RoutingDeviceInfo *" info ", SSI_Handle " session ");"
+
+\fB#define SSI_ROUTING_DEVICE_COMPONENT_LENGTH 2
+.br
+#define SSI_ROUTING_DEVICE_COMPONENT_REV_LENGTH 1
+
+typedef struct _SSI_RoutingDeviceInfo
+{
+    SSI_Handle routingDeviceHandle;
+    SSI_Address routingDeviceAddress;
+    SSI_RoutingDeviceType routingDeviceType;
+    SSI_Handle enclosureHandle;   
+    SSI_Uint32 numberPhys;
+    SSI_Char vendorId[SSI_VENDOR_LENGTH];
+    SSI_Char productId[SSI_PRODUCT_ID_LENGTH];
+    SSI_Char productRev[SSI_PRODUCT_REV_LENGTH];
+    SSI_Char componentVendorId[SSI_VENDOR_LENGTH];
+    SSI_Char componentId[SSI_ROUTING_DEVICE_COMPONENT_LENGTH];
+    SSI_Char componentRev[SSI_ROUTING_DEVICE_COMPONENT_REV_LENGTH];
+
+    //expander fields
+    SSI_ExpanderType expanderType;
+    SSI_Uint32 expanderChangeCount;
+    SSI_Uint32 expanderRouteIndexes;
+    SSI_Bool selfConfiguring;
+.br
+} SSI_RoutingDeviceInfo;\fR
+
+\fBtypedef enum _SSI_RoutingDeviceType
+{
+    SSI_RoutingDeviceTypeUnknown = 0,
+    SSI_RoutingDeviceTypeMultiplier,
+    SSI_RoutingDeviceTypeExpander,
+.br
+} SSI_RoutingDeviceType;\fR
+
+\fBtypedef enum _SSI_ExpanderType
+{
+    SSI_ExpanderTypeUnknown = 0,
+    SSI_ExpanderTypeEdge,
+    SSI_ExpanderTypeFanout,
+.br
+} SSI_ExpanderType;\fR
+
+.SH DESCRIPTION
+.PP
+Returns a data structure containing end device-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - The session to be used. It is valid to pass 
+\fBSSI_NULL_HANDLE\fR to indicate the call should generate and use a temporary 
+internal session.
+.br
+\fBscopeType\fR - The following scopeTypes are valid for this function:
+.br
+	\fBSSI_ScopeTypeNone\fR
+.br
+	\fBSSI_ScopeTypeControllerDirect\fR - Only routing devices that are directly 
+attached to the specified controller.
+.br
+	\fBSSI_ScopeTypeControllerAll\fR - Routing devices that are associated to 
+the specified controller.
+.br
+\fBscopeHandle\fR - The handle associated with the scope.
+.br
+\fBhandleCount\fR - Indicates the number of handles the passed in handleList 
+array can hold.
+.br
+\fBcontroller\fR - Only handles for routing devices associated with this 
+controller will be returned.  Ignored if \fBSSI_NULL_HANDLE\fR.
+.PP
+.B Output parameters
+.IP
+\fBhandleList\fR - A list of handles. This parameter may validly be passed in 
+as null only if the value passed into *\fBhandleCount\fR is 0.
+.br
+\fBhandleCount\fR - Number of elements returned. If return value was 
+\fBSSI_StatusBufferTooSmall\fR, this represents the size of the 
+\fBhandleList\fR that needs to be passed in for this function to succeed.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system has not been 
+initialized.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null pointer was passed in.
+.br
+\fBSSI_StatusBufferTooSmall\fR - The size of the buffer passed in is 
+insufficient. See additional information in the description of the parameter 
+\fBhandleCount.\fR
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.br
+\fBSSI_StatusInvalidScope\fR - Either the \fBscopeType\fR is not valid for 
+this function, or the \fBscopeHandle\fR does not represent an object of 
+\fBscopeType\fR.
+.PP
+.B SSI_RoutingDeviceInfo fields
+.IP
+\fBroutingDeviceHandle\fR - Handle to the routing device represented by this 
+structure.
+.br
+\fBroutingDeviceAddress\fR - Address of the routing device.
+.br
+\fBroutingDeviceType\fR - The type of routing device.
+.br
+\fBenclosureHandle\fR - Handle to an enclosure associated with this routing 
+device.  If no enclosure is associated with this routing device, this value 
+shall be \fBSSI_NULL_HANDLE\fR.
+.br
+\fBnumberPhys\fR - The number of phys in the device.
+.br
+\fBvendorId\fR - 8 bytes of ASCII data identifying the vendor of the subsystem 
+(board or enclosure) containing the routing device.
+.br
+\fBproductId\fR - 16 bytes of ASCII data identifying the type of subsystem 
+(board or enclosure) containing the routing device.
+.br
+\fBproductRev\fR - 4 bytes of ASCII data identifying the type of revision 
+level of the subsystem (board or enclosure) containing the routing device.  
+.br
+\fBcomponentVendorId\fR - 8 bytes of ASCII data identifying the vendor of the 
+routing device.
+.br
+\fBcomponentId\fR - 2 bytes of ASCII data identifying the device model number 
+of the routing device.
+.br
+\fBcomponentRevisionLevel\fR - 1 byte of ASCII data identifying the revision 
+level of the routing device.
+.br
+\fBexpanderType\fR - If this device is an expander, this is the type of 
+expander.
+.br
+\fBexpanderChangeCount\fR - If this device is an expander, this indicates the 
+number of broadcast changes originated by an expander device.
+.br
+\fBexpanderRouteIndexes\fR - If this device is an expander, this indicates the 
+maximum number of expander route indexes per phy for the expander device.
+.br
+\fBselfConfiguring\fR - If this device is an expander, this is true if the 
+management device server is a self-configuring expander device.
+.PP
+.B SSI_RoutingDeviceType values
+.IP
+\fBSSI_RoutingDeviceTypeUnknown\fR - Routing device type is unknown.
+.br
+\fBSSI_RoutingDeviceTypeMultiplier\fR - Indicates that the routing device is a 
+port multiplier.
+.br
+\fBSSI_RoutingDeviceTypeExpander\fR - Indicates that the routing device is a 
+SAS expander.
+.PP
+.B SSI_ExpanderType values
+.IP
+\fBSSI_ExpanderTypeUnknown\fR - Expander type can not be determined.
+.br
+\fBSSI_ExpanderTypeEdge\fR - Edge expander device.
+.br
+\fBSSI_ExpanderTypeFanout\fR - Fan out expander device.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiRoutingEndDeviceHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

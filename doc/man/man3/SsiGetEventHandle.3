@@ -1,0 +1,97 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetEventHandle 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetEventHandle - returns an SSI event handle
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SnsiGetEventHandle(SSI_Handle *" eventHandle ");"
+.SH DESCRIPTION
+.PP
+Gets an event handle, to be used with \fBSsiGetEvent()\fR.  It must be freed 
+using \fBSsiFreeEventHandle()\fR.
+
+The asynchronous notification defined below is intended to be a very simple 
+mechanism to notify the consumer of the API that "something changed".  No 
+details are provided as to what specifically changed-it is up to the caller to 
+re-investigate the system state to determine what may have changed.
+This is done for several reasons, but is primarily due to the fact that 
+different consumers require different types of events.  Whereas one consumer 
+might best be served by events that would, for example, generate separate 
+disk-removed and volume state change events for a removed array disk, this may 
+be detrimental to another implementation.  Additionally, how to break down the 
+events ends up being quite consumer-specific.  One consumer may require 
+fine-grained events, while another requires the events at a much coarser 
+granularity.  By providing the events at a very coarse granularity (as we have 
+chosen to do), it is up to a consumer to divide the event down to whatever 
+granularity it requires.
+
+Asynchronous notifications of changes to the system are provided by a blocking 
+read mechanism.  By using a blocking read, we eliminate the requirement for an 
+implementation of this interface to perform thread creation or deletion.  This 
+also eliminates the need for a consumer of the API to perform polling to 
+identify state changes.
+
+The event handle is designed to prevent race conditions.  It prevents the 
+scenario where an event occurs after a call to \fBSsiEventWait\fR returns, but 
+before a caller calls back to start waiting.  It guarantees that any event 
+occurring after the \fBGetEventHandle\fR call returns will be received by a 
+consumer of this API.
+
+Any time a device (physical or virtual) is added or removed, an event will be 
+triggered.  Any time the state or usage of a device changes (i.e. smart event, 
+disk failure, volume goes degraded), an event will be triggered.  An event will 
+not be triggered for small changes that occur very frequently (i.e. a 
+rebuilding volume goes from 30% complete to 31% complete).
+.PP
+.B Output parameters
+.IP
+\fBhandle\fR - Returns a handle to be used with \fBSsiGetEvent()\fR.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system has not been 
+initialized.
+.br
+\fBSSI_StatusInsufficientResources\fR - Indicates that there are no more event 
+handles to return. A compliant implementation shall support at least one event 
+handle.
+.br
+\fBSSI_StatusFailed\fR - The call failed to complete successfully.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB),SsiFreeEventHandle(\fR3\fB), SsiEventWait(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

@@ -1,0 +1,374 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH "SSI Types" 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SSI types - description of types used within SSI API
+.SH SYNOPSIS
+.B #include <ssi.h>
+
+.B Base types
+.PP
+These base types are defined here to avoid ambiguity of type sizes, as different 
+compilers may treat types differently.  A particular implementation will likely 
+need to modify the type definitions to match with the specific compiler used.  
+Endianness shall be the native endianness for the architecture the library is 
+implemented on.
+.br
+(The specific types used below are an example that could be used for 
+\fBWindows\fR.  These must be changed by an implementation depending on the 
+compiler used to ensure that the memory footprint and signing of the \fBSSI\fR 
+types are correct).
+
+.IP
+\fBtypedef char             SSI_Char;
+.br
+typedef unsigned __int8  SSI_Uint8;
+.br
+typedef __int8           SSI_Int8;
+.br
+typedef unsigned __int16 SSI_Uint16;
+.br
+typedef __int16          SSI_Int16;
+.br
+typedef unsigned __int32 SSI_Uint32;
+.br
+typedef __int32          SSI_Int32;
+.br
+typedef __int64          SSI_Int64;
+.br
+typedef unsigned __int64 SSI_Uint64;
+
+.br 
+typedef SSI_Uint32 SSI_Bool;
+
+.br
+#define SSI_TRUE 1
+.br
+#define SSI_FALSE 0\fR
+.PP
+.B Handle type
+.IP 
+\fBtypedef SSI_Uint32 SSI_Handle;
+
+#define SSI_Handle SSI_NULL_HANDLE  0;\fR
+.PP 
+Handles are used throughout the API as opaque references to objects.  Consumers 
+of the API should not consider the handles to have any meaning other than 
+opaque handles. Implementations are free to use whatever mechanism they choose 
+to pick handles, subject to the constraints listed below.
+
+.IP
+.B Constraints:
+
+Session handles may not be re-used within the same process.  A new, unique 
+handle must be generated for each new session.  
+Handles must be unique for all device types (disks, ports, arrays, volumes, and 
+phys).  For example, it would be invalid to have a disk with a handle of 4 if 
+there were already a port with a handle of 4.
+Handles may not be re-used for device types.  For example, if a disk with a 
+handle of 23 is removed from the system, and another disk is inserted, it would 
+be invalid for the new disk to also have a handle of 23.  
+
+\fBNote:\fR If and only if an implementation has used up the entire (2^32 \- 1) 
+state space of valid handles, an exception is granted to re-use previously-used 
+handles.
+
+.PP
+.B Status types
+.IP
+\fBtypedef enum _SSI_Status
+{
+    SSI_StatusOk = 0,
+    SSI_StatusInsufficientResources,
+    SSI_StatusInvalidParameter,
+    SSI_StatusInvalidHandle,
+    SSI_StatusInvalidStripSize,
+    SSI_StatusInvalidString,
+    SSI_StatusInvalidSize,
+    SSI_StatusInvalidRaidLevel,
+    SSI_StatusInvalidSession,
+    SSI_StatusTimeout,
+    SSI_StatusNotImplemented,
+    SSI_StatusDuplicate,
+    SSI_StatusNotInitialized,
+    SSI_StatusBufferTooSmall,
+    SSI_StatusNotSupported,
+    SSI_StatusFailed,
+    SSI_StatusInternalError,
+    SSI_StatusInvalidScope,
+    SSI_StatusInvalidState,
+    SSI_StatusRetriesExceeded,
+    SSI_StatusWrongPassword,
+    SSI_StatusDataExceedsLimits,
+    SSI_StatusInsufficientPrivileges,
+    SSI_StatusInternalError,
+.br
+} SSI_Status;\fR
+.PP
+The only value that indicates success is \fBSSI_StatusOk\fR.
+.br
+All other return values indicate a non-success condition.
+.PP
+.B Volume Cache Policy
+.IP
+\fBtypedef enum _SSI_VolumeCachePolicy
+{
+    SSI_VolumeCachePolicyUnknown = 0,
+    SSI_VolumeCachePolicyOff,
+    SSI_VolumeCachePolicyWriteThrough,
+    SSI_VolumeCachePolicyWriteBack,
+.br
+} SSI_VolumeCachePolicy;\fR
+
+.B Values
+.IP
+\fBSSI_VolumeCachePolicyUnknown\fR \- Cache policy is unknown.
+.br
+\fBSSI_VolumeCachePolicyOff\fR \- Cache is disabled.
+.br
+\fBSSI_VolumeCachePolicyWriteThrough\fR \- A write-through cache will be used, 
+which may include read caching.  Data security is ensured because all write 
+operations are not cached.
+.br
+\fBSSI_VolumeCachePolicyWriteBack\fR \- Optimal caching for performance, but 
+because writes are cached, data loss can occur if the cached data is lost 
+(i.e. from power loss).
+.PP
+. B Write Cache Policy
+.IP
+\fBtypedef enum _SSI_WriteCachePolicy
+{
+    SSI_WriteCachePolicyUnknown = 0,
+    SSI_WriteCachePolicyOff,
+    SSI_WriteCachePolicyOn,
+.br
+} SSI_WriteCachePolicy;\fR
+
+.B Values
+.IP
+\fBSSI_WriteCachePolicyUnknown\fR - Cache policy is unknown.
+.br
+\fBSSI_WriteCachePolicyOff\fR - Cache is disabled.
+.br
+\fBSSI_WriteCachePolicyOn\fR - A write-through cache will be used, which may 
+include read caching.  Data security is ensured because all write operations 
+are not cached.
+.PP
+.B VolCacheSize
+.IP
+\fBtypedef enum _SSI_VolCacheSize
+{
+    SSI_VolCacheSizeUnknown = 0x0,
+    SSI_VolCacheSizeSafeMode = 0x1,
+    SSI_VolCacheSizeInbox = 0x2,
+    SSI_VolCacheSize4MB = 0x4,
+    SSI_VolCacheSize16MB = 0x10
+.br
+} SSI_VolCacheSize;\fR
+
+.B Values
+.IP
+\fBSSI_VolCacheUnknown\fR - Cache size is unknown or 0.
+.br
+\fBSSI_VolCacheSafeMode\fR - Safe Mode.
+.br
+\fBSSI_VolCacheInbox\fR - Inbox driver.
+.br
+\fBSSI_VolCache4MB\fR - Cache size is 4 MB.
+.br
+\fBSSI_VolCache16MB\fR - Cache size is 16 MB.
+.PP
+.B Raid Level
+.IP
+\fBtypedef enum _SSI_RaidLevel
+{
+    SSI_Raid0  = 0x01,
+    SSI_Raid1  = 0x02,
+    SSI_Raid10 = 0x04,
+    SSI_Raid5  = 0x08,
+    SSI_Raid6  = 0x10,
+.br
+} SSI_RaidLevel;\fR
+
+.B Values
+.IP
+\fBSSI_RAID0\fR - Raid 0, a.k.a. striping.
+.br
+\fBSSI_RAID1\fR - Raid 1, a.k.a. mirroring.
+.br
+\fBSSI_RAID10\fR - Raid 10.
+.br
+\fBSSI_RAID5\fR - Raid 5.
+.br
+\fBSSI_RAID6\fR - Raid 6.
+.PP
+.B Strip Size
+.IP
+\fBtypedef enum _SSI_StripSize
+{
+    SSI_StripSizeUnknown    = 0x0,
+    SSI_StripSize2kB        = 0x1,
+    SSI_StripSize4kB        = 0x2,
+    SSI_StripSize8kB        = 0x4,
+    SSI_StripSize16kB       = 0x8,
+    SSI_StripSize32kB       = 0x10,
+    SSI_StripSize64kB       = 0x20,
+    SSI_StripSize128kB      = 0x40,
+    SSI_StripSize256kB      = 0x80,
+    SSI_StripSize512kB      = 0x100,
+    SSI_StripSize1MB        = 0x200,
+    SSI_StripSize2MB        = 0x400,
+    SSI_StripSize4MB        = 0x800,
+    SSI_StripSize8MB        = 0x1000,
+    SSI_StripSize16MB       = 0x2000,
+    SSI_StripSize32MB       = 0x4000,
+    SSI_StripSize64MB       = 0x8000,
+.br
+} SSI_StripSize;\fR
+
+.B Values
+.IP
+Strip size is indicated by the name.
+.PP
+.B Device Type
+.IP
+\fBtypedef enum _SSI_DeviceType
+{
+    SSI_DeviceTypeUnknown = 0,
+    SSI_DeviceTypeController,
+    SSI_DeviceTypeEndDevice,
+    SSI_DeviceTypeRoutingDevice,
+.br
+} SSI_DeviceType;\fR
+
+.B Values
+.IP
+\fBSSI_DeviceTypeController\fR - Device type is unknown.
+.br
+\fBSSI_DeviceTypeController\fR - Used for a controller.
+.br
+\fBSSI_DeviceTypeEndDevice\fR - Used for an end device.
+.br
+\fBSSI_DeviceTypeRoutingDevice\fR - Used for a routing device.
+.PP
+.B Scope Type
+.IP
+\fBtypedef enum _SSI_ScopeType
+    {
+    SSI_ScopeTypeNone = 0,
+    SSI_ScopeTypeControllerDirect,
+    SSI_ScopeTypeControllerAll,  
+    SSI_ScopeTypeRaidInfo,
+    SSI_ScopeTypeEndDevice,
+    SSI_ScopeTypeRoutingDevice,
+    SSI_ScopeTypePort,
+    SSI_ScopeTypePhy,
+    SSI_ScopeTypeArray,
+    SSI_ScopeTypeEnclosure,
+.br
+} SSI_ScopeType;\fR
+
+.B Values
+.IP
+\fBSSI_ScopeTypeNone\fR - Indicates that no scoping restrictions should be used.
+.br(i.e. don’t limit results to a single scope).
+.br
+\fBSSI_ScopeTypeControllerDirect\fR - Used for a controller scope on direct 
+attached elements.
+.br
+\fBSSI_ScopeTypeControllerAll\fR - Used for a controller scope on all elements 
+associated to the controller.
+.br
+\fBSSI_ScopeTypeRaidInfo\fR - Used for a raid info scope.
+.br
+\fBSSI_ScopeTypeEndDevice\fR - Used for a an end device scope.
+.br
+\fBSSI_ScopeTypeRoutingDevice\fR - Used for a routing device scope.
+.br
+\fBSSI_ScopeTypePort\fR - Used for a port scope.
+.br
+\fBSSI_ScopeTypePhy\fR - Used for a phy scope.
+.br
+\fBSSI_ScopeTypeArray\fR - Used for an array scope.
+.br
+\fBSSI_ScopeTypeEnclosure\fR - Used for an enclosure scope.
+.PP
+.B Common structures
+
+These are the common structures used across SSI API.
+.IP
+\fBtypedef struct _SSI_ScsiAddress
+{
+    SSI_Uint8 host;
+    SSI_Uint8 bus;
+    SSI_Uint8 target;
+    SSI_Uint8 lun;
+.br
+} SSI_ScsiAddress;\fR
+
+.B Fields
+.IP
+\fBhost\fR - The SCSI host.
+.br
+\fBbus\fR - The SCSI bus.
+.br
+\fBtarget\fR - The SCSI target.
+.br
+\fBlun\fR - The SCSI lun.
+.br
+
+\fBtypedef struct _SSI_Address
+{
+    SSI_ScsiAddress scsiAddress;    
+    SSI_Bool sasAddressPresent;
+    SSI_Uint64 sasAddress;    
+.br
+} SSI_Address;\fR
+
+.B Fields
+.IP
+\fBscsiAddress\fR -SCSI address.  
+.br
+\fBsasAddressPresent\fR - Indicates if sasAddress contains a valid address.
+.br
+\fBsasAddress\fR - SAS address, if available.  
+.SH MORE TYPES
+.PP
+There is a number of function specific types defined, those however are tightly 
+coupled with particular functions. They are described in per function man pages.
+.SH MORE STRUCTURES
+.PP
+There is much more function specific structures, those however are described in 
+per function manual.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_defines(\fR3\fB), ssi_functions(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

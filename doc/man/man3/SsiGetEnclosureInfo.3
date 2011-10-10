@@ -1,0 +1,119 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetEnclosureInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetEnclosureInfo - returns a data structure containing enclosure-specific 
+data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetEnclosureInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " enclosureHandle ", SSI_EnclosureInfo *" info ");"
+
+\fBtypedef struct _SSI_EnclosureInfo
+{
+    SSI_Handle enclosureHandle;
+    SSI_Uint32 enclosureKey;
+    SSI_Char vendorInfo[SSI_VENDOR_LENGTH];
+    SSI_Char productId[SSI_PRODUCT_ID_LENGTH];
+    SSI_Char productRev[SSI_PRODUCT_REV_LENGTH];
+    SSI_Char logicalId[SSI_VENDOR_LENGTH];
+
+    SSI_Uint32 processorCount;
+    SSI_Uint32 subenclosureCount;
+    SSI_Uint32 elementCount;
+    SSI_Uint32 numberOfSlots;
+.br
+} SSI_EnclosureInfo;\fR
+
+.SH DESCRIPTION
+.PP
+An enclosure is a box, rack, or set of boxes providing the powering, cooling, 
+mechanical protection, and external electronic interfaces for one or more SCSI 
+devices.  Some of the individual elements of an enclosure may be removable and 
+replaceable while the enclosure continues to operate. An enclosure services 
+process typically manages all these enclosure elements and communicates with 
+the SCSI application client.
+
+Returns a data structure containing enclosure-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - Either a valid session handle or \fBSSI_NULL_HANDLE\fR.
+.br
+\fBenclosureHandle\fR - Handle of the enclosure to retrieve.
+.PP
+.B Output parameters
+.IP
+\fBinfo\fR - Data structure that contains the enclosure-specific data.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.PP
+.B SSI_EnclosureInfo fields
+.IP
+\fBenclosureHandle\fR - Handle to the enclosure represented by this structure.
+.br
+\fBvendorId\fR - The vendor identification string.
+.br
+\fBproductId\fR - The product identification string.
+.br
+\fBproductRev\fR - The product revision string.
+.br
+\fBlogicalID\fR - The unique logical identifier of the enclosure.
+.br
+\fBprocessorCount\fR - The number of processors in the enclosure.
+.br
+\fBsubenclosureCount\fR - The number of sub-enclosures in the enclosure.
+.br
+\fBelementCount\fR - The number of elements in the enclosure.
+.br
+\fBenclosureKey\fR - A Unique Key Identifier for Enclosure used in lookups for 
+CLI tools.
+.br
+\fBnumberOfSlots\fR - This field contains the number of slots on the enclosure. 
+If the enclosure does not support slot information or this field must be 
+\fBSSI_INVALID_SLOTINFORMATION\fR (0xFFFFFFFF).
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiGetEnclosureHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

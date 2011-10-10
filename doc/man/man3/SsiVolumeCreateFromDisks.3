@@ -1,0 +1,133 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiVolumeCreateFromDisks 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiVolumeCreateFromDisks - creates a volume, given a set of disks not in an 
+array
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams " params ");"
+
+\fBtypedef struct _SSI_CreateFromDisksParams
+{
+    SSI_Handle    *disks;
+    SSI_Uint32    numDisks;
+    SSI_Handle    sourceDisk;
+    SSI_Char      volumeName[SSI_VOLUME_NAME_LENGTH];
+    SSI_StripSize stripSize;
+    SSI_RaidLevel raidLevel;
+    SSI_Uint64    sizeInBytes;
+    SSI_Handle    *volumeHandle;
+.br
+} SSI_CreateFromDisksParams;\fR
+
+.SH DESCRIPTION
+.PP
+Creates a volume, given a set of disks not in an array.  After successful 
+completion of this action, a new array will be created, containing all disks 
+specified.  A new volume will also be created, utilizing all disks specified.
+.PP
+.B Input parameters
+.IP
+\fBparams\fR - Parameters to be used for creating the new volume.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system has not been 
+initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidStripSize\fR - The stripSize is not valid for the 
+specified raid level.
+.br
+\fBSSI_StatusInvalidString\fR - The volumeName is longer than 16 characters 
+(not including null) or contains invalid characters.
+.br
+\fBSSI_StatusBufferTooSmall\fR - numDisks is set to 0.
+.br
+\fBSSI_StatusInvalidSize\fR - A volume cannot be created with the specified 
+size.
+.br
+\fBSSI_StatusDataExceedsLimits\fR - The call failed because 
+\fBnumDisks exceeds\fR the number of additional devices the system can add as 
+raid devices because it would exceed either \fBmaxDisksPerArray\fR or 
+\fBmaxRaidDisksSupported\fR  or \fBmaxVolsPerHba\fR as specified in the 
+\fBcontrollerInfo\fR structure.
+.br
+\fBSSI_StatusInvalidRaidLevel\fR - Cannot create a volume of the specified 
+raid level.
+.br
+\fBSSI_StatusFailed\fR - The call failed to complete successfully.
+.PP
+.B SSI_CreateFromDisksParams fields
+.IP
+\fBdisks\fR - A pointer to a valid memory region containing a list of all 
+disks to be used to create the volume.  If there is a source disk, it shall be 
+contained in this list.
+.br
+\fBnumDisks\fR - The number of elements in disks.
+.br
+\fBsourceDisk\fR - If the data shall be migrated from one of disks, this field 
+shall contain the handle of that disk. Otherwise, this field shall have a 
+value of \fBSSI_NULL_HANDLE\fR.  Note that in order to migrate, the size of 
+the source disk must be no greater than the size of the smallest disk in disks.
+.br
+\fBvolumeName\fR - Must be a null-terminated ASCII string. It may contain no 
+more than 16 characters (not counting the terminating null). It may contain 
+any ASCII character with a value from 32 to 126 (inclusive), except it shall 
+not contain the backslash character (ASCII code 92).  All other characters 
+are invalid.
+.br
+\fBstripSize\fR - The strip size to use for the volume.
+.br
+\fBraidLevel\fR - The raid level to use for the volume.
+.br
+\fBsizeInBytes\fR - The size, in bytes, of the volume to create. Note that 
+many implementations can only create a volume that is a multiple of some 
+minimum unit of size.  If a value is passed down that is not an exact multiple 
+of such a required unit of size, the implementation shall round down this 
+number to the nearest valid size.  If the sizeInBytes is passed down as '0', 
+an implementation shall interpret this to mean that the volume shall be 
+created using all available space.  
+.br
+\fBvolumeHandle\fR - Handle of the volume.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiVolumeCreateFromArray(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

@@ -1,0 +1,93 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiPassthroughCommand 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiPassthroughCommand - generic function to pass-through SCSI SES requests, 
+SCSI disk requests, SATA requests, SMP requests, etc.
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiPassthroughCommand(SSI_Handle " deviceHandle ", "
+.BI "void *" commandInformationUnit ", void *" dataBuffer ", "
+.BI "SSI_Uint32 " dataBufferLength ", SSI_DataDirection " dataDirection ");"
+
+\fBtypedef enum _SSI_DataDirection 
+{
+    SSI_DataDirectionNoData = 0,
+    SSI_DataDirectionRead,
+    SSI_DataDirectionWrite,
+.br
+} SSI_DataDirection;\fR
+
+.SH DESCRIPTION
+.PP
+.B Note:
+This function is here for compatibility purposes only. Not 
+implemented under \fBLinux\fR.
+
+Generic function to pass-through SCSI SES requests, SCSI disk requests, SATA 
+requests, SMP requests, etc.
+.PP
+.B Input parameters
+.IP
+\fBdeviceHandle\fR - Handle of the device. The device would only support 
+pass-through requests for the protocols it supports (SAS SSP, SATA, etc).
+.br
+\fBcommandInformationUnit\fR - The pass-through command information.  The 
+command will vary depending on the underlying transport protocol.
+.br
+\fBdataBuffer\fR - A pointer to a valid memory region specifying where the 
+data is to be read from or written to.
+.br
+\fBdataBufferLength\fR - The length of the data buffer.
+.br
+\fBdataDirection\fR - The direction of data flow (read/write/no data).
+.PP
+.B Return value
+.IP
+\fBSSI_StatusOk\fR - The operation completed successfully.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system has not been 
+initialized.
+.br
+\fBSSI_StatusFailed\fR - The call failed to complete successfully.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - An invalid parameter was passed in.
+.br
+\fBSSI_StatusNotSupported\fR - The action is not supported.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

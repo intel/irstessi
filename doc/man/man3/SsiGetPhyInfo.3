@@ -1,0 +1,216 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetPhyInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetPhyInfo - returns a data structure containing phy-specific data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetPhyInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " phyHandle ", SSI_PhyInfo *" info ");"
+
+\fBtypedef struct _SSI_PhyInfo
+{
+    SSI_Handle phyHandle;   
+    SSI_Address phyAddress;            
+    SSI_Uint32 phyNumber; 
+    SSI_PhyProtocol protocol;      
+    SSI_Handle associatedPort;  
+	        
+    SSI_DeviceType deviceType;  
+    SSI_Handle deviceHandle;  
+
+    SSI_Bool isExternal;        
+    SSI_Bool hotPlugCap;   	
+
+    SSI_PhySpeed minHWLinkSpeed;
+    SSI_PhySpeed maxHWLinkSpeed;  
+    SSI_PhySpeed minLinkSpeed;
+    SSI_PhySpeed maxLinkSpeed;
+    SSI_PhySpeed negotiatedLinkSpeed;
+
+    SSI_Bool   countsValid;
+    SSI_Uint32 invalildDWORDsCount;
+    SSI_Uint32 receivedFramesCount;
+    SSI_Uint32 transmittedFramesCount;
+    SSI_Uint32 receivedDWORDsCount;
+    SSI_Uint32 transmittedDWORDsCount;
+    SSI_Uint32 syncLostCount;
+    SSI_Uint32 runningDisparityErrorsCount;
+    SSI_Uint32 crcErrorsCount;
+    SSI_Uint32 shortFramesReceivedCount;
+    SSI_Uint32 doneFrameReceivedCount;
+    SSI_Uint32 PHYResetCount; 
+.br
+} SSI_PhyInfo;\fR
+
+\fBtypedef enum _SSI_PhyProtocol
+{
+    SSI_PhyProtocolUnknown = 0,
+    SSI_PhyProtocolSATA,
+    SSI_PhyProtocolSMP,
+    SSI_PhyProtocolSTP,
+    SSI_PhyProtocolSSP,
+.br
+} SSI_PhyProtocol;\fR
+
+\fBtypedef enum _SSI_PhySpeed
+{
+    SSI_PhySpeedUnknown = 0,
+    SSI_PhySpeed_1_5_GEN1,
+    SSI_PhySpeed_3_0_GEN2,
+    SSI_PhySpeed_6_0_GEN3,
+.br
+} SSI_PhySpeed;\fR
+
+.SH DESCRIPTION
+.PP
+A phy is effectively one traffic lane.  When phys are connected, a port is 
+established between the two devices.  SATA ports can only be x1 (1 phy 
+connected to1 phy) but SAS ports can be x1, x2 or x4 depending on the number 
+of phy connections that make up the port.  The port object exposed in this 
+interface is the link table for mapping the topology of the system.  It 
+contains the mapping between the two connected devices.
+
+Returns a data structure containing phy-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - Either a valid session handle or \fBSSI_NULL_HANDLE\fR.
+.br
+\fBphyHandle\fR - Handle of the phy info to retrieve.
+.PP
+.B Output parameters
+.IP
+\fBinfo\fR - Data structure that contains the phy-specific data.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.PP
+.B SSI_PhyInfo fields
+.IP
+\fBphyHandle\fR - Handle to the phy represented by this structure.
+.br
+\fBphyAddress\fR - Address of the phy.
+.br
+\fBphyNumber\fR - Indicates which phy on the parent device this represents. 
+(The actual number on the motherboard).
+.br
+\fBprotocol\fR - The connection protocol (SATA, SMP..).
+.br
+\fBassociatedPort\fR - Indicates the "logical" Port object that identifies the 
+connection between phys.  If this phy has nothing connected to it, this value 
+shall be \fBSSI_NULL_HANDLE\fR.
+.br
+\fBdeviceType\fR - The type of device that that this phy is contained in.
+.br
+\fBdeviceHandle\fR - The handle to the device that this device is contained in.
+.br
+\fBisExternal\fR - True if this phy is external, false otherwise. 
+.br
+\fBhotPlugCap\fR - True if a hot plug event can be detected on this phy.
+.br
+\fBminHWLinkSpeed\fR - Minimum hardware speed the phy can operate at.  
+.br
+\fBmaxHWLinkSpeed\fR - Maximum hardware speed the phy can operate at.  
+.br
+\fBminLinkSpeed\fR - Minimum programmed speed the phy can operate at.  
+.br
+\fBmaxLinkSpeed\fR - Maximum programmed speed the phy can operate at.
+.br
+\fBnegotiatedLinkSpeed\fR - The negotiated link speed.
+.br
+\fBcountsValid\fR - When TRUE, all of the parameters in this structure ending 
+in the word "Count" contain valid data.  Otherwise, those parameters may not 
+contain valid data.  For any parameter not containing valid data, an 
+implementation shall set the value to "0".
+.br
+\fBinvalidDWORDsCount\fR - Number of invalid DWORDs that have been received 
+since power reset.
+.br
+\fBreceivedFramesCount\fR - Number of frames received.
+.br
+\fBtransmittedFramesCount\fR - Number of frames transmitted.
+.br
+\fBreceivedDWORDsCount\fR - Number of DWORDS received.
+.br
+\fBtransmittedDWORDsCount\fR - Number of DWORDS transmitted.
+.br
+\fBsyncLostCount\fR - Number of times the phy has restarted the link reset 
+sequence because it lost dword synchronization.
+.br
+\fBrunningDisparityErrorsCount\fR - Number of DWORDs containing running 
+disparity errors.
+.br
+\fBcrcErrorsCount\fR - Number of CRC errors.
+.br
+\fBshortFramesReceivedCount\fR - Number of short frames received.
+.br
+\fBdoneFramesReceivedCount\fR - Number of done frames received.
+.br
+\fBphyResetCount\fR - Number of times the phy reset problem has occurred.
+.PP
+.B SSI_PhyProtocol values
+.IP
+\fBSSI_PhyProtocolUnknown\fR - Phy protocol can not be determined.
+.br
+\fBSSI_PhyProtocolSATA\fR - SATA protocol.
+.br
+\fBSSI_PortProtocolSMP\fR - SAS management protocol.
+.br
+\fBSSI_PortProtocolSTP\fR - Serial Tunneling protocol.
+.br
+\fBSSI_PortProtocolSSP\fR - Serial SCSI protocol.
+.PP
+.B SSI_PhySpeed values
+.IP
+\fBSSI_PhySpeedUnknown\fR - Link speed is unknown.
+.br
+\fBSSI_PhySpeed_1_5_GEN1\fR - SATA 1 - Generation 1 speed.
+.br
+\fBSSI_PhySpeed_3_0_GEN2\fR - SATA 3 - Generation 2 speed.
+.br
+\fBSSI_PhySpeed_6_0_GEN3\fR - SATA 6 - Generation 3 speed.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiGetPhyHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

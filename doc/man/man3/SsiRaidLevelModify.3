@@ -1,0 +1,106 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiRaidLevelModify 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiRaidLevelModify - modifies the raid level of a volume
+array
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiRaidLevelModify(SSI_Handle " volumeHandle ", "
+.BI "SSI_RaidLevelModifyParams " params ");"
+
+\fBtypedef struct _SSI_RaidLevelModifyParams
+{  
+    SSI_StripSize newStripSize;
+    SSI_RaidLevel newRaidLevel;
+    SSI_Uint64    newSizeInBytes;  
+    SSI_Handle *diskHandles;
+    SSI_Uint32 diskHandleCount; 
+.br
+} SSI_RaidLevelModifyParams;\fR
+
+.SH DESCRIPTION
+.PP
+This function is used for modifying the raid level of a volume. An 
+implementation may only support changing the strip size and volume size if the 
+raid level is changing as well. This call is only valid if the volume is in 
+the \fBSSI_VolumeStateNormal\fR state.
+.PP
+.B Input parameters
+.IP
+\fBhandle\fR - Handle of the volume to modify.
+.br
+\fBparams\fR - Indicates the new strip size, raid level, disk additions, and 
+size of the volume in bytes.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system has not been 
+initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidStripSize\fR - The stripSize is not valid for the 
+specified raid level.
+.br
+\fBSSI_StatusInvalidSize\fR - The size is not valid.
+.br
+\fBSSI_StatusInvalidRaidLevel\fR - Cannot migrate to the specified raid level.
+.br
+\fBSSI_StatusFailed\fR - The call failed to complete successfully.
+.br
+\fBSSI_StatusNotSupported\fR - The action is not supported.
+.PP
+.B SSI_RaidLevelModifyParams fields
+.IP
+\fBnewStripSize\fR - The desired new strip size.
+.br
+\fBnewRaidLevel\fR - The desired new raid level.
+.br
+\fBnewSizeInBytes\fR - The desired new size in bytes. A value of 0 shall 
+indicate that the maximum available space shall be used.  Additionally, note 
+that some implementations may only support sizes that are a multiple of some 
+value (i.e. whole megabytes, block size, etc.).  In such a case, an 
+implementation may use a value that is rounded down to the next usable value. 
+.br
+\fBdiskHandles\fR - An array of handles of disks to be added to the volume.
+.br
+\fBdiskHandleCount\fR - Indicates the number of handles present in the 
+\fBdiskHandles\fR list.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB).\R
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

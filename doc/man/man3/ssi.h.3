@@ -1,0 +1,92 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH <ssi.h> 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+ssi.h - RSTe Standard Storage Interface definitions
+.SH SYNOPSIS
+.B #include <ssi.h>
+.SH DESCRIPTION
+.PP
+\fBIntel® Rapid Storage Technology\fR enterprise with \fBLinux OS* Standard 
+Storage Interface\fR API Library. The library allows user to manage storage 
+devices including creating and managing Raid arrays on systems with 
+\fBIntel\fR chipset.
+
+The RAID Management API allows complete management of the Intel Storage
+systems based on a RAID controller included in the Intel chipset.
+This API allows end user to manage these systems from their proprietary
+RAID management application which simplifies tasks associated with
+the RAID system management.
+
+The RAID API is developed as Linux shared library (so). This library
+manages and configures the Intel RAID driver using mdadm application
+and issues IOCTL calls to get some information from the OS.
+The API exposed to the RAID Management Application can be executed
+via function calls.
+
+A number of functions in this API retrieve handles to different objects. In 
+this section, we'll refer to those functions collectively as the getHandles 
+functions.
+.br
+Many of the \fBgetHandles\fR functions include a \fBscopeType\fR parameter as 
+well as a \fBscopeHandle\fR parameter.  
+.br
+The purpose of these parameters is to allow a consumer of the API to specify a 
+specific subset of handles that they wish to retrieve; to define a filter of 
+the data returned. For example, a caller may be interested only in retrieving 
+the handles to all volumes that are in a particular array, while another 
+caller may wish to retrieve handles to all volumes on a given controller.
+
+In order to retrieve handles for all end devices directly attached to 
+controller n, a caller would call \fBSsiGetEndDeviceHandles()\fR with a scope 
+type of \fBSSI_ScopeTypeControllerDirect\fR, and a scopeHandle of n.
+.br
+However, if the caller simply wanted to retrieve all end devices, he could 
+call \fBSsiGetEndDeviceHandles()\fR with a scope type of 
+\fBSSI_ScopeTypeNone\fR, and a \fBscopeHandle\fR of \fBSSI_NULL_HANDLE\fR.
+
+All handles are valid within the scope of the process that generated the 
+handles. No handle is valid across processes.
+
+This manual is split into a couple of parts, for clarity purposes. See below.
+
+.B Note: 
+The reader 
+.I MUST 
+first familiarize him/herself with the API 
+initialization/finalization and sessions (see below).
+.SH SEE ALSO
+.PP 
+\fBssi_types(\fR3\fB), ssi_defines(\fR3)\fB, ssi_functions(\fR3\fB), 
+SsiInitialize(\fR3\fB), SsiFinalize(\fR3\fB), SsiSessionOpen(\fR3\fB), 
+SsiSessionClose(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com )

@@ -1,0 +1,239 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetControllerInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetControllerInfo - returns controller-specific data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetControllerInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " handle ", SSI_ControllerInfo *" controllerInfo ");"
+
+\fB#define SSI_CONTROLLER_NAME_LENGTH 256
+.br
+typedef struct _SSI_ControllerInfo
+{
+    SSI_Handle controllerHandle; 
+    SSI_Address controllerAddress;
+    SSI_Char ControllerName[SSI_CONTROLLER_NAME_LENGTH];
+    SSI_ControllerType controllerType;
+    SSI_Handle raidInfoHandle; 
+  
+    SSI_Char driverVer[SSI_SOFTWARE_VERSION_LENGTH];    
+    SSI_Char prebootManagerVer[SSI_SOFTWARE_VERSION_LENGTH];
+    SSI_HardwareVersion hardwareVer;  
+       	  
+    SSI_Bool prebootManagerLoaded;
+    SSI_Bool twoTbPrebootSupport; 
+    SSI_Bool portMultiplierPrebootSupport;        
+    SSI_Bool disableESataSpanning;
+
+    SSI_Bool xorSupported;
+    SSI_Bool nvsramSupported;
+
+    SSI_Bool phyLocateSupport;
+    SSI_Bool diskUnlockSupport;
+    SSI_Bool assignStoragePoolSupport;
+    SSI_Bool markAsNormalSupport;
+    SSI_Bool volumeDeleteSupport;
+    SSI_Bool arrayCreateSupport;
+    SSI_Bool volumeModifySupport;
+    SSI_Bool volumeRenameSupport;
+    SSI_Bool addDisksToArraySupport;
+    SSI_Bool volumeSetCachePolicySupport;
+    SSI_Bool volumeCancelVerifySupport;
+    SSI_Bool markAsSpareSupport;
+
+    SSI_Bool readPatrolSupport;
+    SSI_Bool readPatrolEnabled;
+.br    
+} SSI_ControllerInfo;\fR
+
+\fBtypedef enum _SSI_ControllerType
+    {
+    SSI_ControllerTypeUnknown,
+    SSI_ControllerTypeAHCI,
+    SSI_ControllerTypeSCU,
+.br
+} SSI_ControllerType;\fR
+
+\fBtypedef struct _SSI_HardwareVersion
+{
+    SSI_Uint16 vendorId;
+    SSI_Uint16 deviceId;
+    SSI_Uint16 subSystemId;
+    SSI_Uint8  hardwareRevisionId;
+    SSI_Uint8  subClassCode;
+    SSI_Uint16 subVendorId;
+.br
+} SSI_HardwareVersion;\fR
+
+.SH DESCRIPTION
+.PP
+Returns a data structure containing controller-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - Either a valid session handle or \fBSSI_NULL_HANDLE\fR.
+.br
+\fBhandle\fR - An SSI_Handle to a control retrieved by a call to 
+\fBSsiGetControllerHandles()\fR.
+.PP
+.B Output parameters
+.IP
+\fBcontrollerInfo\fR - Data structure that contains the controller-specific 
+data.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.PP
+.B SSI_ControllerInfo fields
+.IP
+\fBcontrollerHandle\fR - Handle to the controller represented by this table.
+.br
+\fBcontrollerAddress\fR - The address of the controller.
+.br
+\fBcontrollerName\fR - A string of up to \fBSSI_CONTROLLER_NAME_LEN - 1\fR 
+characters followed by at least one null character.
+.br
+\fBcontrollerType\fR - What type of controller this is (i.e. SCU, AHCI).
+.br
+\fBraidInfoHandle\fR - Handle to the RAID information structure that this 
+controller supports.
+.br
+\fBdriverVer\fR - Version of the driver component.  Null-terminated, 
+non-localized, screen-printable ASCII string.
+.br
+\fBprebootManagerVer\fR - Version of the option ROM or EFI driver associated 
+with this controller.  Null-terminated, non-localized, screen-printable ASCII 
+string.
+.br
+\fBhardwareVer\fR - Hardware-specific information for this controller.
+.br
+\fBprebootManagerLoaded\fR - The OROM has been loaded for this controller. 
+(Note: This could be false if a controller is not in RAID mode)
+.br
+\fBtwoTbPrebootManager\fR - True if the OROM supports volumes greater than 2 
+terabytes, false if not.
+.br
+\fBportMultiplierPrebootManager\fR - True if the OROM supports identification 
+of drives behind a port multiplier, false if not.
+.br
+\fBdisableESataSpanning\fR - When true, arrays can only be created with all 
+internal disks or all external disks, but not a combination of the two. This 
+restriction also applies to rebuild operations, create, disk addition, and any 
+other operation that could change the member disks of an array.
+.br
+\fBxorSupported\fR - Whether or not XOR acceleration is being used by this 
+controller.
+.br
+\fBnvsramSupported\fR - Whether or not NVSRAM is being used by this controller.
+.br
+\fBphyLocateSupport\fR - True if the \fBSSI_PhyLocate()\fR function is 
+supported for phys attached to this controller.
+.br
+\fBdiskUnlockSupport\fR - True if the \fBSSI_DiskUnlock()\fR function is 
+supported for disks attached to this controller.
+.br
+\fBassignStoragePoolSupport\fR - True if the \fBSSI_AssignStoragePool()\fR 
+function is supported for devices attached to this controller.
+.br
+\fBmarkAsNormalSupport\fR - True if the \fBSSI_MarkAsNormal()\fR function is 
+supported for devices attached to this controller.
+.br
+\fBvolumeDeleteSupport\fR - True if the \fBSSI_VolumeDelete()\fR function is 
+supported for volumes attached to this controller.
+.br
+\fBarrayCreateSupport\fR - True if the \fBSSI_ArrayCreate()\fR function is 
+supported for volumes attached to this controller.
+.br
+\fBvolumeModifySupport\fR - True if the \fBSSI_VolumeModify()\fR function is 
+supported for volumes attached to this controller.
+.br
+\fBvolumeRenameSupport\fR - True if the \fBSSI_VolumeRename()\fR function is 
+supported for volumes attached to this controller.
+.br
+\fBaddDisksToArraySupport\fR - True if the \fBSSI_AddDisksToArray()\fR 
+function is supported for volumes attached to this controller.
+.br
+\fBvolumeSetCachePolicySupport\fR - True if the \fBSSI_VolumeSetCachePolicy()\fR 
+function is supported for volumes attached to this controller.
+.br
+\fBvolumeCancelVerifySupport\fR - True if the \fBSSI_VolumeCancelVerify()\fR 
+function is supported for volumes attached to this controller.
+.br
+\fBmarkAsSpareSupport\fR - True if the \fBSSI_MarkAsSpare()\fR function is 
+supported for devices attached to this controller.
+.br
+\fBreadPatrolSupport\fR - True if this controller supports read patrol.
+.br
+\fBreadPatrolEnabled\fR - True if this controller currently has read patrol 
+enabled.
+.PP
+.B SSI_ControllerType fields
+.IP
+\fBSSI_ControllerTypeUnknown\fR - Unknown controller type.
+.br
+\fBSSI_ControllerTypeAHCI\fR - Controller is an AHCI controller.
+.br
+\fBSSI_ControllerTypeSCU\fR - Controller is an SCU controller.
+.PP
+.B SSI_HardwareVersion fields
+.IP
+.br
+\fBvendorId\fR - Vendor ID of the device, as reported by PCI enumeration.
+.br
+\fBdeviceId\fR - Device ID of the device, as reported by PCI enumeration.
+.br
+\fBsubSystemId\fR - Subsystem ID of the device, as reported by PCI enumeration.
+.br
+\fBhardwareRevisionId\fR - Hardware Revision ID of the device, as reported by 
+PCI enumeration.
+.br
+\fBsubClassCode\fR - Subclass Code of the device, as reported by PCI 
+enumeration.
+.br
+\fBsubVendorId\fR - Subvendor ID of the device, as reported by PCI enumeration.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiGetControllerHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

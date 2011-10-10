@@ -1,0 +1,281 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetEndDeviceInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetEndDeviceInfo - returns a data structure containing end device-specific 
+data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetEndDeviceInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " endDeviceHandle ", SSI_EndDeviceInfo *" info ");"
+
+\fB#define SSI_END_DEVICE_SERIALNO_LENGTH 21
+.br
+#define SSI_END_DEVICE_MODEL_LENGTH 41
+.br
+#define SSI_END_DEVICE_FIRMWARE_LENGTH 21
+
+typedef struct _SSI_EndDeviceInfo
+{
+    SSI_Handle endDeviceHandle;
+    SSI_Address endDeviceAddress; 
+    SSI_EndDeviceType deviceType;
+    SSI_Handle raidInfoHandle;
+
+    SSI_Handle arrayHandle;
+    SSI_Handle enclosureHandle;  
+    SSI_Address slotAddress; 
+    SSI_Uint32 storagePool;
+ 
+    SSI_Char serialNo[SSI_END_DEVICE_SERIALNO_LENGTH];
+    SSI_Char model[SSI_END_DEVICE_MODEL_LENGTH];
+    SSI_Char firmware[SSI_END_DEVICE_FIRMWARE_LENGTH];
+
+    //storage device information
+    SSI_DiskType diskType;
+    SSI_DiskState state;
+    SSI_DiskUsage usage; 
+    SSI_Uint64 totalSize;
+    SSI_Uint32 blockSize;
+    SSI_Uint32 blocksTotal;
+    SSI_Uint32 blockFree;
+    SSI_WriteCachePolicy writeCachePolicy;
+    SSI_Bool systemDisk;	 
+
+    SSI_Uint32 slotNumber;
+.br
+} SSI_EndDeviceInfo;\fR
+
+\fBtypedef enum _SSI_EndDeviceType
+{
+    SSI_EndDeviceTypeUnknown = 0,
+    SSI_EndDeviceTypeDisk,
+    SSI_EndDeviceTypeNonDiskStorage,
+    SSI_EndDeviceTypeNonStorage,
+.br
+} SSI_EndDeviceType;\fR
+
+\fBtypedef enum _SSI_DiskType
+{
+    SSI_DiskTypeUnknown = 0,
+    SSI_DiskTypeSATA,
+    SSI_DiskTypeSAS,
+.br
+} SSI_DiskType;\fR
+
+\fBtypedef enum _SSI_DiskState
+{
+    SSI_DiskStateUnknown = 0,
+    SSI_DiskStateOffline,
+    SSI_DiskStateMissing,
+    SSI_DiskStateFailed,
+    SSI_DiskStateSmartEventTriggered,
+    SSI_DiskStateConfigIsUprev,
+    SSI_DiskStateNormal,
+    SSI_DiskStateLocked,
+.br
+} SSI_DiskState;\fR
+
+\fBtypedef enum _SSI_DiskUsage
+{
+    SSI_DiskUsageUnknown = 0,
+    SSI_DiskUsageArrayMember,
+    SSI_DiskUsagePassThru,
+    SSI_DiskUsageOfflineArray,
+    SSI_DiskUsageSpare,
+    SSI_DiskUsageArrayMemberReadOnlyMount,
+    SSI_DiskUsagePassThruReadOnlyMount,
+.br
+} SSI_DiskUsage;\fR
+
+.SH DESCRIPTION
+.PP
+Returns a data structure containing end device-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - Either a valid session handle or \fBSSI_NULL_HANDLE\fR.
+.br
+\fBendDeviceHandle\fR - Handle of the end device info to retrieve.
+.PP
+.B Output parameters
+.IP
+\fBinfo\fR - Data structure that contains the end device-specific data.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success.
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.PP
+.B SSI_EndDeviceInfo fields:
+.IP
+\fBendDeviceHandle\fR - Handle to this end device.
+.br
+\fBendDeviceAddress\fR - Address of the end device.  
+.br
+\fBdeviceType\fR - Indicates what type of device is represented by this 
+structure.  If the device type is SSI_EndDeviceTypeUnknown, then any storage 
+device specific fields in this structure shall be treated as indeterminate.
+.br
+\fBarrayHandle\fR - Handle to an associated array. \fBSSI_NULL_HANDLE\fR, if 
+there is no associated array.
+.brSSI_DiskType
+\fBraidInfoHandle\fR - Handle to the RAID information structure that owns this 
+end device.  If the handle=0, then RAID cannot be supported.
+.br
+\fBenclosureHandle\fR - Handle to an associated enclosure. 
+\fBSSI_NULL_HANDLE\fR, if there is no associated enclosure.
+.br
+\fBenclosureHandle\fR - Handle to an associated enclosure. 
+\fBSSI_NULL_HANDLE\fR, if there is no associated enclosure.
+.br
+\fBslotAddress\fR - The address of the enclosure slot that this device is 
+plugged in to (if any).
+.br
+\fBstoragePool\fR - Indicates what storage pool this device is associated with.
+.br
+\fBserialNo\fR - Null-terminated, non-localized string representing the serial 
+number reported by the device.  Note: It has been reported that at least some 
+optical drives have non-unique serial numbers.
+.br
+\fBmodel\fR - Null-terminated, non-localized string representing the model 
+number of the device.
+.br
+\fBfirmware\fR - Null-terminated non-localized string representing the 
+firmware revision of the device.
+.br
+\fBdiskType\fR - Indicates the type of disk if the end device is a disk.
+.br
+\fBstate\fR - State of the device.
+.br
+\fBusage\fR - Usage of the device.
+.br
+\fBtotalSize\fR - Size of the storage device, in Bytes.
+.br
+\fBwriteCachePolicy\fR - Whether or not write cache is on, off or unknown.
+.br
+\fBsystemDiskSSI_DiskType\fR - If true, this disk contains files that the system requires 
+to boot. This may include operating system files, page files, hibernate files, 
+dump files, etc.  There may 0 or more systemVolumes (keeping in mind that the 
+system need not be booted off of a controller supported by this interface).
+.br
+\fBslotNumber\fR - This value contains the slot number the enddevice is 
+plugged in if it is contained inside an enclosure that supports slot 
+information. If the enclosure does not support slot information or if the disk 
+is direct attached this field must be \fBSSI_INVALID_SLOTNUMBER\fR (0xFFFFFFFF).
+.PP
+.B SSI_EndDeviceType values:
+.IP
+\fBSSI_EndDeviceTypeUnknown\fR - Device type cannot be determined or 
+represented by any of the other device types in this enumeration.
+.br
+\fBSSI_EndDeviceTypeDisk\fR - Any device that exposes itself as a disk. 
+Examples are magnetic hard drives and solid state drives.
+.br
+\fBSSI_EndDeviceTypeNonDiskStorage\fR - Device is used for storage, but does 
+not behave the same as a hard drive.  Examples would be CD-ROM, Blue Ray, DVD, 
+and tape drives.
+.br
+\fBSSI_EndDeviceTypeNonDiskStorage\fR - Device is not a storage device and 
+could be an enclosure element or processor.
+.PP
+.B SSI_DiskType values:
+.IP
+\fBSSI_DiskTypeUnknown\fR - Disk type cannot be determined or represented by 
+any of the other disk types in this enumeration.
+.br
+\fBSSI_DiskTypeSATA\fR - Disk is a SATA disk.
+.br
+\fBSSI_DiskTypeSAS\fR - Disk is a SAS disk.
+.PP
+.B SSI_DiskState values:
+.IP
+\fBSSI_DiskStateUnknown\fR - Disk is in an unknown state.  This implies a 
+negative condition that does not fall into any of the other categories. 
+It is effectively a catch-all for a negative state that is not called out 
+below. This should be quite rare.
+.br
+\fBSSI_DiskStateOffline\fR - The disk is offline.  
+.br
+\fBSSI_DiskStateMissing\fR - The disk is not currently in the system. 
+For an array with one or more missing disks, the missing disks shall be 
+exported by the SSI interface with this disk state.
+.br
+\fBSSI_DiskStateFailed\fR - The disk is considered Failed. This generally 
+indicates that some or more read and/or write operations failed on the disk. 
+While the disk may still be part of an array, because it is failed, it is not 
+being actively used in the array.
+.br
+\fBSSI_DiskStateSmartEventTriggered\fR - The disk is reporting a smart event, 
+but is otherwise normal.
+.br
+\fBSSI_DiskStateConfigIsUprev\fR - There is metadata on the disk, but the 
+metadata is not of a version that is understood by the current driver.
+.br
+\fBSSI_DiskStateNormal\fR - A disk in a normal state.  This state is used for 
+normal, healthy disks with either no metadata or a supported version of 
+metadata.
+.br
+\fBSSI_DiskStateLocked\fR - The disk has security enabled and is currently 
+locked and unable to be read.
+.PP
+.B SSI_DiskUsage values:
+.IP
+\fBSSI_DiskUsageUnknown\fR - Disk usage cannot be determined or represented by any of the other disk usages in this enumeration.
+.br
+\fBSSI_DiskUsageArrayMember\fR - Disk is a member of an array.
+.br
+\fBSSI_DiskUsagePassThru\fR - Pass through disk.
+.br
+\fBSSI_DiskUsageOfflineArray\fR - Disk is an offline array member.
+.br
+\fBSSI_DiskUsageSpare\fR - Disk is a spare.
+.br
+\fBSSI_DiskUsageArrayMemberReadOnlyMount\fR - Disk is part of an array but is 
+mounted as a pass through.
+.br
+\fBSSI_DiskUsagePassThruReadOnlyMount\fR - Disk is mounted as a pass through 
+but has metadata.
+.br
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB),SsiGetEndDeviceHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

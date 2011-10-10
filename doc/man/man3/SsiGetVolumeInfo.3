@@ -1,0 +1,214 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH SsiGetVolumeInfo 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SsiGetVolumeInfo - returns a data structure containing volume-specific data
+.SH SYNOPSIS
+.PP
+.B #include <ssi.h>
+
+.BI "SSI_Status SsiGetVolumeInfo(SSI_Handle " session ", "
+.BI "SSI_Handle " volumeHandle ", SSI_VolumeInfo *" info ");"
+
+\fBtypedef struct _SSI_VolumeInfo
+{
+    SSI_Handle volumeHandle;
+    SSI_Handle arrayHandle;
+    SSI_Uint32 arrayOrdinal;
+
+    SSI_Char volumeName[SSI_VOLUME_SERIALNO_LENGTH];
+                            
+    SSI_VolumeState state; 
+    SSI_RaidLevel raidLevel;
+    SSI_Uint64 totalSize;
+    SSI_StripSize stripSize;
+    SSI_Uint32 numDisks;
+
+    SSI_Uint32 migrProgress;
+    SSI_VolumeCachePolicy cachePolicy;
+    SSI_Bool systemVolume;
+    SSI_Bool migrating;
+    SSI_Bool initialized;
+
+    SSI_Uint32 verifyErrors;
+    SSI_Uint32 verifyBadBlocks;
+    SSI_Uint32 logicalSectorSize;
+    SSI_Uint32 physicalSectorSize;
+.br
+} SSI_VolumeInfo;\fR
+
+\fBtypedef enum _SSI_VolumeState
+{
+    SSI_VolumeStateUnknown = 0,
+    SSI_VolumeStateNormal = 1,
+    SSI_VolumeStateDegraded = 2,
+    SSI_VolumeStateFailed = 3,
+    SSI_VolumeStateInitializing = 4,
+    SSI_VolumeStateRebuilding = 5,
+    SSI_VolumeStateVerifying = 6,
+    SSI_VolumeStateVerifyingAndFix = 7,
+    SSI_VolumeStateGeneralMigration = 8,
+    SSI_VolumeStateLocked = 9,
+    SSI_VolumeStateNonRedundantVolumeFailedDisk = 16,
+.br
+} SSI_VolumeState;\fR
+
+.SH DESCRIPTION
+.PP
+Returns a data structure containing volume-specific data.
+.PP
+.B Input parameters
+.IP
+\fBsession\fR - Either a valid session handle or \fBSSI_NULL_HANDLE\fR.
+.br
+\fBvolumeHandle\fR - Handle of the volume info to retrieve.
+.PP
+.B Output parameters
+.IP
+\fBinfo\fR - Data structure that contains the volume-specific data.
+.PP
+.B Return value
+.IP 
+\fBSSI_StatusOk\fR - Indicates success
+.br
+\fBSSI_StatusNotInitialized\fR - Indicates that the system is not initialized.
+.br
+\fBSSI_StatusInvalidHandle\fR - An invalid handle was passed in.
+.br
+\fBSSI_StatusInvalidParameter\fR - A null parameter was passed in.
+.br
+\fBSSI_StatusInvalidSession\fR - The session is not valid.
+.PP
+.B SSI_VolumeInfo fields
+.IP
+\fBvolumeHandle\fR - Handle to this volume.
+.br
+\fBarrayHandle\fR - Handle to the array that this volume is a member of.
+.br
+\fBarrayOrdinal\fR - The number of the volume in the array. 
+.br
+\fBvolumeName\fR - A null-terminated ASCII string representing the name of the 
+volume.
+.br
+\fBstate\fR - The current state of the volume.
+.br
+\fBraidLevel\fR - Indicates the raid level of this volume.
+.br
+\fBtotalSize\fR - Size of the volume, as exported to the OS in Bytes.  I.e. a 
+RAID5 volume consuming three 10MB drives would be reported as approximately 
+20MB in Bytes.
+.br
+\fBstripSize\fR - Size of the strips in this volume.
+.br
+\fBnumDisks\fR - Number of disks used by the volume.
+.br
+\fBmigrProgress\fR - This value shall indicate the progress complete for a 
+long running operation such as a migration, capacity expansion, or verify 
+operation. The value of 0 shall indicate 0% complete. The value of 
+0xFFFFFFFF shall indicate 100% complete.  The value (migrProgress / 
+0xFFFFFFFF) shall indicate the fraction of the operation that is complete. 
+(I.e. 0x40000000 would be 25% complete, and 0x80000000 would be 50% complete).
+.br
+\fBcachePolicy\fR - The cache policy in effect for this volume.
+.br
+\fBsystemVolume\fR - The volume contains files that the system requires to 
+boot. This may include operating system files, page files, hibernate files, 
+dump files, etc.  There may 0 or more systemVolumes  (keeping in mind that the 
+system need not be booted off of a controller supported by this interface).
+.br
+\fBmigrating\fR - The volume is currently migrating and migrProgress contains 
+meaningful data.
+.br
+\fBinitialized\fR - Parity (or similar redundancy) has been initialized on the 
+volume.
+.br
+\fBverifyErrors\fR - The number of parity errors found since the last time a 
+verify or verify and repair operation was started.  Values may be reset to 0 
+upon system reboot.
+.br
+\fBverifyBadBlocks\fR - The number of bad blocks found since the last time a 
+verify or verify and repair operation was started. Values may be reset to 0 
+upon system reboot.
+.br
+\fBlogicalSectorSize\fR - The logical sector size of the specified volume.
+.br
+\fBphysicalSectorSize\fR - The physical sector size of the specified volume.
+.PP
+.B SSI_VolumeState values
+.IP
+\fBSSI_VolumeStateUnknown\fR - Volume is in an unknown state.  This implies a 
+negative condition that does not fall into any of the other categories.  It is 
+effectively a catch-all for a negative state that is not called out below. This 
+should be quite rare.
+.br
+\fBSSI_VolumeStateNormal\fR - Volume is in a normal, healthy state and is fully 
+operational.  The volume may have member disks with SMART events asserted and 
+still be in this state.
+.br
+\fBSSI_VolumeStateDegraded\fR - The volume is still operational, but does not 
+currently have the level of redundancy it would if it was in a normal state. 
+For example, a disk might be either failed or missing.   
+.br
+\fBSSI_VolumeStateFailed\fR - The volume is not operational.  The data on the 
+volume is considered lost. For example, this could be caused by two disks 
+failing in a RAID5 volume.
+.br
+\fBSSI_VolumeStateInitializing\fR - Redundancy is being initialized on the 
+volume. For RAID1, this would indicate that parity is being written to the 
+mirror disk. For RAID5, it would indicate that the parity is being calculated 
+and written.
+.br
+\fBSSI_VolumeStateRebuilding\fR - Indicates that the volume was degraded and 
+is now rebuilding to a disk.  For example, if a disk failed in a RAID5 volume 
+and a spare was present, the volume may automatically start rebuilding to the 
+spare in order to be healthy again.
+.br
+\fBSSI_VolumeStateVerifying\fR - Indicates that a verify operation is 
+currently in progress on a given volume.  
+.br
+\fBSSI_VolumeStateVerifyingAndRepair\fR - Indicates that a "Verify and Repair" 
+operation is underway on the given volume. Any inconsistencies will be 
+repaired.
+.br
+\fBSSI_VolumeStateGeneralMigration\fR - The volume's structure is currently 
+changing. It may be in the middle of a capacity expansion operation, changing 
+RAID levels, changing strip sizes, etcetera.
+.br
+\fBSSI_VolumeStateLocked\fR - One or more disks in the volume are locked, and 
+the volume will remain offline to avoid becoming either failed or degraded.
+.br
+\fBSSI_VolumeStateNonRedundantVolumeFailedDisk\fR - One or more disks in a 
+non-redundant volume is in a failed state.
+.SH SEE ALSO
+\fBssi.h(\fR3\fB), ssi_types(\fR3\fB), ssi_defines(\fR3\fB), 
+ssi_functions(\fR3\fB), SsiGetVolumeHandles(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)

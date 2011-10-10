@@ -1,0 +1,80 @@
+.\" Copyright (c) 2011, Intel Corporation
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without 
+.\" modification, are permitted provided that the following conditions are met:
+.\"
+.\"	* Redistributions of source code must retain the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer.
+.\"	* Redistributions in binary form must reproduce the above copyright 
+.\"	  notice, this list of conditions and the following disclaimer in the 
+.\"	  documentation 
+.\"	  and/or other materials provided with the distribution.
+.\"	* Neither the name of Intel Corporation nor the names of its 
+.\"	  contributors may be used to endorse or promote products derived from 
+.\"	  this software without specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" 
+.\" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE 
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE 
+.\" ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE 
+.\" LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR 
+.\" CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF 
+.\" SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS 
+.\" INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN 
+.\" CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) 
+.\" ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE 
+.\" POSSIBILITY OF SUCH DAMAGE.
+.\"
+.TH "SSI Structures" 3 "September 28, 2011" "version 0.1" "Linux Programmer's Reference"
+.SH NAME
+SSI structures - description of structures used within SSI API
+.SH SYNOPSIS
+.B #include <ssi.h>
+
+\fBtypedef struct _SSI_ScsiAddress
+{
+    SSI_Uint8 host;
+    SSI_Uint8 bus;
+    SSI_Uint8 target;
+    SSI_Uint8 lun;
+.br
+} SSI_ScsiAddress;\fR
+
+\fBtypedef struct _SSI_Address
+{
+    SSI_ScsiAddress scsiAddress;    
+    SSI_Bool sasAddressPresent;
+    SSI_Uint64 sasAddress;    
+.br
+} SSI_Address;\fR
+
+.SH DESCRIPTION
+These are the common structures used across SSI API. There is a number of 
+function specific ones, those however are described in per function manual 
+pages.
+.PP
+.B SSI_ScsiAddress Fields
+.IP
+\fBhost\fR - The SCSI host.
+.br
+\fBbus\fR - The SCSI bus.
+.br
+\fBtarget\fR - The SCSI target.
+.br
+\fBlun\fR - The SCSI lun.
+.br
+.PP
+.B Fields SSI_Address
+.IP
+\fBscsiAddress\fR -SCSI address.  
+.br
+\fBsasAddressPresent\fR - Indicates if sasAddress contains a valid address.
+.br
+\fBsasAddress\fR - SAS address, if available.  
+.SH SEE ALSO
+\fBssi_types(\fR3\fB), ssi_defines(\fR3\fB), ssi_functions(\fR3\fB).\fR
+.SH AUTHORS
+Anna Czarnowska (anna.czarnowska@intel.com), 
+Lukasz Orlowski (lukasz.orlowski@intel.com),
+Artur Wojcik (artur.wojcik@intel.com)
