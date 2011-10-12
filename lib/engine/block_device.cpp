@@ -183,7 +183,7 @@ void BlockDevice::__internal_determine_disk_state()
 void BlockDevice::__internal_determine_disk_is_system()
 {
     String result;
-    if (shell_cap("df", result) == 0) {
+    if (shell_cap("df /boot", result) == 0) {
         try {
             result.find("/dev/" + m_DevName);
             m_IsSystem = true;
