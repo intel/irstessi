@@ -40,7 +40,7 @@ int main(int argc, char *argv[])
     SSI_Handle handle[HANDLE_COUNT];
     SSI_Uint32 count;
     SSI_Handle ahciDevice[HANDLE_COUNT];
-    SSI_Handle scuDevice[HANDLE_COUNT];
+
     unsigned int ahciCount = 0;
     unsigned int scuCount = 0;
     unsigned int passed = 0;
@@ -94,7 +94,7 @@ int main(int argc, char *argv[])
                             ahciDevice[ahciCount++] = handle[i];
                             cout << "\tAHCI";
                         } else {
-                            scuDevice[scuCount++] = handle[i];
+
                             cout << "\tISCI";
                         }
                         cout << " device suitable for raid" << endl;
