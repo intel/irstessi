@@ -135,12 +135,10 @@ void Phy::setProperties()
     m_maxLinkSpeed = SSI_PhySpeedUnknown;
     m_negotiatedLinkSpeed = SSI_PhySpeedUnknown;
 
-    dlog(" phy path = %s", (const char*)m_Path);
     switch (m_pParent->getType()) {
         case ObjectType_EndDevice:
             tmp = tmp.reverse_left("/");
             dir = tmp + "sas_device";
-            dlog(" dir =%s", (const char*)dir);
             for (Iterator<Directory *> i = dir; *i != 0; ++i) {
                 try {
                     SysfsAttr attr;
@@ -156,7 +154,6 @@ void Phy::setProperties()
         case ObjectType_Controller:
         case ObjectType_RoutingDevice:
             dir = m_Path + "/sas_phy";
-            dlog(" dir =%s", (const char*)dir);
             for (Iterator<Directory *> i = dir; *i != 0; ++i) {
                 SysfsAttr attr;
                 String linkrate;
