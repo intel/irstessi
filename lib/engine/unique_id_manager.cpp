@@ -140,6 +140,9 @@ bool Id::operator == (const Object *pObject) const
     }
     Iterator<Object *> i = m_Objects;
     if (*i == 0) {
+        String key = pObject->getKey();
+        if (key == m_Key)
+            return true;
         return false;
     }
     return *(*i) == pObject;
@@ -152,7 +155,10 @@ bool Id::operator != (const Object *pObject) const
     }
     Iterator<Object *> i = m_Objects;
     if (*i == 0) {
-        return true;
+        String key = pObject->getKey();
+        if (key != m_Key)
+            return true;
+        return false;
     }
     return !(*(*i) == pObject);
 }
@@ -187,7 +193,7 @@ IdCache::~IdCache()
     }
 }
 
-/* */
+/* add object to cache and set Id */
 void IdCache::add(Object *pObject)
 {
     if (pObject == 0) {
@@ -202,7 +208,7 @@ void IdCache::add(Object *pObject)
         if (id == 0) {
             throw E_OUT_OF_RESOURCES;
         }
-        pId = new Id(id |= pObject->getType() << 28);
+        pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
         List<Id *>::add(pId);
     }
     pId->add(pObject);

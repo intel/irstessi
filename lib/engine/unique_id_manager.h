@@ -25,8 +25,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class Id {
 public:
-    Id(unsigned int id)
-        : m_Id(id) {
+    Id(unsigned int id, String key)
+        : m_Id(id), m_Key(key) {
     }
     ~Id() {
     }
@@ -48,6 +48,12 @@ public:
     unsigned int count() const {
         return m_Objects.count();
     }
+    String getKey() {
+        return m_Key;
+    }
+    void setKey(String key) {
+        m_Key = key;
+    }
 
 public:
     bool operator == (const Object *pObject) const;
@@ -56,6 +62,7 @@ public:
 private:
     unsigned int m_Id;
     Cache m_Objects;
+    String m_Key;
 
     friend class UniqueIdManager;
 };
