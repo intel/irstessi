@@ -40,6 +40,7 @@ public:
     void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
     String getLogicalId() const;
     bool equal(const Object *pObject) const;
+    String getKey() const;
     void attachEndDevice(EndDevice *);
     void attachEndDevices(Container<EndDevice> &EndDevices);
     void attachRoutingDevice(RoutingDevice *);

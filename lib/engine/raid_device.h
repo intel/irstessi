@@ -38,7 +38,9 @@ public:
 
 public:
     bool equal(const Object *pObject) const;
-
+    String getKey() const {
+        return m_Uuid;
+    }
     // StorageObject
 
 public:

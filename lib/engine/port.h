@@ -40,6 +40,7 @@ public:
         return ObjectType_Port;
     }
     bool equal(const Object *pObject) const;
+    String getKey() const;
 
     // ScopeObject
 

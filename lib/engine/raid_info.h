@@ -40,7 +40,9 @@ public:
     ObjectType getType() const {
         return ObjectType_RaidInfo;
     }
-
+	String getKey() const {
+		return getControllerType();
+	}
     // ScopeObject
 
 public:

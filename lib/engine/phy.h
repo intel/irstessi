@@ -38,6 +38,7 @@ public:
         return ObjectType_Phy;
     }
     bool equal(const Object *pObject) const;
+    String getKey() const;
 
     // ScopeObject
 

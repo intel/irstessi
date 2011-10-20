@@ -35,6 +35,9 @@ public:
     ObjectType getType() const {
         return ObjectType_Event;
     }
+    String getKey() const {
+        return (unsigned long long)(this);
+    }
     SSI_Status wait(unsigned int timeout);
     void registerEvent();
 

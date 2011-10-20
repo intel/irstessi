@@ -98,6 +98,9 @@ public:
     virtual bool equal(const Object *pObject) const {
         return pObject && getType() == pObject->getType();
     }
+    virtual String getKey() const {
+        return "";
+    }
 
 protected:
     unsigned int m_Id;

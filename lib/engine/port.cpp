@@ -93,6 +93,12 @@ bool Port::equal(const Object *pObject) const
 }
 
 /* */
+String Port::getKey() const
+{
+    return m_pParent->getKey() + m_Path;
+}
+
+/* */
 void Port::attachArray(Array *pArray)
 {
     m_pParent->attachArray(pArray);

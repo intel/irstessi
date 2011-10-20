@@ -34,6 +34,9 @@ public:
                dynamic_cast<const RoutingDevice *>(pObject)->getRoutingDeviceType() == getRoutingDeviceType() &&
                dynamic_cast<const ISCI_Expander *>(pObject)->getSasAddress() == m_SASAddress;
     }
+    String getKey() const {
+        return m_SASAddress;
+    }
 
     // StorageObject
 

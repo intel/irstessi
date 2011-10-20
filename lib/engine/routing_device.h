@@ -39,6 +39,9 @@ class RoutingDevice : public StorageObject {
     virtual bool equal(const Object *pObject) const {
         return false;
     }
+    virtual String getKey() const {
+        return m_Path;
+    }
     ObjectType getType() const {
         return ObjectType_RoutingDevice;
     }

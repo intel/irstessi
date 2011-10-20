@@ -303,6 +303,12 @@ bool EndDevice::equal(const Object *pObject) const
 }
 
 /* */
+String EndDevice::getKey() const
+{
+    return m_SerialNum;
+}
+
+/* */
 void EndDevice::attachPhy(Phy *pPhy)
 {
     m_pPhy = pPhy;

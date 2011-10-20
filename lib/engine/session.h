@@ -106,6 +106,7 @@ public:
 
 public:
     bool equal(const Object *pObject) const;
+    String getKey() const;
     ObjectType getType() const {
         return ObjectType_Session;
     }

@@ -100,6 +100,12 @@ bool Enclosure::equal(const Object *pObject) const
 }
 
 /* */
+String Enclosure::getKey() const
+{
+    return m_LogicalId;
+}
+
+/* */
 void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 {
     m_EndDevices.add(pEndDevice);

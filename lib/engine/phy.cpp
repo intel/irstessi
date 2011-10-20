@@ -275,6 +275,12 @@ bool Phy::equal(const Object *pObject) const
 }
 
 /* */
+String Phy::getKey() const
+{
+    return m_pParent->getKey() + String(m_Number);
+}
+
+/* */
 void Phy::attachPhy(Phy *pPhy)
 {
     if (pPhy != this ) {

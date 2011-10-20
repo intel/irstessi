@@ -145,6 +145,12 @@ bool Session::equal(const Object *pObject) const
 }
 
 /* */
+String Session::getKey() const
+{
+    return (unsigned long long)(this);
+}
+
+/* */
 ScopeObject * Session::getObject(unsigned int id) const
 {
     if (id == 0) {

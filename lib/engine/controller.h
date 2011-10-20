@@ -46,6 +46,9 @@ public:
     ObjectType getType() const {
         return ObjectType_Controller;
     }
+    String getKey() const {
+        return m_Path;
+    }
 
     // ScopeObject
 
