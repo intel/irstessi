@@ -49,6 +49,7 @@ public:
 
     unsigned int acquireId(Object *pObejct);
     void releaseId(Object *pObject);
+    void refresh();
 
     SSI_Status getSystemInfo(SSI_SystemInfo *) const;
 

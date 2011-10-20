@@ -115,4 +115,10 @@ void ContextManager::releaseId(Object *pObject) {
     m_pUniqueIdMgr->releaseId(pObject);
 }
 
+/* */
+void ContextManager::refresh()
+{
+    m_pUniqueIdMgr->refresh();
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

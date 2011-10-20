@@ -61,6 +61,7 @@ Session::Session() : m_pNoneScopeObj(0)
 {
     Directory dir;
 
+    pContextMgr->refresh();
     dir = "/sys/bus/pci/drivers/ahci";
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         CanonicalPath path = *(*i) + "driver";

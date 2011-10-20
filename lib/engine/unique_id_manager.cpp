@@ -34,6 +34,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "cache.h"
 #include "unique_id_manager.h"
 
+
 /* */
 UniqueIdManager::UniqueIdManager()
 {
@@ -89,6 +90,46 @@ unsigned int UniqueIdManager::acquireId(Object *pObject)
     }
     return pObject->getId();
 }
+/* */
+void UniqueIdManager::add(unsigned int id, String key)
+{
+    switch (id >> 28) {
+    case ObjectType_Session:
+        /* nothing to do here */
+        break;
+    case ObjectType_Event:
+        break;
+    case ObjectType_EndDevice:
+        m_EndDevices.add(id, key);
+        break;
+    case ObjectType_Array:
+        m_Arrays.add(id, key);
+        break;
+    case ObjectType_Enclosure:
+        m_Enclosures.add(id, key);
+        break;
+    case ObjectType_Phy:
+        m_Phys.add(id, key);
+        break;
+    case ObjectType_Volume:
+        m_Volumes.add(id, key);
+        break;
+    case ObjectType_Port:
+        m_Ports.add(id, key);
+        break;
+    case ObjectType_RoutingDevice:
+        m_RoutingDevices.add(id, key);
+        break;
+    case ObjectType_RaidInfo:
+        m_RaidInfo.add(id, key);
+        break;
+    case ObjectType_Controller:
+        m_Controllers.add(id, key);
+        break;
+    default:
+        break;
+    }
+}
 
 /* */
 void UniqueIdManager::releaseId(Object *pObject)
@@ -135,6 +176,40 @@ void UniqueIdManager::releaseId(Object *pObject)
     }
 }
 
+/* reload id:key file */
+void UniqueIdManager::refresh()
+{
+    File keyFile = String(SSI_IDKEY_FILE);
+    String keyList;
+    try {
+        keyFile >> keyList;
+        keyList += "\n";
+    } catch (...) {
+        dlog("ssi.keys file missing")
+        /* no file? that's ok */
+    }
+    /* process the list to update IdCaches */
+    while (keyList) {
+        unsigned int id;
+        String sid = keyList.left(":");
+        if (sid == "")
+            break;
+        String key = keyList.between(sid + ":", "\n");
+        if (key =="")
+            break;
+        keyList = keyList.after(key + "\n");
+        try {
+            id = (unsigned int)(sid);
+            if (id == 0)
+                break;
+            dlog(sid + key + " adding to cache");
+            add(id, key);
+        } catch (...) {
+            dlog(sid + " failed to convert to unsigned int");
+        }
+    }
+}
+
 /* */
 bool Id::operator == (const Object *pObject) const
 {
@@ -149,6 +224,7 @@ bool Id::operator == (const Object *pObject) const
         return false;
     }
     return *(*i) == pObject;
+
 }
 
 bool Id::operator != (const Object *pObject) const
@@ -226,6 +302,8 @@ void IdCache::add(Object *pObject)
     Id *pId = *i;
     if (pId == 0) {
         unsigned int id = __findId();
+        /* TODO when out of id's clean the id file:
+         * remove all id:key pairs of the same type that have no objects in cache */
         if (id == 0) {
             throw E_OUT_OF_RESOURCES;
         }
@@ -237,7 +315,25 @@ void IdCache::add(Object *pObject)
     pObject->setId(pId->getId());
 }
 
-/* */
+/* add id + key (from file) to cache */
+void IdCache::add(unsigned int id, String key)
+{
+    Iterator<Id *> i;
+    for (i = first(); *i != 0 && (*i)->getId() != id; ++i) {
+    }
+    Id *pId = *i;
+    if (pId == 0) {
+        /* it is not in cache */
+        pId = new Id(id, key);
+        List<Id *>::add(pId);
+    } else {
+        /* already in cache */
+        if ((*i)->getKey() != key)
+            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key);
+    }
+}
+
+/* remove object from cache */
 void IdCache::remove(Object *pObject) {
     if (pObject == 0) {
         throw E_NULL_POINTER;
@@ -252,7 +348,13 @@ void IdCache::remove(Object *pObject) {
         throw E_NOT_FOUND;
     }
     (*i)->remove(pObject);
-    if ((*i)->count() == 0) {
+
+    /* session and event Id's can be reused so remove from cache
+     * other object type Id's should remain even when no objects left
+     * for consistency between sessions */
+    unsigned int type = (*i)->getId() >> 28;
+    if ((type == ObjectType_Session || type == ObjectType_Event) &&
+        (*i)->count() == 0) {
         delete List<Id *>::remove(i);
     }
 }

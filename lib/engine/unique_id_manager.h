@@ -78,6 +78,7 @@ public:
 
     void remove(Object *pObject);
     void add(Object *pObject);
+    void add(unsigned int id, String key);
 
 private:
     unsigned int __findId() const;
@@ -104,7 +105,9 @@ private:
 
 public:
     unsigned int acquireId(Object *);
+    void add(unsigned int id, String key);
     void releaseId(Object *);
+    void refresh();
 };
 
 #endif /* __UNIQUE_ID_MANAGER_H__INCLUDED__ */
