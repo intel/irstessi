@@ -164,7 +164,7 @@ private:
     void __internal_read_from_physical_fs(int fd, unsigned long long size);
     void __internal_realloc_content(unsigned long long size, bool copy = true);
     void __internal_read_from_virtual_fs(int fd);
-    void __internal_write(char *buffer, unsigned long long size);
+    virtual void __internal_write(char *buffer, unsigned long long size);
 
 protected:
     unsigned char *m_pContent;
@@ -224,6 +224,16 @@ public:
     SysfsAttr(const String &path = "")
         : File(path) {
     }
+};
+
+/* like File but writing appends to file */
+class AFile : public File {
+public:
+	AFile(const String &path = "")
+        : File(path) {
+    }
+private:
+	void __internal_write(char *buffer, unsigned long long size);
 };
 
 /* */

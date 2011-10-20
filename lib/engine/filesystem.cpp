@@ -250,4 +250,18 @@ void File::__internal_write(char *buffer, unsigned long long size)
     close(fd);
 }
 
+/* */
+void AFile::__internal_write(char *buffer, unsigned long long size)
+{
+    int fd = open(get(), O_WRONLY | O_APPEND | O_CREAT);
+    if (fd < 0) {
+        throw errno_to_exception_code(errno);
+    }
+    unsigned long long bytes;
+    do {
+        bytes = ::write(fd, buffer, size);
+    } while (bytes == -1ULL && errno == EAGAIN);
+    close(fd);
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
