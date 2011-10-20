@@ -202,7 +202,6 @@ void UniqueIdManager::refresh()
             id = (unsigned int)(sid);
             if (id == 0)
                 break;
-            dlog(sid + key + " adding to cache");
             add(id, key);
         } catch (...) {
             dlog(sid + " failed to convert to unsigned int");
@@ -301,6 +300,7 @@ void IdCache::add(Object *pObject)
     }
     Id *pId = *i;
     if (pId == 0) {
+        dlog(String("new object found ") + String(pObject->getType()) + String(pObject->getKey()));
         unsigned int id = __findId();
         /* TODO when out of id's clean the id file:
          * remove all id:key pairs of the same type that have no objects in cache */
@@ -324,6 +324,7 @@ void IdCache::add(unsigned int id, String key)
     Id *pId = *i;
     if (pId == 0) {
         /* it is not in cache */
+        dlog(String(id) + key + " adding to cache");
         pId = new Id(id, key);
         List<Id *>::add(pId);
     } else {
