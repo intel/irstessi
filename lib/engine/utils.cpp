@@ -34,6 +34,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "filesystem.h"
 #include "utils.h"
+#include "log/log.h"
 
 /* */
 int shell_cap(const String &s, String &r)
@@ -41,6 +42,7 @@ int shell_cap(const String &s, String &r)
     char buffer[1024];
     int count;
     FILE *pd = popen(s, "r");
+    dlog(s);
     if (pd == 0) {
         return -1;
     }
@@ -105,6 +107,7 @@ int shell(const String &s)
     int ret = 0, status=0;
     String cmd = "export MDADM_EXPERIMENTAL=1; " + s;
 
+    dlog(s);
     switch(fork()) {
     case 0:
         /* Child process.
