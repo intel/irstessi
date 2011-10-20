@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UNIQUE_ID_MANAGER_H__INCLUDED__
 #define __UNIQUE_ID_MANAGER_H__INCLUDED__
 
+#define SSI_IDKEY_FILE "/var/run/ssi.keys"
+
 /* */
 class Id {
 public:
@@ -58,6 +60,7 @@ public:
 public:
     bool operator == (const Object *pObject) const;
     bool operator != (const Object *pObject) const;
+    void store();
 
 private:
     unsigned int m_Id;

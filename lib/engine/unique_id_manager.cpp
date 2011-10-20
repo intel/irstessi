@@ -20,13 +20,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
+#include <cstdio>
 
 #include <ssi.h>
+#include <log/log.h>
 
 #include "exception.h"
 #include "list.h"
 #include "container.h"
 #include "string.h"
+#include "filesystem.h"
 #include "object.h"
 #include "cache.h"
 #include "unique_id_manager.h"
@@ -163,7 +166,25 @@ bool Id::operator != (const Object *pObject) const
     return !(*(*i) == pObject);
 }
 
-/* */
+/* save id:key to key file */
+void Id::store()
+{
+    if ((m_Id >> 28) == ObjectType_Session ||
+        (m_Id >> 28) == ObjectType_Event)
+        return;
+
+    AFile keyFile = String(SSI_IDKEY_FILE);
+    try {
+        char s[11];
+        sprintf(s, "0x%x", m_Id);
+        String idkey = String(s) + String(":") + m_Key + String("\n");
+        keyFile << idkey;
+    } catch (...) {
+        dlog("failed to store id:key");
+    }
+}
+
+/* when not in cache find new Id */
 unsigned int IdCache::__findId() const {
     unsigned int id = 0;
     Iterator<Id *> i;
@@ -210,6 +231,7 @@ void IdCache::add(Object *pObject)
         }
         pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
         List<Id *>::add(pId);
+        pId->store();
     }
     pId->add(pObject);
     pObject->setId(pId->getId());
