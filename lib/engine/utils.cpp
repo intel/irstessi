@@ -140,10 +140,10 @@ int processExist(int pid, const String &s)
     String name;
 
     try {
-	process >> name;
+        process >> name;
     }
     catch (...) {
-	name = "";
+        name = "";
     }
     return name == s;
 }
@@ -153,13 +153,13 @@ int readPidFile(const String &pidfilename, const String &proc)
     File pidfile = pidfilename;
     pid_t pid;
     try {
-	pidfile >> pid;
+        pidfile >> pid;
     }
     catch (...) {
-	pid = 0;
+        pid = 0;
     }
     if (!processExist(pid, proc.get())) {
-	pid = 0;
+        pid = 0;
     }
     return pid;
 }
