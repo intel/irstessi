@@ -237,6 +237,8 @@ SSI_Status Volume::rename(const String &newName)
             pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
         return pArray->assemble();
     }
+    /* assemble volume again even when rename failed */
+    pArray->assemble();
     return SSI_StatusFailed;
 }
 
