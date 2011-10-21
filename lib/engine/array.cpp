@@ -80,6 +80,12 @@ Array::~Array()
 }
 
 /* */
+String Array::getKey() const {
+    /* TODO this must change as all containers without volumes have uuid 0 */
+    return m_Uuid;
+}
+
+/* */
 SSI_Status Array::addSpare(const Container<EndDevice> &container)
 {
     unsigned int count = 0;

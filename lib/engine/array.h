@@ -42,6 +42,7 @@ public:
     ObjectType getType() const {
         return ObjectType_Array;
     }
+    String getKey() const;
 
     // ScopeObject
 
