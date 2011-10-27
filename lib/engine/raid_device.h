@@ -72,6 +72,7 @@ public:
 
 private:
     void __internal_initialize();
+    void __internal_update(String &map);
 };
 
 #endif /* __RAID_DEVICE_H__INCLUDED__ */

@@ -27,6 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <unistd.h>
 
 #include <ssi.h>
+#include <log/log.h>
 
 #include "exception.h"
 #include "list.h"
@@ -41,6 +42,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "raid_device.h"
 #include "raid_info.h"
+
+#define MAP_FILE_PATH "/dev/.mdadm/map"
 
 /* */
 RaidDevice::RaidDevice(const String &path)
@@ -88,17 +91,41 @@ RaidInfo * RaidDevice::getRaidInfo() const
 /* */
 void RaidDevice::update()
 {
-    CanonicalPath path = "/dev/md/" + m_Name;
-    if (path == "") {
+    File mapFile = String(MAP_FILE_PATH);
+    String map;
+
+    try {
+        mapFile >> map;
+        __internal_update(map);
+    } catch (...) {
+        dlog("failed to read map file");
         throw E_ARRAY_CREATE_FAILED;
     }
-    m_DevName = path.reverse_after("/");
     m_Path = CanonicalPath("/sys/block/" + m_DevName);
+}
 
-    String buffer;
-    if (shell_cap("mdadm --detail --export /dev/" + m_DevName, buffer) == 0) {
-        m_Uuid = buffer.between("MD_UUID=", "\n");
+/* */
+void RaidDevice::__internal_update(String &map)
+{
+    String line;
+    map += "\n";
+    line = map.left("\n");
+    dlog(m_Name + " looking up in map");
+    while (line != "") {
+        try {
+            line.find(m_Name);
+            break;
+        } catch (...) {
+        }
+        map = map.after("\n");
+        line = map.left("\n");
     }
+    if (line == "")
+        throw E_ARRAY_CREATE_FAILED;
+    m_DevName = line.left(" ");
+    line = line.reverse_left(" ");
+    m_Uuid = line.reverse_after(" ");
+    dlog(m_Name + " found in map: " + m_DevName + " " + m_Uuid);
 }
 
 /* */
