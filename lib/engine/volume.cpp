@@ -309,7 +309,7 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     if ((raidLevel & info.migrSupport) == 0)
         return SSI_StatusInvalidRaidLevel;
     /* size change is not supported */
-    if (newSize && newSize != m_TotalSize)
+    if (newSize && newSize != (m_ComponentSize << 10) * m_BlockDevices)
         return SSI_StatusInvalidSize;
     /* migrate */
     switch (raidLevel) {
