@@ -12,19 +12,8 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
-#include <cstdarg>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
-#include <iostream>
-
 #include <ssi.h>
-#define HANDLE_COUNT 100
-
-using namespace std;
+#include "ut.h"
 
 int main(int argc, char *argv[])
 {
@@ -42,29 +31,30 @@ int main(int argc, char *argv[])
 
     status = SsiSessionOpen(&session);
     if (status != SSI_StatusOk) {
-        cout << "E. Unable to open session" << endl;
+        cout << "E. Unable to open session " << statusStr[status] << endl;
         return -1;
     }
 
     status = SsiGetEventHandle(&handle);
     if (status != SSI_StatusOk) {
-        cout << "E. Unable to get event handle" << endl;
+        cout << "E. Unable to get event handle " << statusStr[status] << endl;
         return -1;
     }
     cout << "handle = 0x" << hex << handle << dec << endl;
 
     for (int i = 0; i < 5; i++) {
+        usleep(3000000);
         cout << "Waiting for event [" << i << "]...";
         status = SsiEventWait(5*1000, handle);
         if (status != SSI_StatusOk)
-            cout << "\ttimed out" << endl;
+            cout << "\tfailed " << statusStr[status] << endl;
         else
             cout << "\tsucceded" << endl;
     }
 
     status = SsiFreeEventHandle(handle);
     if (status != SSI_StatusOk) {
-        cout << "E. Unable to free event handle" << endl;
+        cout << "E. Unable to free event handle " << statusStr[status] << endl;
     } else {
         cout << "handle freed " << endl;
     }

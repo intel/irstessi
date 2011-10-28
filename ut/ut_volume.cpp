@@ -12,19 +12,8 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
-#include <cstdarg>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
-#include <iostream>
-
 #include <ssi.h>
-#define HANDLE_COUNT 100
-
-using namespace std;
+#include "ut.h"
 
 int main(int argc, char *argv[])
 {
@@ -32,7 +21,7 @@ int main(int argc, char *argv[])
     SSI_Uint32 count;
     SSI_Handle volumeHandle = 0;
     SSI_Handle arrayHandle = 0;
-	SSI_Handle session;
+    SSI_Handle session;
 
     (void)argc;
     (void)argv;
@@ -50,7 +39,7 @@ int main(int argc, char *argv[])
     if (status != SSI_StatusOk) {
         return -1;
     }
-	SSI_Handle handles[HANDLE_COUNT];
+    SSI_Handle handles[HANDLE_COUNT];
     SSI_Handle endDevices[HANDLE_COUNT];
     unsigned int j = 0;
 
@@ -125,8 +114,8 @@ int main(int argc, char *argv[])
         cout << "volumes: " << count << endl;
         for (unsigned int i = 0; i < count; ++i) {
             cout << "\thandle=0x" << hex << handles[i] << endl;
-		} 
-	}else {
+        }
+    }else {
         cout << "E: unable to get volume handles (status=" << status << ")" << endl;
     }
 
@@ -157,7 +146,7 @@ int main(int argc, char *argv[])
         cout << "E: unable to get volume handles (status=" << status << ")" << endl;
     }
 
- 
+
     status = SsiFinalize();
     if (status != SSI_StatusOk) {
         return -2;

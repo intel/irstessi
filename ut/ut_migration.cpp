@@ -12,32 +12,12 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <cstdarg>
-#include <cstdio>
-#include <cstring>
-#include <cstdlib>
-#include <iostream>
-
-#include <string>
 #include <ssi.h>
-#define HANDLE_COUNT 100
-
-using namespace std;
-enum TestResult {
-    NotRun = -1,
-    Passed = 0,
-    Failed = 1
-};
-
-string statusStr[] = {"SSI_StatusOk",               "SSI_StatusInsufficientResources",    "SSI_StatusInvalidParameter",       "SSI_StatusInvalidHandle",     "SSI_StatusInvalidStripSize",
-                      "SSI_StatusInvalidString",    "SSI_StatusInvalidSize",              "SSI_StatusInvalidRaidLevel",       "SSI_StatusInvalidSession",    "SSI_StatusTimeout",
-                      "SSI_StatusNotImplemented",   "SSI_StatusDuplicate",                "SSI_StatusNotInitialized",         "SSI_StatusBufferTooSmall",    "SSI_StatusNotSupported",
-                      "SSI_StatusFailed",           "SSI_StatusInternalError",            "SSI_StatusInvalidScope",           "SSI_StatusInvalidState",      "SSI_StatusRetriesExceeded",
-                      "SSI_StatusWrongPassword",    "SSI_StatusDataExceedsLimits",        "SSI_StatusInsufficientPrivileges", "SSI_StatusDriverBusy" };
+#include "ut.h"
 
 TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count);
 TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count);
-TestResult raid10_to_raid0_(SSI_Handle *pDevice, unsigned int count);
+TestResult raid10_to_raid0_olce(SSI_Handle *pDevice, unsigned int count);
 
 int main(int argc, char *argv[])
 {
@@ -141,7 +121,7 @@ int main(int argc, char *argv[])
             failed++;
     }
 
-    rv = raid10_to_raid0_(scuDevice, scuCount);
+    rv = raid10_to_raid0_olce(scuDevice, scuCount);
     switch (rv) {
         case 0:
             passed++;
@@ -172,7 +152,7 @@ TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
     /* create raid0 volume on AHCI */
     SSI_CreateFromDisksParams params;
 
-    cout << endl << "-----> raid1_to_raid0" << endl;
+    cout << endl << "#### raid1 -> raid0" << endl;
     if (count < 3) {
      cout << "E: there are not enough available AHCI disks in the system to perform test" << endl;
      return NotRun;
@@ -230,8 +210,8 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     /* create raid10 volume on SCU */
     SSI_CreateFromDisksParams params;
 
-    cout << endl << "-----> raid10_to_raid0" << endl;
-    if (count < 6) {
+    cout << endl << "#### raid10 -> raid0" << endl;
+    if (count < 4) {
         cout << "E: there are not enough available ISCI disks in the system to perform test (raid10_to_raid0)" << endl;
         return NotRun;
     }
@@ -242,7 +222,7 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     strcpy(params.volumeName, "scuR10");
     params.stripSize = SSI_StripSize64kB;
     params.raidLevel = SSI_Raid10;
-    params.sizeInBytes = 1024*1024*1600;
+    params.sizeInBytes = 1024*1024*16;
 
     cout << "-->SsiVolumeCreateFromDisks..." << endl;
     status = SsiVolumeCreateFromDisks(params, &volumeHandle0);
@@ -261,12 +241,12 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     /* 10 -> 0 */
     SSI_RaidLevelModifyParams modifyParams;
     modifyParams.newStripSize = SSI_StripSizeUnknown;
-    modifyParams.newRaidLevel = SSI_Raid0;
+    modifyParams.newRaidLevel = SSI_Raid0; /* the only change */
     modifyParams.newSizeInBytes = 0;
-    modifyParams.diskHandles = pDevice + 4;
-    modifyParams.diskHandleCount = 2;
+    modifyParams.diskHandles = SSI_NULL_HANDLE;
+    modifyParams.diskHandleCount = 0;
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
-    system("cat /proc/mdstat");
+
 
     /* delete volume */
     cout << "-->SsiVolumeDelete..." << endl;
@@ -284,14 +264,14 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     }
 }
 
-TestResult raid10_to_raid0_(SSI_Handle *pDevice, unsigned int count)
+TestResult raid10_to_raid0_olce(SSI_Handle *pDevice, unsigned int count)
 {
     SSI_Status status;
     SSI_Handle volumeHandle0 = 0;
     /* create raid10 volume on SCU */
     SSI_CreateFromDisksParams params;
 
-    cout << endl << "-----> raid10_to_raid0" << endl;
+    cout << endl << "#### raid10 -> raid0 with olce" << endl;
     if (count < 6) {
         cout << "E: there are not enough available ISCI disks in the system to perform test (raid10_to_raid0)" << endl;
         return NotRun;
@@ -335,10 +315,11 @@ TestResult raid10_to_raid0_(SSI_Handle *pDevice, unsigned int count)
     SSI_RaidLevelModifyParams modifyParams;
     modifyParams.newStripSize = SSI_StripSizeUnknown;
     modifyParams.newRaidLevel = SSI_Raid0;
-    modifyParams.newSizeInBytes = volumeInfo.totalSize;
+    modifyParams.newSizeInBytes = volumeInfo.totalSize; /* the same size as reported by info given*/
     modifyParams.diskHandles = pDevice + 4;
-    modifyParams.diskHandleCount = 2;
+    modifyParams.diskHandleCount = 2;       /* 2 new disks added */
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
+
     /* delete volume */
     cout << "-->SsiVolumeDelete..." << endl;
     SSI_Status ss = SsiVolumeDelete(volumeHandle0);
