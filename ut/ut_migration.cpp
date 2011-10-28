@@ -18,18 +18,26 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 #include <iostream>
 
+#include <string>
 #include <ssi.h>
 #define HANDLE_COUNT 100
 
+using namespace std;
 enum TestResult {
     NotRun = -1,
     Passed = 0,
     Failed = 1
 };
 
+string statusStr[] = {"SSI_StatusOk",               "SSI_StatusInsufficientResources",    "SSI_StatusInvalidParameter",       "SSI_StatusInvalidHandle",     "SSI_StatusInvalidStripSize",
+                      "SSI_StatusInvalidString",    "SSI_StatusInvalidSize",              "SSI_StatusInvalidRaidLevel",       "SSI_StatusInvalidSession",    "SSI_StatusTimeout",
+                      "SSI_StatusNotImplemented",   "SSI_StatusDuplicate",                "SSI_StatusNotInitialized",         "SSI_StatusBufferTooSmall",    "SSI_StatusNotSupported",
+                      "SSI_StatusFailed",           "SSI_StatusInternalError",            "SSI_StatusInvalidScope",           "SSI_StatusInvalidState",      "SSI_StatusRetriesExceeded",
+                      "SSI_StatusWrongPassword",    "SSI_StatusDataExceedsLimits",        "SSI_StatusInsufficientPrivileges", "SSI_StatusDriverBusy" };
+
 TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count);
 TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count);
-using namespace std;
+TestResult raid10_to_raid0_(SSI_Handle *pDevice, unsigned int count);
 
 int main(int argc, char *argv[])
 {
@@ -48,6 +56,7 @@ int main(int argc, char *argv[])
     unsigned int passed = 0;
     unsigned int failed = 0;
     unsigned int notrun = 0;
+    int rv;
 
     (void)argc;
     (void)argv;
@@ -63,7 +72,7 @@ int main(int argc, char *argv[])
     }
     status = SsiSessionOpen(&session);
     if (status != SSI_StatusOk) {
-        cout << "E. Unable to open session" << endl;
+        cout << "E. Unable to open session" << statusStr[status] << endl;
         return -1;
     }
 
@@ -71,12 +80,12 @@ int main(int argc, char *argv[])
     controllerCount = HANDLE_COUNT;
     status = SsiGetControllerHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE , controllerHandle, &controllerCount);
     if (status != SSI_StatusOk) {
-        cout << "E. Unable to get controller handles" << endl;
+        cout << "E. Unable to get controller handles" << statusStr[status] << endl;
         return -1;
     }
 
     for (unsigned int c = 0; c < controllerCount; c++) {
-        cout << "Controller handle " << c << "\t"<< hex << controllerHandle[c] << dec << endl;
+        cout << "Controller handle " << c << "\t0x"<< hex << controllerHandle[c] << dec << endl;
         SSI_ControllerInfo controllerInfo;
         status = SsiGetControllerInfo(session, controllerHandle[c], &controllerInfo);
         /* get devices */
@@ -87,7 +96,7 @@ int main(int argc, char *argv[])
             SSI_EndDeviceInfo info;
             cout << "end device handles retrieved:"<< count << endl;
             for (unsigned int i = 0; i < count; i++) {
-                cout << "handle " << i << "\t"<< hex << handle[i] << dec;
+                cout << "handle " << i << "\t0x"<< hex << handle[i] << dec;
                 status = SsiGetEndDeviceInfo(session, handle[i], &info);
                 if (status == SSI_StatusOk) {
                     if (info.systemDisk == SSI_FALSE && info.deviceType == SSI_EndDeviceTypeDisk &&
@@ -108,16 +117,7 @@ int main(int argc, char *argv[])
         }
     }
 
-   /* if (ahciCount < 3) {
-        cout << "E: there are not enough available AHCI disks in the system to perform test" << endl;
-        return -2;
-    }*/
-    if (scuCount < 4) {
-        cout << "E: there are not enough available ISCI disks in the system to perform test" << endl;
-        return -2;
-    }
-
-    /*int rv = raid1_to_raid0(ahciDevice, ahciCount);
+    rv = raid1_to_raid0(ahciDevice, ahciCount);
     switch (rv) {
         case 0:
             passed++;
@@ -128,8 +128,20 @@ int main(int argc, char *argv[])
         default:
             failed++;
     }
-*/
-    int rv = raid10_to_raid0(scuDevice, scuCount);
+
+    rv = raid10_to_raid0(scuDevice, scuCount);
+    switch (rv) {
+        case 0:
+            passed++;
+            break;
+        case -1:
+            notrun++;
+            break;
+        default:
+            failed++;
+    }
+
+    rv = raid10_to_raid0_(scuDevice, scuCount);
     switch (rv) {
         case 0:
             passed++;
@@ -159,6 +171,13 @@ TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
     SSI_Handle volumeHandle0 = 0;
     /* create raid0 volume on AHCI */
     SSI_CreateFromDisksParams params;
+
+    cout << endl << "-----> raid1_to_raid0" << endl;
+    if (count < 3) {
+     cout << "E: there are not enough available AHCI disks in the system to perform test" << endl;
+     return NotRun;
+    }
+
     params.disks = pDevice;
     params.numDisks = 2;
     params.sourceDisk = SSI_NULL_HANDLE;
@@ -172,6 +191,7 @@ TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
     if (status == SSI_StatusOk) {
         cout << "Created volume: volumeHandle=0x" << hex << volumeHandle0 << endl;
     } else {
+        cout << "Failed to create volume: " << statusStr[status] << endl;
         return NotRun;
     }
 
@@ -188,25 +208,19 @@ TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
     modifyParams.diskHandles = pDevice + 2;
     modifyParams.diskHandleCount = 2;
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
+    /* delete volume */
+    cout << "-->SsiVolumeDelete..." << endl;
+    SSI_Status ss = SsiVolumeDelete(volumeHandle0);
+    if (ss != SSI_StatusOk) {
+        cout << "E: unable to delete volume from the array." << statusStr[ss] << endl;
+    }
     if (status != SSI_StatusOk) {
-        cout << "E: Modify volume failed (status = " << status << ")"<< endl;
+        cout << "E: Modify volume (raid1_to_raid0) failed status = "<< statusStr[status] << endl;
         return Failed;
     } else {
-        cout << "Modify volume succeeded" << endl;
+        cout << "Modify volume (raid1_to_raid0) succeeded" << endl;
         return Passed;
     }
-
-    /* delete both volumes
-    cout << "-->SsiVolumeDelete..." << endl;
-    status = SsiVolumeDelete(volumeHandle0);
-    if (status != SSI_StatusOk) {
-        cout << "E: unable to delete volume from the array." << endl;
-    }
-    status = SsiVolumeDelete(volumeHandle1);
-    if (status != SSI_StatusOk) {
-        cout << "E: unable to delete volume from the array." << endl;
-    }
-    */
 }
 
 TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
@@ -215,20 +229,27 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     SSI_Handle volumeHandle0 = 0;
     /* create raid10 volume on SCU */
     SSI_CreateFromDisksParams params;
+
+    cout << endl << "-----> raid10_to_raid0" << endl;
+    if (count < 6) {
+        cout << "E: there are not enough available ISCI disks in the system to perform test (raid10_to_raid0)" << endl;
+        return NotRun;
+    }
+
     params.disks = pDevice;
     params.numDisks = 4;
     params.sourceDisk = SSI_NULL_HANDLE;
     strcpy(params.volumeName, "scuR10");
     params.stripSize = SSI_StripSize64kB;
     params.raidLevel = SSI_Raid10;
-    params.sizeInBytes = 1024*1024*16;
+    params.sizeInBytes = 1024*1024*1600;
 
     cout << "-->SsiVolumeCreateFromDisks..." << endl;
     status = SsiVolumeCreateFromDisks(params, &volumeHandle0);
     if (status == SSI_StatusOk) {
         cout << "Created volume: volumeHandle=0x" << hex << volumeHandle0 << endl;
     } else {
-        cout << "Failed to create volume" << endl;
+        cout << "Failed to create volume" << statusStr[status] << endl;
         return NotRun;
     }
 
@@ -242,28 +263,96 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     modifyParams.newStripSize = SSI_StripSizeUnknown;
     modifyParams.newRaidLevel = SSI_Raid0;
     modifyParams.newSizeInBytes = 0;
-    modifyParams.diskHandles = 0;
-    modifyParams.diskHandleCount = 0;
+    modifyParams.diskHandles = pDevice + 4;
+    modifyParams.diskHandleCount = 2;
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
-    if (status != SSI_StatusOk) {
-        cout << "E: Modify volume failed (status = " << status << ")"<< endl;
-        return Failed;
-    } else {
-        cout << "Modify volume succeeded" << endl;
-        return Passed;
+    system("cat /proc/mdstat");
+
+    /* delete volume */
+    cout << "-->SsiVolumeDelete..." << endl;
+    SSI_Status ss = SsiVolumeDelete(volumeHandle0);
+    if (ss != SSI_StatusOk) {
+        cout << "W: unable to delete volume from the array." << statusStr[ss] << endl;
     }
 
-    /* delete both volumes
+    if (status != SSI_StatusOk) {
+        cout << "E: Modify volume (raid10_to_raid0) failed (status = " << statusStr[status] << ")"<< endl;
+        return Failed;
+    } else {
+        cout << "Modify volume (raid10_to_raid0) succeeded" << endl;
+        return Passed;
+    }
+}
+
+TestResult raid10_to_raid0_(SSI_Handle *pDevice, unsigned int count)
+{
+    SSI_Status status;
+    SSI_Handle volumeHandle0 = 0;
+    /* create raid10 volume on SCU */
+    SSI_CreateFromDisksParams params;
+
+    cout << endl << "-----> raid10_to_raid0" << endl;
+    if (count < 6) {
+        cout << "E: there are not enough available ISCI disks in the system to perform test (raid10_to_raid0)" << endl;
+        return NotRun;
+    }
+
+    params.disks = pDevice;
+    params.numDisks = 4;
+    params.sourceDisk = SSI_NULL_HANDLE;
+    strcpy(params.volumeName, "scuR10");
+    params.stripSize = SSI_StripSize64kB;
+    params.raidLevel = SSI_Raid10;
+    params.sizeInBytes = 1024*1024*16;
+
+    cout << "-->SsiVolumeCreateFromDisks..." << endl;
+    status = SsiVolumeCreateFromDisks(params, &volumeHandle0);
+    if (status == SSI_StatusOk) {
+        cout << "Created volume: volumeHandle=0x" << hex << volumeHandle0 << endl;
+    } else {
+        cout << "Failed to create volume" << statusStr[status] << endl;
+        return NotRun;
+    }
+
+    /* wait for resync to finish */
+    system("while grep -i resync /proc/mdstat; do sleep 1; done");
+
+    SSI_VolumeInfo volumeInfo;
+    status = SsiGetVolumeInfo(SSI_NULL_HANDLE, volumeHandle0, &volumeInfo);
+    if (status == SSI_StatusOk) {
+        cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle << dec << endl;
+        cout << "\tarrayOrdinal" << volumeInfo.arrayOrdinal << endl;
+        cout << "\tvolumeName" << volumeInfo.volumeName << endl;
+        cout << "\tvolume state: " << volumeInfo.state << endl;
+        cout << "\tvolume raidLevel: " << volumeInfo.raidLevel << endl;
+        cout << "\tvolume totalSize: " << volumeInfo.totalSize << endl;
+    } else {
+        cout << "E: unable to get volume info (status=" << statusStr[status] << ")" << endl;
+    }
+
+    /* modify volume */
+    /* 10 -> 0 */
+    SSI_RaidLevelModifyParams modifyParams;
+    modifyParams.newStripSize = SSI_StripSizeUnknown;
+    modifyParams.newRaidLevel = SSI_Raid0;
+    modifyParams.newSizeInBytes = volumeInfo.totalSize;
+    modifyParams.diskHandles = pDevice + 4;
+    modifyParams.diskHandleCount = 2;
+    status = SsiRaidLevelModify(volumeHandle0, modifyParams);
+    /* delete volume */
     cout << "-->SsiVolumeDelete..." << endl;
-    status = SsiVolumeDelete(volumeHandle0);
-    if (status != SSI_StatusOk) {
-        cout << "E: unable to delete volume from the array." << endl;
+    SSI_Status ss = SsiVolumeDelete(volumeHandle0);
+    if (ss != SSI_StatusOk) {
+        cout << "W: unable to delete volume from the array." << statusStr[ss] << endl;
     }
-    status = SsiVolumeDelete(volumeHandle1);
+
     if (status != SSI_StatusOk) {
-        cout << "E: unable to delete volume from the array." << endl;
+        cout << "E: Modify volume (raid10_to_raid0) failed (status = " << statusStr[status] << ")"<< endl;
+        return Failed;
+    } else {
+        cout << "Modify volume (raid10_to_raid0) succeeded" << endl;
+        return Passed;
     }
-    */
 }
 
 // ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 noexpandtab:
