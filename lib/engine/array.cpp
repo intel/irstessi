@@ -296,15 +296,19 @@ SSI_Status Array::remove()
     if (m_Volumes > 1) {
         return SSI_StatusOk;
     }
-    if (shell("mdadm -S /dev/" + m_DevName) == 0) {
-        String devices;
-        for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
-            devices += " /dev/" + (*i)->getDevName();
+    int n = 0;
+    do {
+        if (shell("mdadm -S /dev/" + m_DevName) == 0) {
+            String devices;
+            for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+                devices += " /dev/" + (*i)->getDevName();
+            }
+            if (shell("mdadm --zero-superblock" + devices) == 0) {
+                return SSI_StatusOk;
+            }
         }
-        if (shell("mdadm --zero-superblock" + devices) == 0) {
-            return SSI_StatusOk;
-        }
-    }
+        usleep(3000000);
+    } while (n++ < 3);
     return SSI_StatusFailed;
 }
 
