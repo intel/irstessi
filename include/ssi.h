@@ -121,7 +121,14 @@ static const SSI_Uint32 SSI_INVALID_SLOTNUMBER = 0xFFFFFFFF;
  *
  * @brief   Ssi product reverse length.
 **/
-#define SSI_PRODUCT_REV_LENGTH 4
+#define SSI_PRODUCT_REV_LENGTH 5
+
+/**
+ * @def SSI_PRODUCT_REV_LENGTH
+ *
+ * @brief   Ssi logical id length.
+**/
+#define SSI_LOGICAL_ID_LENGTH 17
 
 /**
  * @def SSI_CONTROLLER_NAME_LENGTH
@@ -738,7 +745,7 @@ typedef struct _SSI_EnclosureInfo
     /** Product revision string */
     SSI_Char productRev[SSI_PRODUCT_REV_LENGTH];
     /** Unique logical identifier of the enclosure */
-    SSI_Char logicalId[SSI_VENDOR_LENGTH];
+    SSI_Char logicalId[SSI_LOGICAL_ID_LENGTH];
     /** Number of processors in the enclosure */
     SSI_Uint32 processorCount;
     /** Number of sub-enclosures in the enclosure */
