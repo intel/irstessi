@@ -61,7 +61,11 @@ protected:
     String m_SgName;
     String m_LogicalId;
     String m_VendorId;
+    String m_ProductId;
+    String m_Rev;
     Container<Slot> m_Slots;
+    unsigned int m_SlotCount;
+    unsigned int m_SubenclosureCount;
 
 private:
     void __get_slot_info(String &buffer);

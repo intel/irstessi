@@ -50,6 +50,12 @@ Enclosure::Enclosure(const String &path)
         m_LogicalId.trim();
         m_VendorId = sbuffer.between("vendor: ", "product");
         m_VendorId.trim();
+        m_ProductId = sbuffer.between("product:", "rev:");
+        m_ProductId.trim();
+        m_Rev = sbuffer.between("rev:", "vendor-specific");
+        m_Rev.trim();
+        m_SlotCount = sbuffer.between("number of possible elements:", "text: Array Device");
+        m_SubenclosureCount = sbuffer.between("number of secondary subenclosures:", "generation");
     }
     shell_cap("sg_ses -p 0xa /dev/" + m_SgName, sbuffer);
     if (sbuffer)
@@ -77,6 +83,15 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->enclosureHandle = getId();
+    pInfo->enclosureKey = getId();
+    m_VendorId.get(pInfo->vendorInfo, sizeof(pInfo->vendorInfo));
+    m_Rev.get(pInfo->productRev, sizeof(pInfo->productRev));
+    m_ProductId.get(pInfo->productId, sizeof(pInfo->productId));
+    m_LogicalId.get(pInfo->logicalId, sizeof(pInfo->logicalId));
+    pInfo->processorCount = 0;
+    pInfo->subenclosureCount = m_SubenclosureCount;
+    pInfo->elementCount = 0;
+    pInfo->numberOfSlots = m_SlotCount;
     return SSI_StatusOk;
 }
 
