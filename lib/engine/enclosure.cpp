@@ -90,7 +90,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     m_LogicalId.get(pInfo->logicalId, sizeof(pInfo->logicalId));
     pInfo->processorCount = 0;
     pInfo->subenclosureCount = m_SubenclosureCount;
-    pInfo->elementCount = 0;
+    pInfo->elementCount = m_Slots;
     pInfo->numberOfSlots = m_SlotCount;
     return SSI_StatusOk;
 }
@@ -191,7 +191,10 @@ void Enclosure::__get_slot_info(String &buffer)
             tmp = info.reverse_after("SAS address:");
             tmp = tmp.left("\n");
             pSlot->sasAddress = tmp;
-            m_Slots.add(pSlot);
+            if (pSlot->sasAddress != 0)
+                m_Slots.add(pSlot);
+            else
+                delete pSlot;
         }
         right = offset?right.get(offset+13):"";
     }
