@@ -23,10 +23,11 @@ enum InfoOption {
     ovolume,
     ophy,
     oenddevice,
+    oenclosure,
     olast
 };
 
-string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy", "enddevice"};
+string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy", "enddevice", "enclosure"};
 
 int main(int argc, char *argv[])
 {
@@ -303,6 +304,34 @@ int main(int argc, char *argv[])
                 }
             } else {
                 cout << "E: unable to get end device handles (status=" << status << ")" << endl;
+            }
+            break;
+
+    case oenclosure:
+            SSI_EnclosureInfo enclosureInfo;
+            count = MAX_COUNT;
+            status = SsiGetEnclosureHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
+            if (status == SSI_StatusOk) {
+		    cout << "enclosures: " << count << endl;
+		    for (unsigned int i = 0; i < count; ++i) {
+			    cout << "handle=0x" << hex << handles[i] << dec << endl;
+			    status = SsiGetEnclosureInfo(session, handles[i], &enclosureInfo);
+			    if (status == SSI_StatusOk) {
+				    cout << "\tenclosureKey: " << enclosureInfo.enclosureKey << endl;
+				    cout << "\tvendorInfo: " << enclosureInfo.vendorInfo << endl;
+				    cout << "\tproductId: " << enclosureInfo.productId << endl;
+				    cout << "\tproductRev: " << enclosureInfo.productRev << endl;
+				    cout << "\tlogicalId: " << enclosureInfo.logicalId << endl;
+				    cout << "\tprocessorCount: " << enclosureInfo.processorCount << endl;
+				    cout << "\tsubenclosureCount: " << enclosureInfo.subenclosureCount << endl;
+				    cout << "\telementCount: " << enclosureInfo.elementCount << endl;
+				    cout << "\tnumberOfSlots: " << enclosureInfo.numberOfSlots << endl;
+			    } else {
+				    cout << "E: unable to get enclosure info (status=" << statusStr[status] << ")" << endl;
+			    }
+		    }
+            } else {
+		    cout << "E: unable to get enclosure handles (status=" << statusStr[status] << ")" << endl;
             }
             break;
 
