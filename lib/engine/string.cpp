@@ -340,13 +340,12 @@ void String::__get(char *buf, unsigned int size, unsigned int offset) const
 {
     offset = __utf8_offset(m_buffer, offset) - m_buffer;
     unsigned int i;
-    if (size > (m_size - offset) + 1) {
-        size = (m_size - offset) + 1;
-    } else {
-        if (size > 0) {
-            --size;
-        }
-    }
+    if (size > 0)
+        --size;
+    else
+        return;
+    if (size > m_size - offset)
+        size = m_size - offset;
     for (i = 0; i < size; ++i) {
         buf[i] = m_buffer[i + offset];
     }

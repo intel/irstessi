@@ -179,14 +179,8 @@ public:
         return __offset(offset);
     }
     void get(char *dest, unsigned int size, unsigned int offset = 0) const {
-        if (size == 0) {
-            throw E_BUFFER_TOO_SMALL;
-        }
         if (dest == 0) {
             throw E_NULL_POINTER;
-        }
-        if (size < m_length) {
-            throw E_BUFFER_TOO_SMALL;
         }
         __get(dest, size, offset);
     }
