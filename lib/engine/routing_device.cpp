@@ -130,23 +130,12 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
     }
     pInfo->numberPhys = getNumberOfPhys();
 
-    m_ProductId.get(pInfo->productId,
-        sizeof(pInfo->productId));
-
-    m_Vendor.get(pInfo->vendorId,
-        sizeof(pInfo->vendorId));
-
-    m_ProductRev.get(pInfo->productRev,
-        sizeof(pInfo->productRev));
-
-    m_ComponentVendorId.get(pInfo->componentVendorId,
-        sizeof(pInfo->componentVendorId));
-
-    m_ComponentId.get(pInfo->componentId,
-        sizeof(pInfo->componentId));
-
-    m_ComponentRev.get(pInfo->componentRev,
-        sizeof(pInfo->componentRev));
+    m_ProductId.get(pInfo->productId, sizeof(pInfo->productId));
+    m_Vendor.get(pInfo->vendorId, sizeof(pInfo->vendorId));
+    m_ProductRev.get(pInfo->productRev, sizeof(pInfo->productRev));
+    m_ComponentVendorId.get(pInfo->componentVendorId, sizeof(pInfo->componentVendorId));
+    m_ComponentId.get(pInfo->componentId, sizeof(pInfo->componentId));
+    m_ComponentRev.get(pInfo->componentRev, sizeof(pInfo->componentRev));
 
     pInfo->expanderType = getExpanderType();
     pInfo->selfConfiguring = SSI_FALSE;
