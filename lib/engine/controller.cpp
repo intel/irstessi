@@ -73,6 +73,7 @@ Controller::Controller(const String &path)
         attr >> m_DriverVersion;
     } catch (...) {
         /* TODO: log that version of the driver cannot be determined. */
+        m_DriverVersion = "0.0.0.1";
     }
     try {
         attr = m_Path + "/config";
