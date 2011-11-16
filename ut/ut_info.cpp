@@ -216,29 +216,16 @@ int main(int argc, char *argv[])
                         cout << "\tphy protocol: " << phyprotocol[phyInfo.protocol] << endl;
                         cout << "\tdeviceType: " << devtype[phyInfo.deviceType] << endl;
                         cout << "\tnegotiated link speed: " << physpeed[phyInfo.negotiatedLinkSpeed] << endl;
-#if 0
-                        SSI_Uint32 phyNumber;
-                        /** Logical port object that identifies connection between phys.
-                            Value is SSI_INVALID_HANDLE if phy is not connected. */
-                        SSI_Handle associatedPort;
-                        /** Handle to the device that phy is contained in */
-                        SSI_Handle deviceHandle;
-                        /** If true, phy is external */
-                        SSI_Bool isExternal;
-                        /** If true, hot plug even can be detected */
-                        SSI_Bool hotPlugCap;
-                        /** Minimum hardware speed phy can operate at */
-                        SSI_PhySpeed minHWLinkSpeed;
-                        /** Maximum hardware speed phy can operate at */
-                        SSI_PhySpeed maxHWLinkSpeed;
-                        /** Minimum programmed speed phy can operate at */
-                        SSI_PhySpeed minLinkSpeed;
-                        /** Maximum programmed speed phy can operate at */
-                        SSI_PhySpeed maxLinkSpeed;
-                        /** If true, following counts contain valid */
-                        SSI_Bool   countsValid;
-                        /** Number of invalid DWORDs that have been received since PWR reset */
-#endif
+                        cout << "\tphyNumber: " << phyInfo.phyNumber << endl;
+                        cout << "\tassociatedPort: 0x" << hex << phyInfo.associatedPort << dec << endl;
+                        cout << "\tdeviceHandle: 0x" << hex << phyInfo.deviceHandle << dec << endl;
+                        cout << "\tisExternal: " << phyInfo.isExternal << endl;
+                        cout << "\thotPlugCap: " << phyInfo.hotPlugCap << endl;
+                        cout << "\tminHWLinkSpeed: " << physpeed[phyInfo.minHWLinkSpeed] << endl;
+                        cout << "\tmaxHWLinkSpeed: " << physpeed[phyInfo.maxHWLinkSpeed] << endl;
+                        cout << "\tminLinkSpeed: " << physpeed[phyInfo.minLinkSpeed] << endl;
+                        cout << "\tmaxLinkSpeed: " << physpeed[phyInfo.maxLinkSpeed] << endl;
+                        cout << "\tcountsValid: " << phyInfo.countsValid << endl;
                     } else {
                         cout << "E: unable to get phy info (status=" << status << ")" << endl;
                     }
