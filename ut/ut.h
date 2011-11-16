@@ -40,5 +40,5 @@ string physpeed[] = {"SSI_PhySpeedUnknown" , "SSI_PhySpeed_1_5_GEN1", "SSI_PhySp
 string phyprotocol[] = {"SSI_PhyProtocolUnknown", "SSI_PhyProtocolSATA", "SSI_PhyProtocolSMP", "SSI_PhyProtocolSTP", "SSI_PhyProtocolSSP"};
 string diskstate[] = {"SSI_DiskStateUnknown", "SSI_DiskStateOffline", "SSI_DiskStateMissing", "SSI_DiskStateFailed", "SSI_DiskStateSmartEventTriggered", "SSI_DiskStateConfigIsUprev", "SSI_DiskStateNormal", "SSI_DiskStateLocked"};
 string diskusage[] = {"SSI_DiskUsageUnknown", "SSI_DiskUsageArrayMember", "SSI_DiskUsagePassThru", "SSI_DiskUsageOfflineArray", "SSI_DiskUsageSpare", "SSI_DiskUsageArrayMemberReadOnlyMount", "SSI_DiskUsagePassThruReadOnlyMount"};
-
+string rdtype[] = {"SSI_ExpanderTypeUnknown", "SSI_ExpanderTypeEdge", "SSI_ExpanderTypeFanout"};
 

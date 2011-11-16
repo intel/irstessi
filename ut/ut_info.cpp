@@ -24,10 +24,11 @@ enum InfoOption {
     ophy,
     oenddevice,
     oenclosure,
+    oroutingdevice,
     olast
 };
 
-string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy", "enddevice", "enclosure"};
+string option[] = {"system", "raidinfo", "raidlevel", "controller", "volume", "phy", "enddevice", "enclosure", "routingdevice"};
 
 int main(int argc, char *argv[])
 {
@@ -259,6 +260,8 @@ int main(int argc, char *argv[])
                     if (status == SSI_StatusOk) {
                         /*cout << "\t: " << edInfo. << endl;*/
                         cout << "\tserialNo: " << edInfo.serialNo << endl;
+                        cout << "\tmodel: " << edInfo.model << endl;
+                        cout << "\tfirmware: " << edInfo.firmware << endl;
                         cout << "\tscsiAddress: " << (unsigned) edInfo.endDeviceAddress.scsiAddress.host
                              << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.bus
                              << ":"<< (unsigned) edInfo.endDeviceAddress.scsiAddress.target
@@ -275,7 +278,7 @@ int main(int argc, char *argv[])
                                  << ":"<< (unsigned) edInfo.slotAddress.scsiAddress.target
                                  << ":"<< (unsigned) edInfo.slotAddress.scsiAddress.lun << endl;
                             cout << "\t\tslot Address (sas): 0x" << hex << edInfo.slotAddress.sasAddress << dec << endl;
-                            cout << "\t\tslotNumber: " << edInfo.slotNumber << endl;
+                            cout << "\t\tslot Number: " << edInfo.slotNumber << endl;
                         }
                         cout << "\tstate: " << diskstate[edInfo.state] << endl;
                         cout << "\tusage: " << diskusage[edInfo.usage] << endl;
@@ -284,20 +287,10 @@ int main(int argc, char *argv[])
                         cout << "\tblocksTotal: " << edInfo.blocksTotal << endl;
                         cout << "\tblocksFree: " << edInfo.blocksFree << endl;
                         cout << "\tsystemDisk: " << edInfo.systemDisk << endl;
-#if 0
-                        SSI_Uint32 storagePool;
-
-                        /** Model number of device */
-                        SSI_Char model[SSI_END_DEVICE_MODEL_LENGTH];
-                        /** Firmware revision of device */
-                        SSI_Char firmware[SSI_END_DEVICE_FIRMWARE_LENGTH];
-                        /** Write cache policy */
-                        SSI_WriteCachePolicy writeCachePolicy;
-                        /** If true, disk is blinkable via SGPIO */
-                        SSI_Bool locateLEDSupport;
-                        /** If true, disk is visible to PreBoot OROM or EFI */
-                        SSI_Bool isPreBootVisible;
-#endif
+                        cout << "\tstoragePool: " << edInfo.storagePool << endl;
+                        cout << "\twriteCachePolicy: " << edInfo.writeCachePolicy << endl;
+                        cout << "\tlocateLEDSupport: " << edInfo.locateLEDSupport << endl;
+                        cout << "\tisPreBootVisible: " << edInfo.isPreBootVisible << endl;
                     } else {
                         cout << "E: unable to get end device info (status=" << status << ")" << endl;
                     }
@@ -312,26 +305,63 @@ int main(int argc, char *argv[])
             count = MAX_COUNT;
             status = SsiGetEnclosureHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
             if (status == SSI_StatusOk) {
-		    cout << "enclosures: " << count << endl;
-		    for (unsigned int i = 0; i < count; ++i) {
-			    cout << "handle=0x" << hex << handles[i] << dec << endl;
-			    status = SsiGetEnclosureInfo(session, handles[i], &enclosureInfo);
-			    if (status == SSI_StatusOk) {
-				    cout << "\tenclosureKey: " << enclosureInfo.enclosureKey << endl;
-				    cout << "\tvendorInfo: " << enclosureInfo.vendorInfo << endl;
-				    cout << "\tproductId: " << enclosureInfo.productId << endl;
-				    cout << "\tproductRev: " << enclosureInfo.productRev << endl;
-				    cout << "\tlogicalId: " << enclosureInfo.logicalId << endl;
-				    cout << "\tprocessorCount: " << enclosureInfo.processorCount << endl;
-				    cout << "\tsubenclosureCount: " << enclosureInfo.subenclosureCount << endl;
-				    cout << "\telementCount: " << enclosureInfo.elementCount << endl;
-				    cout << "\tnumberOfSlots: " << enclosureInfo.numberOfSlots << endl;
-			    } else {
-				    cout << "E: unable to get enclosure info (status=" << statusStr[status] << ")" << endl;
-			    }
-		    }
+            cout << "enclosures: " << count << endl;
+            for (unsigned int i = 0; i < count; ++i) {
+                cout << "handle=0x" << hex << handles[i] << dec << endl;
+                status = SsiGetEnclosureInfo(session, handles[i], &enclosureInfo);
+                if (status == SSI_StatusOk) {
+                    cout << "\tenclosureKey: " << enclosureInfo.enclosureKey << endl;
+                    cout << "\tvendorInfo: " << enclosureInfo.vendorInfo << endl;
+                    cout << "\tproductId: " << enclosureInfo.productId << endl;
+                    cout << "\tproductRev: " << enclosureInfo.productRev << endl;
+                    cout << "\tlogicalId: " << enclosureInfo.logicalId << endl;
+                    cout << "\tprocessorCount: " << enclosureInfo.processorCount << endl;
+                    cout << "\tsubenclosureCount: " << enclosureInfo.subenclosureCount << endl;
+                    cout << "\telementCount: " << enclosureInfo.elementCount << endl;
+                    cout << "\tnumberOfSlots: " << enclosureInfo.numberOfSlots << endl;
+                } else {
+                    cout << "E: unable to get enclosure info (status=" << statusStr[status] << ")" << endl;
+                }
+            }
             } else {
-		    cout << "E: unable to get enclosure handles (status=" << statusStr[status] << ")" << endl;
+            cout << "E: unable to get enclosure handles (status=" << statusStr[status] << ")" << endl;
+            }
+            break;
+
+    case oroutingdevice:
+            SSI_RoutingDeviceInfo rdInfo;
+            count = MAX_COUNT;
+            status = SsiGetRoutingDeviceHandles(session, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
+            if (status == SSI_StatusOk) {
+            cout << "routing devices: " << count << endl;
+            for (unsigned int i = 0; i < count; ++i) {
+                cout << "handle=0x" << hex << handles[i] << dec << endl;
+                status = SsiGetRoutingDeviceInfo(session, handles[i], &rdInfo);
+                if (status == SSI_StatusOk) {
+                    cout << "\tAddress (scsi): " << (unsigned) rdInfo.routingDeviceAddress.scsiAddress.host
+                         << ":"<< (unsigned) rdInfo.routingDeviceAddress.scsiAddress.bus
+                         << ":"<< (unsigned) rdInfo.routingDeviceAddress.scsiAddress.target
+                         << ":"<< (unsigned) rdInfo.routingDeviceAddress.scsiAddress.lun << endl;
+                    cout << "\tAddress (sas): 0x" << hex << rdInfo.routingDeviceAddress.sasAddress << dec << endl;
+                    cout << "\troutingDeviceType: " << rdtype[rdInfo.routingDeviceType] << endl;
+                    cout << "\tenclosureHandle: 0x" << hex << rdInfo.enclosureHandle << dec << endl;
+                    cout << "\tnumberPhys: " << rdInfo.numberPhys << endl;
+                    cout << "\tvendorId: " << rdInfo.vendorId << endl;
+                    cout << "\tproductId: " << rdInfo.productId << endl;
+                    cout << "\tproductRev: " << rdInfo.productRev << endl;
+                    cout << "\tcomponentVendorId: " << rdInfo.componentVendorId << endl;
+                    cout << "\tcomponentId: " << rdInfo.componentId << endl;
+                    cout << "\tcomponentRev: " << rdInfo.componentRev << endl;
+                    cout << "\texpanderType: " << rdInfo.expanderType << endl;
+                    cout << "\texpanderChangeCount: " << rdInfo.expanderChangeCount << endl;
+                    cout << "\texpanderRouteIndexes: " << rdInfo.expanderRouteIndexes << endl;
+                    cout << "\tselfConfiguring: " << rdInfo.selfConfiguring << endl;
+                } else {
+                    cout << "E: unable to get routing device info (status=" << statusStr[status] << ")" << endl;
+                }
+            }
+            } else {
+            cout << "E: unable to get routing device handles (status=" << statusStr[status] << ")" << endl;
             }
             break;
 
@@ -341,12 +371,8 @@ int main(int argc, char *argv[])
     }
 /*
 SSI_API SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle, SSI_PortInfo *info); tt
-SSI_API SSI_Status SsiGetEnclosureInfo(SSI_Handle session, SSI_Handle enclosureHandle, SSI_EnclosureInfo *info);tt
-SSI_API SSI_Status SsiGetEndDeviceInfo(SSI_Handle session, SSI_Handle endDeviceHandle, SSI_EndDeviceInfo *info); tt
-SSI_API SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session, SSI_Handle routingDeviceHandle, SSI_RoutingDeviceInfo *info); tt
 SSI_API SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle, SSI_ArrayInfo *info); tt
-SSI_API SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle, SSI_VolumeInfo *info); ok
-SSI_API SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle, SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *info); bugs
+
 */
 
     status = SsiFinalize();
