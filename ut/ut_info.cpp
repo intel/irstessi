@@ -339,7 +339,7 @@ int main(int argc, char *argv[])
                     cout << "\tcomponentVendorId: " << rdInfo.componentVendorId << endl;
                     cout << "\tcomponentId: " << rdInfo.componentId << endl;
                     cout << "\tcomponentRev: " << rdInfo.componentRev << endl;
-                    cout << "\texpanderType: " << rdInfo.expanderType << endl;
+                    cout << "\texpanderType: " << expandertype[rdInfo.expanderType] << endl;
                     cout << "\texpanderChangeCount: " << rdInfo.expanderChangeCount << endl;
                     cout << "\texpanderRouteIndexes: " << rdInfo.expanderRouteIndexes << endl;
                     cout << "\tselfConfiguring: " << rdInfo.selfConfiguring << endl;
