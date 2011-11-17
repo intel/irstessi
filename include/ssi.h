@@ -170,7 +170,7 @@ static const SSI_Uint32 SSI_INVALID_SLOTNUMBER = 0xFFFFFFFF;
  *
  * @brief   Ssi routing device component reverse length.
 **/
-#define SSI_ROUTING_DEVICE_COMPONENT_REV_LENGTH 2
+#define SSI_ROUTING_DEVICE_COMPONENT_REV_LENGTH 5
 
 /**
  * @def SSI_ARRAY_NAME_LENGTH
