@@ -44,6 +44,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_expander_phy.h"
 #include "isci_expander.h"
 #include "log/log.h"
+
 /* */
 ISCI_Expander::ISCI_Expander(const String &path)
     : RoutingDevice(path),
@@ -60,6 +61,39 @@ ISCI_Expander::ISCI_Expander(const String &path)
         }
     }
     dlog(" sas adress %s\n%llu\n", (const char *) path, m_SASAddress);
+    dir = m_Path + "/sas_expander";
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        try {
+            attr = *(*i) + "product_id";
+            attr >> m_ProductId;
+        } catch (...) {
+        }
+        try {
+            attr = *(*i) + "vendor_id";
+            attr >> m_Vendor;
+        } catch (...) {
+        }
+        try {
+            attr = *(*i) + "product_rev";
+            attr >> m_ProductRev;
+        } catch (...) {
+        }
+        try {
+            attr = *(*i) + "component_vendor_id";
+            attr >> m_ComponentVendorId;
+        } catch (...) {
+        }
+        try {
+            attr = *(*i) + "component_id";
+            attr >> m_ComponentId;
+        } catch (...) {
+        }
+        try {
+            attr = *(*i) + "component_revision_id";
+            attr >> m_ComponentRev;
+        } catch (...) {
+        }
+    }
 }
 
 /* */
