@@ -42,3 +42,22 @@ string diskstate[] = {"SSI_DiskStateUnknown", "SSI_DiskStateOffline", "SSI_DiskS
 string diskusage[] = {"SSI_DiskUsageUnknown", "SSI_DiskUsageArrayMember", "SSI_DiskUsagePassThru", "SSI_DiskUsageOfflineArray", "SSI_DiskUsageSpare", "SSI_DiskUsageArrayMemberReadOnlyMount", "SSI_DiskUsagePassThruReadOnlyMount"};
 string expandertype[] = {"SSI_ExpanderTypeUnknown", "SSI_ExpanderTypeEdge", "SSI_ExpanderTypeFanout"};
 string rdtype[] = {"SSI_RoutingDeviceTypeUnknown", "SSI_RoutingDeviceTypeMultiplier", "SSI_RoutingDeviceTypeExpander"};
+string raidlevel(SSI_RaidLevel rl)
+{
+    switch (rl) {
+        case SSI_RaidInvalid:
+            return "SSI_RaidInvalid";
+        case SSI_Raid0:
+            return "SSI_Raid0";
+        case SSI_Raid1:
+            return "SSI_Raid1";
+        case SSI_Raid10:
+            return "SSI_Raid10";
+        case SSI_Raid5:
+            return "SSI_Raid5";
+        case SSI_Raid6:
+            return "SSI_Raid6";
+        default:
+            return "Unknown";
+    }
+}

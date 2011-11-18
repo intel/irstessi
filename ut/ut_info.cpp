@@ -187,7 +187,19 @@ int main(int argc, char *argv[])
                         cout << "\tarrayOrdinal" << volumeInfo.arrayOrdinal << endl;
                         cout << "\tvolumeName" << volumeInfo.volumeName << endl;
                         cout << "\tvolume state: " << volumeInfo.state << endl;
-                        cout << "\tvolume raidLevel: " << volumeInfo.raidLevel << endl;
+                        cout << "\tvolume raidLevel: " << raidlevel(volumeInfo.raidLevel) << endl;
+                        cout << "\ttotalSize: " << volumeInfo.totalSize << endl;
+                        cout << "\tstripSize: " << volumeInfo.stripSize << endl;
+                        cout << "\tnumDisks: " << volumeInfo.numDisks << endl;
+                        cout << "\tmigrProgress: " << volumeInfo.migrProgress << endl;
+                        cout << "\tcachePolicy: " << volumeInfo.cachePolicy << endl;
+                        cout << "\tsystemVolume: " << volumeInfo.systemVolume << endl;
+                        cout << "\tmigrating: " << volumeInfo.migrating << endl;
+                        cout << "\tinitialized: " << volumeInfo.initialized << endl;
+                        cout << "\tverifyErrors: " << volumeInfo.verifyErrors << endl;
+                        cout << "\tverifyBadBlocks: " << volumeInfo.verifyBadBlocks << endl;
+                        cout << "\tlogicalSectorSize: " << volumeInfo.logicalSectorSize << endl;
+                        cout << "\tphysicalSectorSize: " << volumeInfo.physicalSectorSize << endl;
                     } else {
                         cout << "E: unable to get volume info (status=" << status << ")" << endl;
                     }
