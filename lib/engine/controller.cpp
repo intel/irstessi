@@ -71,6 +71,7 @@ Controller::Controller(const String &path)
     try {
         attr = m_Path + "/driver/module/version";
         attr >> m_DriverVersion;
+        __check_dots();
     } catch (...) {
         /* TODO: log that version of the driver cannot be determined. */
         m_DriverVersion = "0.0.0.1";
@@ -396,5 +397,16 @@ void Controller::acquireId(Session *pSession)
         (*i)->acquireId(pSession);
     }
 }
+
+void Controller::__check_dots()
+{
+    String s = m_DriverVersion;
+    for (int i = 0; i < 3; i++) {
+        s = s.after(".");
+        if (s == "")
+            m_DriverVersion += ".0";
+    }
+}
+
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
