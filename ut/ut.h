@@ -61,3 +61,33 @@ string raidlevel(SSI_RaidLevel rl)
             return "Unknown";
     }
 }
+
+string volumestate(SSI_VolumeState vs)
+{
+    switch (vs) {
+        case SSI_VolumeStateUnknown:
+            return "SSI_VolumeStateUnknown";
+        case SSI_VolumeStateNormal:
+            return "SSI_VolumeStateNormal";
+        case SSI_VolumeStateDegraded:
+            return "SSI_VolumeStateDegraded";
+        case SSI_VolumeStateFailed:
+            return "SSI_VolumeStateFailed";
+        case SSI_VolumeStateInitializing:
+            return "SSI_VolumeStateInitializing";
+        case SSI_VolumeStateRebuilding:
+            return "SSI_VolumeStateRebuilding";
+        case SSI_VolumeStateVerifying:
+            return "SSI_VolumeStateVerifying";
+        case SSI_VolumeStateVerifyingAndFix:
+            return "SSI_VolumeStateVerifyingAndFix";
+        case SSI_VolumeStateGeneralMigration:
+            return "SSI_VolumeStateGeneralMigration";
+        case SSI_VolumeStateLocked:
+            return "SSI_VolumeStateLocked";
+        case SSI_VolumeStateNonRedundantVolumeFailedDisk:
+            return "SSI_VolumeStateNonRedundantVolumeFailedDisk";
+        default:
+            return "SSI_VolumeStateUnknown";
+    }
+}

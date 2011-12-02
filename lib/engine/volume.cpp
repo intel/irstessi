@@ -98,36 +98,6 @@ Volume::Volume(const String &path, unsigned int ordinal)
     } catch (...) {
         // Intentionaly left blank
     }
-
-    try {
-        int degraded = 0;
-        SysfsAttr attr = m_Path + "/md/degraded";
-        attr >> degraded;
-        if (degraded > 0) {
-            switch (m_RaidLevel) {
-            case 1:
-            case 5:
-                if (degraded > 1) {
-                    m_State = SSI_VolumeStateFailed;
-                } else {
-                    m_State = SSI_VolumeStateDegraded;
-                }
-                break;
-            case 6:
-            case 10:
-                if (degraded > 2) {
-                    m_State = SSI_VolumeStateFailed;
-                } else {
-                    m_State = SSI_VolumeStateDegraded;
-                }
-                break;
-            default:
-                break;
-            }
-        }
-    } catch (...) {
-        // Intentionally left blank
-    }
     if (m_State == SSI_VolumeStateUnknown) {
         try {
             SysfsAttr attr = m_Path + "/md/array_state";
@@ -157,11 +127,46 @@ Volume::Volume(const String &path, unsigned int ordinal)
             } else
             if (temp == "repair") {
                 m_State = SSI_VolumeStateVerifyingAndFix;
+            } else
+            if (temp == "reshape") {
+                m_State = SSI_VolumeStateGeneralMigration;
             }
         } catch (...) {
             // Intentionally left blank
         }
     }
+    if (m_State == SSI_VolumeStateUnknown || m_State == SSI_VolumeStateNormal) {
+    try {
+        int degraded = 0;
+        SysfsAttr attr = m_Path + "/md/degraded";
+        attr >> degraded;
+        if (degraded > 0) {
+            switch (m_RaidLevel) {
+            case 1:
+            case 5:
+                if (degraded > 1) {
+                    m_State = SSI_VolumeStateFailed;
+                } else {
+                    m_State = SSI_VolumeStateDegraded;
+                }
+                break;
+            case 6:
+            case 10:
+                if (degraded > 2) {
+                    m_State = SSI_VolumeStateFailed;
+                } else {
+                    m_State = SSI_VolumeStateDegraded;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+    } catch (...) {
+        // Intentionally left blank
+    }
+    }
+
     try {
         SysfsAttr attr = m_Path + "/md/array_size";
         attr >> m_TotalSize;
@@ -339,6 +344,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     pInfo->totalSize = (m_ComponentSize << 10) * m_BlockDevices;
     pInfo->stripSize = ui2stripsize(m_StripSize);
     pInfo->numDisks = m_BlockDevices;
+    pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
     pInfo->migrProgress = m_MigrationProgress;
     if (m_CachingEnabled == false) {
         pInfo->cachePolicy = SSI_VolumeCachePolicyOff;

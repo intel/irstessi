@@ -183,10 +183,10 @@ int main(int argc, char *argv[])
                     cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetVolumeInfo(session, handles[i], &volumeInfo);
                     if (status == SSI_StatusOk) {
-                        cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle << dec << endl;
-                        cout << "\tarrayOrdinal" << volumeInfo.arrayOrdinal << endl;
-                        cout << "\tvolumeName" << volumeInfo.volumeName << endl;
-                        cout << "\tvolume state: " << volumeInfo.state << endl;
+                        cout << "\tarrayHandle = 0x" << hex << volumeInfo.arrayHandle << dec << endl;
+                        cout << "\tarrayOrdinal: " << volumeInfo.arrayOrdinal << endl;
+                        cout << "\tvolumeName: " << volumeInfo.volumeName << endl;
+                        cout << "\tvolume state: " << volumestate(volumeInfo.state) << endl;
                         cout << "\tvolume raidLevel: " << raidlevel(volumeInfo.raidLevel) << endl;
                         cout << "\ttotalSize: " << volumeInfo.totalSize << endl;
                         cout << "\tstripSize: " << volumeInfo.stripSize << endl;
