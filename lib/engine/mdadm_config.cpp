@@ -71,7 +71,7 @@ static int restart_monitor()
         /*ok new monitor will be started anyway*/
     }
     dlog("starting Monitor...");
-    return shell("mdadm --monitor --scan --daemonise -p ssimsg");
+    return shell("mdadm --monitor -y --scan --daemonise -p ssimsg");
 }
 
 static bool monitor_running()
