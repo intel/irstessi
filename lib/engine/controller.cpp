@@ -366,7 +366,6 @@ void Controller::attachEnclosure(Enclosure *pEnclosure)
 /* */
 void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container)
 {
-    String path = pRoutingDevice->getPath();
     for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; i++) {
         if (pRoutingDevice->getEnclosure() != *i && (*i)->attachedTo(pRoutingDevice))
             container.add(*i);
