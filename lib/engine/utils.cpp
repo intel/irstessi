@@ -48,8 +48,9 @@ int shell_cap(const String &s, String &r)
     }
     r.clear();
     do {
-        count = fread(buffer, sizeof(char), sizeof(buffer), pd);
+        count = fread(buffer, sizeof(char), sizeof(buffer)-1, pd);
         if (count > 0) {
+            buffer[count] = '\0';
             r.append(buffer, count);
         }
     } while (count > 0);
