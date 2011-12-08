@@ -238,6 +238,10 @@ SSI_Status Volume::rename(const String &newName)
     if (pArray == 0) {
         return SSI_StatusFailed;
     }
+
+    if (m_State != SSI_VolumeStateNormal)
+        return SSI_StatusInvalidState;
+
     if (shell("mdadm -S /dev/" + m_DevName) == 0 &&
             pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
         return pArray->assemble();
