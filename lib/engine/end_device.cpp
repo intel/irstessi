@@ -114,6 +114,27 @@ EndDevice::EndDevice(const String &path)
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
 
+    try {
+        SysfsAttr attr = m_Path + "/vendor";
+        attr >> m_Model;
+    } catch (...) {
+    }
+    try {
+        SysfsAttr attr = m_Path + "/model";
+        String tmp;
+        attr >> tmp;
+        if (m_Model == "ATA")
+            m_Model = tmp;
+        else
+            m_Model.append(" " + tmp);
+    } catch (...) {
+    }
+    try {
+        SysfsAttr attr = m_Path + "/rev";
+        attr >> m_Firmware;
+    } catch (...) {
+    }
+    
     unsigned char buffer[4096];
     bool hdioNotSupported = true, totalSizeNotSupported = false;
 
@@ -123,10 +144,6 @@ EndDevice::EndDevice(const String &path)
         if (ioctl(fd, HDIO_GET_IDENTITY, &id) >= 0) {
             m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
             m_SerialNum.trim();
-            m_Model.assign(reinterpret_cast<char *>(id.model), sizeof(id.model));
-            m_Model.trim();
-            m_Firmware.assign(reinterpret_cast<char *>(id.fw_rev), sizeof(id.fw_rev));
-            m_Firmware.trim();
             m_BlockSize = id.lba_capacity_2;
             if ((id.command_set_1 & id.cfs_enable_1) != 0) {
                 m_WriteCachePolicy = SSI_WriteCachePolicyOn;
@@ -150,14 +167,6 @@ EndDevice::EndDevice(const String &path)
     fd = sg_cmds_open_device("/dev/" + m_SgName, 0, 0);
     if (fd >= 0) {
         if (hdioNotSupported) {
-            if (sg_ll_inquiry(fd, 0, 0, 0, buffer, sizeof(buffer), 1, 0) == 0) {
-//              m_SerialNum.assign(reinterpret_cast<char *>((buffer) + SCSI_INQUIRY_SERIALNUM_OFFSET), HD_SERIALNO_LENGTH);
-//              m_SerialNum.trim();
-                m_Model.assign(reinterpret_cast<char *>(buffer) + SCSI_INQUIRY_MODEL_OFFSET, SSI_PRODUCT_ID_LENGTH);
-                m_Model.trim();
-                m_Firmware.assign(reinterpret_cast<char *>(buffer) + SCSI_INQUIRY_FW_OFFSET, SSI_PRODUCT_REV_LENGTH);
-                m_Firmware.trim();
-            }
             String sbuffer;
             if (shell_cap("sg_inq /dev/" + m_DevName, sbuffer) == 0) {
                 m_SerialNum = sbuffer.between("Unit serial number: ", "\n");
@@ -244,6 +253,8 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
         pInfo->systemDisk = SSI_FALSE;
     }
     pInfo->slotNumber = getSlotNumber();
+    pInfo->locateLEDSupport = SSI_FALSE;
+    pInfo->isPreBootVisible = pEnclosure?SSI_FALSE:SSI_TRUE;
 
     return SSI_StatusOk;
 }
