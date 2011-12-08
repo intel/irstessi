@@ -44,18 +44,36 @@ Enclosure::Enclosure(const String &path)
     CanonicalPath temp;
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
+
+    try {
+        SysfsAttr attr = m_Path + "/vendor";
+        attr >> m_VendorId;
+    } catch (...) {
+    }
+    try {
+        SysfsAttr attr = m_Path + "/model";
+        attr >> m_ProductId;
+    } catch (...) {
+    }
+    try {
+        SysfsAttr attr = m_Path + "/rev";
+        attr >> m_Rev;
+    } catch (...) {
+    }
+    Directory dir = m_Path + "/enclosure";
+    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        try {
+            SysfsAttr attr =  *(*i) + "components";
+            attr >> m_SlotCount;
+        } catch (...) {
+        }
+    }
+
     String sbuffer;
     if (shell_cap("sg_ses -p 0x1 /dev/" + m_SgName, sbuffer) == 0) {
         m_LogicalId = sbuffer.between("logical identifier (hex): ", "\n");
         m_LogicalId.trim();
-        m_VendorId = sbuffer.between("vendor: ", "product");
-        m_VendorId.trim();
-        m_ProductId = sbuffer.between("product:", "rev:");
-        m_ProductId.trim();
-        m_Rev = sbuffer.between("rev:", "vendor-specific");
-        m_Rev.trim();
-        m_SlotCount = sbuffer.between("number of possible elements:", "text: Array Device");
-        m_SubenclosureCount = sbuffer.between("number of secondary subenclosures:", "generation");
+        m_SubenclosureCount = sbuffer.between("number of secondary subenclosures:", "\n");
     }
     shell_cap("sg_ses -p 0xa /dev/" + m_SgName, sbuffer);
     if (sbuffer)
