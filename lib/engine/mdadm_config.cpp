@@ -62,7 +62,7 @@ static void backup_config(String &config)
 static int restart_monitor()
 {
     SysfsAttr attr = String("/var/run/mdadm/autorebuild.pid");
-    String pid;
+    String pid, s = "ssimsg";
     try {
         attr >> pid;
         if (shell("kill -n 15 " + pid) == 0)
@@ -70,8 +70,13 @@ static int restart_monitor()
     } catch (...) {
         /*ok new monitor will be started anyway*/
     }
+    try {
+        if (shell_cap("whereis -b ssimsg", s) == 0)
+            s = s.reverse_after(" ");
+    } catch (...) {
+    }
     dlog("starting Monitor...");
-    return shell("mdadm --monitor -y --scan --daemonise -p ssimsg");
+    return shell("mdadm --monitor -y --scan --daemonise -p " + s);
 }
 
 static bool monitor_running()
@@ -90,13 +95,9 @@ static bool monitor_running()
             return false;
         }
         try {
-            buffer.find("-p ssimsg");
+            buffer.find("ssimsg");
         } catch (...) {
-            try {
-                buffer.find("--program ssimsg");
-            } catch (...) {
-                return false;
-            }
+            return false;
         }
         return true;
     }
