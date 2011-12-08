@@ -173,7 +173,9 @@ static char * __utf8_trim_left(char *buf)
 static char * __utf8_trim_right(unsigned char *buf)
 {
     int count = 0;
-    unsigned char *p = reinterpret_cast<unsigned char *>(__utf8_offset(buf) - 1);
+    unsigned char *p = reinterpret_cast<unsigned char *>(__utf8_offset(buf));
+    if (p != buf)
+        p--;
     while (p > buf) {
         if (*p < 0x7f) {
             if (isspace(*p) == 0 && isprint(*p)) {
