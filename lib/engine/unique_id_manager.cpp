@@ -248,7 +248,7 @@ void Id::store()
         (m_Id >> 28) == ObjectType_Event)
         return;
 
-    AFile keyFile = String(SSI_IDKEY_FILE);
+    AFile keyFile(String(SSI_IDKEY_FILE));
     try {
         char s[11];
         sprintf(s, "0x%x", m_Id);
