@@ -62,6 +62,18 @@ AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, StorageObject *pPare
     : Phy(path, number, pParent), m_PhyPath(CanonicalPath(path + "/scsi_host" + path.reverse_right("/host")))
 {
     m_Protocol = SSI_PhyProtocolSATA;
+    try {
+        SysfsAttr attr = m_PhyPath + "/unique_id";
+        String id;
+        attr >> id;
+        try {
+            attr = path + "/../ata" + id + "/link" + id + "/ata_link/link" + id + "/sata_spd";
+            attr >> id;
+            m_negotiatedLinkSpeed = __internal_parse_linkrate(id);
+        } catch (...) {
+        }
+    } catch (...) {
+    }
 }
 
 /* */
