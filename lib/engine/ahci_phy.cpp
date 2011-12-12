@@ -54,6 +54,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci_tape.h"
 #include "ahci_multiplier.h"
 
+#include "log/log.h"
+
 /* */
 #define EM_MSG_WAIT     1500
 
@@ -66,14 +68,18 @@ AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, StorageObject *pPare
         SysfsAttr attr = m_PhyPath + "/unique_id";
         String id;
         attr >> id;
+        dlog(id);
         try {
             attr = path + "/../ata" + id + "/link" + id + "/ata_link/link" + id + "/sata_spd";
+            dlog(attr);
             attr >> id;
+            dlog(id);
             m_negotiatedLinkSpeed = __internal_parse_linkrate(id);
         } catch (...) {
         }
     } catch (...) {
     }
+    dlog(String(m_negotiatedLinkSpeed));
 }
 
 /* */
