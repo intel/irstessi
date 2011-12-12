@@ -48,7 +48,7 @@ int main(int argc, char *argv[])
 
     status = SsiSessionOpen(&session);
     if (status != SSI_StatusOk) {
-        cout << "E. Unable to open session" << endl;
+        cout << "E. Unable to open session (status=" << statusStr[status] << ")" << endl;
         return -1;
     }
 
@@ -114,11 +114,11 @@ int main(int argc, char *argv[])
                             }
                         }
                     } else {
-                        cout << "E. unable to get RaidInfo information" << endl;
+                        cout << "E. unable to get RaidInfo information (status=" << statusStr[status] << ")" << endl;
                     }
                 }
             } else {
-                cout << "E. Unable to get raid info handles" << endl;
+                cout << "E. Unable to get raid info handles (status=" << statusStr[status] << ")" << endl;
             }
 
             break;
@@ -165,11 +165,11 @@ int main(int argc, char *argv[])
                         cout << "\treadPatrolEnabled: " << (bool)controllerInfo.readPatrolEnabled << endl;
                         cout << "\txorEnabled: " << (bool)controllerInfo.xorEnabled << endl;
                     } else {
-                        cout << "E. Unable to get controller info" << endl;
+                        cout << "E. Unable to get controller info (status=" << statusStr[status] << ")" << endl;
                     }
                 }
             } else {
-                cout << "E. Unable to get controller handles" << endl;
+                cout << "E. Unable to get controller handles (status=" << statusStr[status] << ")" << endl;
             }
             break;
 
@@ -200,12 +200,24 @@ int main(int argc, char *argv[])
                         cout << "\tverifyBadBlocks: " << volumeInfo.verifyBadBlocks << endl;
                         cout << "\tlogicalSectorSize: " << volumeInfo.logicalSectorSize << endl;
                         cout << "\tphysicalSectorSize: " << volumeInfo.physicalSectorSize << endl;
+
+                        /* now show end devices for this volume*/
+                        SSI_Handle ehandles[MAX_COUNT];
+                        SSI_Uint32 ecount = MAX_COUNT;
+                        status = SsiGetEndDeviceHandles(session, SSI_ScopeTypeArray, volumeInfo.arrayHandle, ehandles, &ecount);
+                        if (status == SSI_StatusOk) {
+                            cout << "\tend devices: " << ecount << endl;
+                            for (unsigned int j = 0; j < ecount; ++j)
+                                cout << "\t\thandle=0x" << hex << ehandles[j] << dec << endl;
+                        } else {
+                            cout << "E: unable to get end device handles (status=" << statusStr[status] << ")" << endl;
+                        }
                     } else {
-                        cout << "E: unable to get volume info (status=" << status << ")" << endl;
+                        cout << "E: unable to get volume info (status=" << statusStr[status] << ")" << endl;
                     }
                 }
             } else {
-                cout << "E: unable to get volume handles (status=" << status << ")" << endl;
+                cout << "E: unable to get volume handles (status=" << statusStr[status] << ")" << endl;
             }
             break;
 
@@ -239,11 +251,11 @@ int main(int argc, char *argv[])
                         cout << "\tmaxLinkSpeed: " << physpeed[phyInfo.maxLinkSpeed] << endl;
                         cout << "\tcountsValid: " << phyInfo.countsValid << endl;
                     } else {
-                        cout << "E: unable to get phy info (status=" << status << ")" << endl;
+                        cout << "E: unable to get phy info (status=" << statusStr[status] << ")" << endl;
                     }
                 }
             } else {
-                cout << "E: unable to get phy handles (status=" << status << ")" << endl;
+                cout << "E: unable to get phy handles (status=" << statusStr[status] << ")" << endl;
             }
             break;
 
@@ -291,11 +303,11 @@ int main(int argc, char *argv[])
                         cout << "\tlocateLEDSupport: " << edInfo.locateLEDSupport << endl;
                         cout << "\tisPreBootVisible: " << edInfo.isPreBootVisible << endl;
                     } else {
-                        cout << "E: unable to get end device info (status=" << status << ")" << endl;
+                        cout << "E: unable to get end device info (status=" << statusStr[status] << ")" << endl;
                     }
                 }
             } else {
-                cout << "E: unable to get end device handles (status=" << status << ")" << endl;
+                cout << "E: unable to get end device handles (status=" << statusStr[status]<< ")" << endl;
             }
             break;
 
