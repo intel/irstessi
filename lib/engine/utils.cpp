@@ -36,6 +36,30 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "log/log.h"
 
+/**
+ * @brief capture shell output as binary data
+ *
+ * @note	Function does not append trailing '\0'
+ *
+ * @return	number of bytes read or -1 for error
+ */
+int shell_cap(const String &s, void *buf, size_t size)
+{
+    int count;
+    int index = 0;
+    unsigned char *buffer = reinterpret_cast<unsigned char *>(buf);
+    FILE *pd = popen(s, "r");
+    dlog(s);
+    if (pd == 0) {
+        return -1;
+    }
+    do {
+        count = fread(buffer + index, sizeof(unsigned char), size - index, pd);
+	index += count;
+    } while (count > 0);
+    return index;
+}
+
 /* */
 int shell_cap(const String &s, String &r)
 {

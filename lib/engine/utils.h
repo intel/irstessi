@@ -31,6 +31,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 int shell_cap(const String &s, String &r);
 
+/**
+ * @brief capture shell output as binary data
+ *
+ * @note	Function does not append trailing '\0'
+ *
+ * @return	number of bytes read or -1 for error
+ */
+int shell_cap(const String &s, void *buf, size_t size);
+
 /* */
 int shell(const String &s);
 

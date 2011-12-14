@@ -80,6 +80,8 @@ protected:
     SSI_ScsiAddress m_SCSIAddress;
     SSI_WriteCachePolicy m_WriteCachePolicy;
 
+    String &getFirmware(const String &devName, String &in);
+
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     RaidInfo * getRaidInfo() const;

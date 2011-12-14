@@ -29,6 +29,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <unistd.h>
 #include <linux/fs.h>
 #include <climits>
+#include <memory.h>
 
 #include <scsi/sg_lib.h>
 #include <scsi/sg_cmds_basic.h>
@@ -129,12 +130,9 @@ EndDevice::EndDevice(const String &path)
             m_Model.append(" " + tmp);
     } catch (...) {
     }
-    try {
-        SysfsAttr attr = m_Path + "/rev";
-        attr >> m_Firmware;
-    } catch (...) {
-    }
-    
+
+    getFirmware("/dev/"+ m_DevName, m_Firmware);
+
     unsigned char buffer[4096];
     bool hdioNotSupported = true, totalSizeNotSupported = false;
 
@@ -189,6 +187,42 @@ EndDevice::EndDevice(const String &path)
         }
         sg_cmds_close_device(fd);
     }
+}
+
+#define ATTR_PACKED __attribute__((packed))
+
+#pragma pack(1)
+struct ata_identify_device {
+  unsigned short words000_009[10];
+  unsigned char  serial_no[20];
+  unsigned short words020_022[3];
+  unsigned char  fw_rev[8];
+  unsigned char  model[40];
+  unsigned short words047_079[33];
+  unsigned short major_rev_num;
+  unsigned short minor_rev_num;
+  unsigned short command_set_1;
+  unsigned short command_set_2;
+  unsigned short command_set_extension;
+  unsigned short cfs_enable_1;
+  unsigned short word086;
+  unsigned short csf_default;
+  unsigned short words088_255[168];
+} ATTR_PACKED;
+#pragma pack()
+
+
+String &EndDevice::getFirmware(const String &devName, String &s)
+{
+    ata_identify_device ata;
+    /* one more to hold trailing zero */
+    char buf[sizeof(ata.fw_rev) + 1];
+    if (shell_cap("sg_sat_identify --raw " + devName, &ata, sizeof(ata)) < 0)
+	return s;
+    buf[sizeof(ata.fw_rev)] = '\0';
+    memcpy(buf, ata.fw_rev, sizeof(ata.fw_rev));
+    s.assign(buf);
+    return s;
 }
 
 /* */
