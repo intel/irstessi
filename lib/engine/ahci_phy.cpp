@@ -129,15 +129,6 @@ SSI_Status AHCI_Phy::locate(bool mode) const
     }
 }
 
-/* */
-void AHCI_Phy::setSpeeds(SSI_PhyInfo *pInfo) const
-{
-    pInfo->minHWLinkSpeed = SSI_PhySpeed_1_5_GEN1;
-    pInfo->maxHWLinkSpeed = SSI_PhySpeed_1_5_GEN1;
-    pInfo->minLinkSpeed = SSI_PhySpeed_1_5_GEN1;
-    pInfo->maxLinkSpeed = SSI_PhySpeed_1_5_GEN1;
-    pInfo->negotiatedLinkSpeed = SSI_PhySpeed_1_5_GEN1;
-}
 
 /* */
 EndDevice * AHCI_Phy::__internal_attach_end_device(Iterator<Directory *> i)
