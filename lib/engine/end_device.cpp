@@ -131,7 +131,14 @@ EndDevice::EndDevice(const String &path)
     } catch (...) {
     }
 
-    getFirmware("/dev/"+ m_DevName, m_Firmware);
+    try {
+        SysfsAttr attr = m_Path + "/rev";
+        attr >> m_Firmware;
+    } catch (...) {
+    }
+
+    getAtaDiskInfo("/dev/"+ m_DevName, m_Model, m_SerialNum, m_Firmware);
+    m_SerialNum.trim();
 
     unsigned char buffer[4096];
     bool hdioNotSupported = true, totalSizeNotSupported = false;
@@ -140,8 +147,10 @@ EndDevice::EndDevice(const String &path)
     if (fd >= 0) {
         struct hd_driveid id;
         if (ioctl(fd, HDIO_GET_IDENTITY, &id) >= 0) {
-            m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
-            m_SerialNum.trim();
+	    if (m_SerialNum.isEmpty()) {
+		m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
+		m_SerialNum.trim();
+	    }
             m_BlockSize = id.lba_capacity_2;
             if ((id.command_set_1 & id.cfs_enable_1) != 0) {
                 m_WriteCachePolicy = SSI_WriteCachePolicyOn;
@@ -166,7 +175,7 @@ EndDevice::EndDevice(const String &path)
     if (fd >= 0) {
         if (hdioNotSupported) {
             String sbuffer;
-            if (shell_cap("sg_inq /dev/" + m_DevName, sbuffer) == 0) {
+            if (m_SerialNum.isEmpty() && shell_cap("sg_inq /dev/" + m_DevName, sbuffer) == 0) {
                 m_SerialNum = sbuffer.between("Unit serial number: ", "\n");
                 m_SerialNum.trim();
             }
@@ -193,36 +202,63 @@ EndDevice::EndDevice(const String &path)
 
 #pragma pack(1)
 struct ata_identify_device {
-  unsigned short words000_009[10];
-  unsigned char  serial_no[20];
-  unsigned short words020_022[3];
-  unsigned char  fw_rev[8];
-  unsigned char  model[40];
-  unsigned short words047_079[33];
-  unsigned short major_rev_num;
-  unsigned short minor_rev_num;
-  unsigned short command_set_1;
-  unsigned short command_set_2;
-  unsigned short command_set_extension;
-  unsigned short cfs_enable_1;
-  unsigned short word086;
-  unsigned short csf_default;
-  unsigned short words088_255[168];
+    unsigned short words000_009[10];
+    char  serial_no[20];
+    unsigned short words020_022[3];
+    char  fw_rev[8];
+    char  model[40];
+    unsigned short words047_079[33];
+    unsigned short major_rev_num;
+    unsigned short minor_rev_num;
+    unsigned short command_set_1;
+    unsigned short command_set_2;
+    unsigned short command_set_extension;
+    unsigned short cfs_enable_1;
+    unsigned short word086;
+    unsigned short csf_default;
+    unsigned short words088_255[168];
 } ATTR_PACKED;
 #pragma pack()
 
-
-String &EndDevice::getFirmware(const String &devName, String &s)
+void EndDevice::copy2le(char *dest, const char *src, size_t n)
 {
+#ifdef WORDS_BIGENDIAN
+    memcpy(dest, src, n);
+#else
+  for (size_t i = 0; i < n; i += 2) {
+    dest[i]   = src[i+1];
+    dest[i+1] = src[i];
+  }
+#endif
+}
+
+/**
+ * @brief Fills model, vendor and firmware properties for ATA drives using sg_sat_identify
+ *
+ * @return	0 for success, -1 if popen fails and status of sg_sat_identify otherwise
+ */
+int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware)
+{
+    int status;
     ata_identify_device ata;
+    size_t size = sizeof(ata);
     /* one more to hold trailing zero */
-    char buf[sizeof(ata.fw_rev) + 1];
-    if (shell_cap("sg_sat_identify --raw " + devName, &ata, sizeof(ata)) < 0)
-	return s;
+    char buf[sizeof(ata.model) + 1];
+    status = shell_cap("sg_sat_identify --raw " + devName + " 2>/dev/null", &ata, size);
+    if (status != 0)
+	return status;
+    if (size != sizeof(ata))
+	return -1;
+    buf[sizeof(ata.serial_no)] = '\0';
+    copy2le(buf, const_cast<const char *>(ata.serial_no), sizeof(ata.serial_no));
+    serial.assign(buf);
+    buf[sizeof(ata.model)] = '\0';
+    copy2le(buf, const_cast<const char *>(ata.model), sizeof(ata.model));
+    model.assign(buf);
     buf[sizeof(ata.fw_rev)] = '\0';
-    memcpy(buf, ata.fw_rev, sizeof(ata.fw_rev));
-    s.assign(buf);
-    return s;
+    copy2le(buf, const_cast<const char *>(ata.fw_rev), sizeof(ata.fw_rev));
+    firmware.assign(buf);
+    return 0;
 }
 
 /* */

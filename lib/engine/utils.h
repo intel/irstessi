@@ -36,9 +36,9 @@ int shell_cap(const String &s, String &r);
  *
  * @note	Function does not append trailing '\0'
  *
- * @return	number of bytes read or -1 for error
+ * @return	`-1 for error or exit status of command
  */
-int shell_cap(const String &s, void *buf, size_t size);
+int shell_cap(const String &s, void *buf, size_t &size);
 
 /* */
 int shell(const String &s);

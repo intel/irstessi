@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
+#include <stddef.h>
 
 #include <ssi.h>
 

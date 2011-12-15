@@ -43,7 +43,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
  *
  * @return	number of bytes read or -1 for error
  */
-int shell_cap(const String &s, void *buf, size_t size)
+int shell_cap(const String &s, void *buf, size_t &size)
 {
     int count;
     int index = 0;
@@ -57,7 +57,8 @@ int shell_cap(const String &s, void *buf, size_t size)
         count = fread(buffer + index, sizeof(unsigned char), size - index, pd);
 	index += count;
     } while (count > 0);
-    return index;
+    size = index;
+    return pclose(pd);
 }
 
 /* */

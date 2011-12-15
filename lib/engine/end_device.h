@@ -80,8 +80,8 @@ protected:
     SSI_ScsiAddress m_SCSIAddress;
     SSI_WriteCachePolicy m_WriteCachePolicy;
 
-    String &getFirmware(const String &devName, String &in);
-
+    int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
+    void copy2le(char *dest, const char *src, size_t n);
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     RaidInfo * getRaidInfo() const;
