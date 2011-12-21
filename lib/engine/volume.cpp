@@ -213,7 +213,7 @@ Volume::~Volume()
 /* */
 SSI_Status Volume::initialize()
 {
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */
