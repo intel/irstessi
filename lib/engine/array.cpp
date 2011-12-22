@@ -143,11 +143,13 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
     }
     status = this->addSpare(container);
     this->getEndDevices(tmp,false);
-    if (status == SSI_StatusOk)
+    if (status == SSI_StatusOk) {
+        usleep(3000000);
         if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " +
                   String(tmp.count() + container.count())) != 0) {
             status = SSI_StatusFailed;
         }
+    }
     return status;
 }
 
@@ -203,6 +205,7 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
     }
     int result = shell("mdadm /dev/" + m_DevName + " -r /dev/" + pEndDevice->getDevName());
     if (result == 0) {
+        usleep(3000000);
         result = shell("mdadm --zero-superblock /dev/" + pEndDevice->getDevName());
     }
     if (result == 0) {
@@ -217,6 +220,7 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
     if (1 == m_Volumes) {
         return SSI_StatusOk;
     }
+    usleep(3000000);
     if (shell("mdadm --kill-subarray=" + String(ordinal) + " /dev/" + m_DevName) == 0) {
         return SSI_StatusOk;
     }
@@ -226,7 +230,7 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
 /* */
 SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 {
-
+    usleep(3000000);
     if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N " + newName + " /dev/md/" + m_Name) == 0) {
         return SSI_StatusOk;
     }
@@ -236,6 +240,7 @@ SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 /* */
 SSI_Status Array::assemble()
 {
+    usleep(3000000);
     if (shell("mdadm -I /dev/md/" + m_Name) == 0) {
         return SSI_StatusOk;
     }
@@ -303,6 +308,7 @@ SSI_Status Array::remove()
             for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
                 devices += " /dev/" + (*i)->getDevName();
             }
+            usleep(3000000);
             if (shell("mdadm --zero-superblock" + devices) == 0) {
                 return SSI_StatusOk;
             }

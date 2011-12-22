@@ -21,6 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <stddef.h>
+#include <unistd.h>
 
 #include <ssi.h>
 
@@ -625,6 +626,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
             if (shell("mdadm /dev/" + m_DevName + " --grow -l0") == 0) {
                 if (disks == 0 && !chunkChange)
                     return SSI_StatusOk;
+                usleep(3000000);
                 if (disks > 0)
                     return pArray->grow(disks);
                 if (shell("mdadm /dev/" + m_DevName + " --grow -l0" + ch) == 0)
