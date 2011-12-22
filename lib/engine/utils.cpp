@@ -49,7 +49,7 @@ int shell_cap(const String &s, void *buf, size_t &size)
     int index = 0;
     unsigned char *buffer = reinterpret_cast<unsigned char *>(buf);
     FILE *pd = popen(s, "r");
-    dlog(s);
+
     if (pd == 0) {
         return -1;
     }
@@ -67,7 +67,6 @@ int shell_cap(const String &s, String &r)
     char buffer[1024];
     int count;
     FILE *pd = popen(s, "r");
-    dlog(s);
     if (pd == 0) {
         return -1;
     }
