@@ -192,18 +192,17 @@ void UniqueIdManager::refresh()
     while (keyList) {
         unsigned int id;
         String sid = keyList.left(":");
-        if (sid == "")
-            break;
         String key = keyList.between(sid + ":", "\n");
-        if (key =="")
-            break;
         keyList = keyList.after(key + "\n");
         try {
             id = (unsigned int)(sid);
-            if (id == 0)
-                break;
+            if (id == 0 || key == "") { /* bad line  - just skip */
+                dlog("bad line");
+                continue;
+            }
             add(id, key);
         } catch (...) {
+            /* just skip the line */
             dlog(sid + " failed to convert to unsigned int");
         }
     }
@@ -247,6 +246,8 @@ void Id::store()
     if ((m_Id >> 28) == ObjectType_Session ||
         (m_Id >> 28) == ObjectType_Event)
         return;
+    if(m_Key == "")
+        return;
 
     AFile keyFile(String(SSI_IDKEY_FILE));
     try {
@@ -261,9 +262,9 @@ void Id::store()
 
 /* when not in cache find new Id */
 unsigned int IdCache::__findId() const {
-    unsigned int id = 0;
+    unsigned int id;
     Iterator<Id *> i;
-    while (++id <= 0x0fffffff) {
+    for(id = 1; id <= 0x0fffffff; id++) {
         for (i = first(); *i != 0; ++i) {
             if (((*i)->getId() & 0x0fffffff) == id) {
                 break;
@@ -300,7 +301,7 @@ void IdCache::add(Object *pObject)
     }
     Id *pId = *i;
     if (pId == 0) {
-        dlog(String("new object found ") + String(pObject->getType()) + String(pObject->getKey()));
+        dlog(String("new object ") + String(pObject->getType()) + " " + String(pObject->getKey()));
         unsigned int id = __findId();
         /* TODO when out of id's clean the id file:
          * remove all id:key pairs of the same type that have no objects in cache */
@@ -330,7 +331,7 @@ void IdCache::add(unsigned int id, String key)
     } else {
         /* already in cache */
         if ((*i)->getKey() != key)
-            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key);
+            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + (*i)->getKey());
     }
 }
 
