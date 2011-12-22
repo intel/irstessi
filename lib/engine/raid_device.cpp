@@ -55,12 +55,8 @@ RaidDevice::RaidDevice(const String &path)
     for (Iterator<Directory *> i = dir; *i != 0; ++i) {
         m_Components.add(new String((*i)->reverse_after("/")));
     }
+    update();
 
-    String buffer;
-    if (shell_cap("mdadm --detail --export /dev/" + m_DevName, buffer) == 0) {
-        m_Uuid = buffer.between("MD_UUID=", "\n");
-        m_Name = buffer.between("MD_DEVNAME=", "\n");
-    }
 }
 
 /* */
@@ -107,13 +103,20 @@ void RaidDevice::update()
 /* */
 void RaidDevice::__internal_update(String &map)
 {
-    String line;
+    String line, name;
+    int create = 0;
     map += "\n";
     line = map.left("\n");
-    dlog(m_Name + " looking up in map");
+    if (m_Name != "") {
+        name = m_Name;
+        create = 1;
+    } else {
+        name = m_DevName;
+    }
+    dlog(name + " looking up in map");
     while (line != "") {
         try {
-            line.find(m_Name);
+            line.find(name);
             break;
         } catch (...) {
         }
@@ -122,7 +125,10 @@ void RaidDevice::__internal_update(String &map)
     }
     if (line == "")
         throw E_ARRAY_CREATE_FAILED;
-    m_DevName = line.left(" ");
+    if (create)
+        m_DevName = line.left(" ");
+    else
+        m_Name = line.reverse_after("/");
     line = line.reverse_left(" ");
     m_Uuid = line.reverse_after(" ");
     dlog(m_Name + " found in map: " + m_DevName + " " + m_Uuid);
