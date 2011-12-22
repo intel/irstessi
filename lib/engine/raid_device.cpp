@@ -103,7 +103,7 @@ void RaidDevice::update()
 /* */
 void RaidDevice::__internal_update(String &map)
 {
-    String line, name;
+    String line, name, tmp;
     int create = 0;
     map += "\n";
     line = map.left("\n");
@@ -115,8 +115,12 @@ void RaidDevice::__internal_update(String &map)
     }
     dlog(name + " looking up in map");
     while (line != "") {
+        if (create)
+            tmp = line.reverse_after("/");
+        else
+            tmp = line.left(" ");
         try {
-            line.find(name);
+            tmp.find(name);
             break;
         } catch (...) {
         }
