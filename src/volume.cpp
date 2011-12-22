@@ -21,6 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <stddef.h>
+#include <unistd.h>
 
 #include <ssi.h>
 
@@ -220,8 +221,13 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         if (params.raidLevel != SSI_Raid1)
             pVolume->setStripSize(params.stripSize);
         pVolume->create();
-        pArray->update();
-        pVolume->update();
+        int i = 0;
+        while (pVolume->getKey() == "" && i<10) {
+            pArray->update();
+            pVolume->update();
+            usleep(1000000);
+            i++;
+        }
         pSession->addVolume(pVolume);
         pSession->addArray(pArray);
         *volumeHandle = pVolume->getId();
