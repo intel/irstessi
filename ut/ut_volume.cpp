@@ -63,6 +63,8 @@ int main(int argc, char *argv[])
                 }
             }
         }
+    } else {
+        cout << "E: unable to get end device handles (status=" << statusStr[status] << ")" << endl;
     }
 
     if (j < 10) {
@@ -78,7 +80,7 @@ int main(int argc, char *argv[])
     /* create raid5 volume*/
     SSI_CreateFromDisksParams params;
     params.disks = endDevices;
-    params.numDisks = 8;
+    params.numDisks = 3;
     params.sourceDisk = SSI_NULL_HANDLE;
     strcpy(params.volumeName, "ut_Volume");
     params.stripSize = SSI_StripSize64kB;
@@ -104,7 +106,7 @@ int main(int argc, char *argv[])
             arrayHandle = handles[0];
         }
     } else {
-        cout << "E: unable to get array handles (status=" << status << ")" << endl;
+        cout << "E: unable to get array handles (status=" << statusStr[status] << ")" << endl;
     }
     /* find array handle */
     cout << "-->SsiGetVolumeHandles..." << endl;
@@ -116,7 +118,7 @@ int main(int argc, char *argv[])
             cout << "\thandle=0x" << hex << handles[i] << endl;
         }
     }else {
-        cout << "E: unable to get volume handles (status=" << status << ")" << endl;
+        cout << "E: unable to get volume handles (status=" << statusStr[status] << ")" << endl;
     }
 
     /* create raid0 volume on the same array */
@@ -133,7 +135,7 @@ int main(int argc, char *argv[])
         cout << "E: unable to create second volume in the same array." << endl;
     }
 
-    /* get handles of both volumes */
+    /*get handles of both volumes */
     cout << "-->SsiGetVolumeHandles..." << endl;
     count = 10;
     status = SsiGetVolumeHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
@@ -146,7 +148,10 @@ int main(int argc, char *argv[])
         cout << "E: unable to get volume handles (status=" << status << ")" << endl;
     }
 
-
+    status = SsiVolumeDelete(volumeHandle);
+    if (status != SSI_StatusOk) {
+                cout << "E: unable to delete volume (status=" << statusStr[status] << ")" << endl;
+    }
     status = SsiFinalize();
     if (status != SSI_StatusOk) {
         return -2;
