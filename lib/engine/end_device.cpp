@@ -139,6 +139,8 @@ EndDevice::EndDevice(const String &path)
 
     getAtaDiskInfo("/dev/"+ m_DevName, m_Model, m_SerialNum, m_Firmware);
     m_SerialNum.trim();
+    m_Model.trim();
+    m_Firmware.trim();
 
     unsigned char buffer[4096];
     bool hdioNotSupported = true, totalSizeNotSupported = false;
@@ -147,10 +149,10 @@ EndDevice::EndDevice(const String &path)
     if (fd >= 0) {
         struct hd_driveid id;
         if (ioctl(fd, HDIO_GET_IDENTITY, &id) >= 0) {
-	    if (m_SerialNum.isEmpty()) {
-		m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
-		m_SerialNum.trim();
-	    }
+        if (m_SerialNum.isEmpty()) {
+        m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
+        m_SerialNum.trim();
+        }
             m_BlockSize = id.lba_capacity_2;
             if ((id.command_set_1 & id.cfs_enable_1) != 0) {
                 m_WriteCachePolicy = SSI_WriteCachePolicyOn;
@@ -235,7 +237,7 @@ void EndDevice::copy2le(char *dest, const char *src, size_t n)
 /**
  * @brief Fills model, vendor and firmware properties for ATA drives using sg_sat_identify
  *
- * @return	0 for success, -1 if popen fails and status of sg_sat_identify otherwise
+ * @return  0 for success, -1 if popen fails and status of sg_sat_identify otherwise
  */
 int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware)
 {
@@ -246,9 +248,9 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     char buf[sizeof(ata.model) + 1];
     status = shell_cap("sg_sat_identify --raw " + devName + " 2>/dev/null", &ata, size);
     if (status != 0)
-	return status;
+    return status;
     if (size != sizeof(ata))
-	return -1;
+    return -1;
     buf[sizeof(ata.serial_no)] = '\0';
     copy2le(buf, const_cast<const char *>(ata.serial_no), sizeof(ata.serial_no));
     serial.assign(buf);
