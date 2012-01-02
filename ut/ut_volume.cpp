@@ -15,21 +15,28 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssi.h>
 #include "ut.h"
 
+TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count);
+TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count);
+TestResult create_two_volumes(SSI_Handle *endDevices, unsigned int count);
+int clean();
+
 int main(int argc, char *argv[])
 {
     SSI_Status status;
     SSI_Uint32 count;
-    SSI_Handle volumeHandle = 0;
-    SSI_Handle arrayHandle = 0;
+    unsigned int passed = 0;
+    unsigned int failed = 0;
+    unsigned int notrun = 0;
+    TestResult rv;
+
+//    SSI_Handle arrayHandle = 0;
     SSI_Handle session;
 
     (void)argc;
     (void)argv;
 
-    if (system("cd scripts; ./clean.sh") != 0) {
-        cout << "E: unable to stop existing md devices and clean metadata." << endl;
+    if (clean() != 0)
         return -1;
-    }
 
     status = SsiInitialize();
     if (status != SSI_StatusOk) {
@@ -77,25 +84,148 @@ int main(int argc, char *argv[])
         cout << "Disk " << i << "\t"<< hex << endDevices[i] << dec << endl;
     }
 
-    /* create raid5 volume*/
+    rv = create_and_delete(endDevices, j);
+    switch (rv) {
+        case Passed:
+            passed++;
+            break;
+        case NotRun:
+            notrun++;
+            break;
+        default:
+            failed++;
+    }
+
+    rv = create_and_rename(endDevices, j);
+    switch (rv) {
+        case Passed:
+            passed++;
+            break;
+        case NotRun:
+            notrun++;
+            break;
+        default:
+            failed++;
+    }
+
+    rv = create_two_volumes(endDevices, j);
+    switch (rv) {
+        case Passed:
+            passed++;
+            break;
+        case NotRun:
+            notrun++;
+            break;
+        default:
+            failed++;
+    }
+
+    cout << "Passed: " << passed << endl;
+    cout << "Failed: " << failed << endl;
+    cout << "Not run: " << notrun << endl;
+
+    status = SsiFinalize();
+    if (status != SSI_StatusOk) {
+        return -2;
+    }
+    return 0;
+}
+
+int clean()
+{
+    if (system("cd scripts; ./clean.sh") != 0) {
+        cout << "E: unable to stop existing md devices and clean metadata." << endl;
+        return 1;
+    }
+    return 0;
+}
+
+
+SSI_Status create(SSI_Handle *endDevices, unsigned int count, SSI_Handle *volumeHandle)
+{
+
+    SSI_Status status;
+    /* create raid0 volume*/
     SSI_CreateFromDisksParams params;
+
+    if (endDevices == 0 || count == 0 || volumeHandle == 0 )
+        return SSI_StatusFailed;
     params.disks = endDevices;
     params.numDisks = 3;
     params.sourceDisk = SSI_NULL_HANDLE;
     strcpy(params.volumeName, "ut_Volume");
     params.stripSize = SSI_StripSize64kB;
-    params.raidLevel = SSI_Raid5;
+    params.raidLevel = SSI_Raid0;
     params.sizeInBytes = 1024UL*1024*1024*7;
 
     cout << "-->SsiVolumeCreateFromDisks..." << endl;
-    status = SsiVolumeCreateFromDisks(params, &volumeHandle);
+    status = SsiVolumeCreateFromDisks(params, volumeHandle);
     if (status == SSI_StatusOk) {
-        cout << "Created volume: volumeHandle=0x" << hex << volumeHandle << endl;
+        cout << "Created volume: volumeHandle=0x" << hex << *volumeHandle << endl;
+    } else {
+        cout << "Volume creation failed (status=" << statusStr[status] << ")"  << endl;
     }
+    usleep(3000000);
+    return status;
+}
+
+TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count)
+{
+    SSI_Handle volumeHandle;
+    SSI_Status status;
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return NotRun;
+    /* now delete it */
+    cout << "-->SsiVolumeDelete..." << endl;
+    status = SsiVolumeDelete(volumeHandle);
+    if (status != SSI_StatusOk) {
+        cout << "E: unable to delete volume (status=" << statusStr[status] << ")" << endl;
+        return Failed;
+    } else {
+        cout << "volume deleted" << endl;
+    }
+    return Passed;
+}
+
+TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count)
+{
+    SSI_Handle volumeHandle;
+    SSI_Status status;
+    TestResult rv = Passed;
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return NotRun;
+    usleep(3000000);
+    cout << "-->SsiVolumeRename..." << endl;
+    status = SsiVolumeRename(volumeHandle, "aaa");
+    if (status != SSI_StatusOk) {
+        cout << "E: unable to rename volume (status=" << statusStr[status] << ")" << endl;
+        rv = Failed;
+    } else {
+        cout << "volume renamed" << endl;
+    }
+    if (clean() != 0) {
+        cout << "unable to clean up" << endl;
+        return rv;
+    }
+    return rv;
+}
+
+TestResult create_two_volumes(SSI_Handle *endDevices, unsigned int ecount)
+{
+    SSI_Handle volumeHandle, arrayHandle;
+    SSI_Status status;
+    unsigned int count;
+    SSI_Handle handles[HANDLE_COUNT];
+
+    status = create(endDevices, ecount, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return NotRun;
 
     /* find array handle */
     cout << "-->SsiGetArrayHandles..." << endl;
-    count = 10;
+    count = HANDLE_COUNT;
     status = SsiGetArrayHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
     if (status == SSI_StatusOk) {
         cout << "arrays: " << count << endl;
@@ -107,22 +237,11 @@ int main(int argc, char *argv[])
         }
     } else {
         cout << "E: unable to get array handles (status=" << statusStr[status] << ")" << endl;
-    }
-    /* find array handle */
-    cout << "-->SsiGetVolumeHandles..." << endl;
-    count = 10;
-    status = SsiGetVolumeHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
-    if (status == SSI_StatusOk) {
-        cout << "volumes: " << count << endl;
-        for (unsigned int i = 0; i < count; ++i) {
-            cout << "\thandle=0x" << hex << handles[i] << endl;
-        }
-    }else {
-        cout << "E: unable to get volume handles (status=" << statusStr[status] << ")" << endl;
+        return NotRun;
     }
 
     /* create raid0 volume on the same array */
-    cout << "-->SsiVolumeCreate..." << endl;
+    cout << "-->SsiVolumeCreateFromArray..." << endl;
     SSI_CreateFromArrayParams array_params;
     array_params.arrayHandle = arrayHandle;
     strcpy(array_params.volumeName, "ut_Volume_r0_01");
@@ -132,12 +251,13 @@ int main(int argc, char *argv[])
 
     status = SsiVolumeCreate(array_params);
     if (status != SSI_StatusOk) {
-        cout << "E: unable to create second volume in the same array." << endl;
+        cout << "E: unable to create second volume in the same array.(status=" << statusStr[status] << ")" << endl;
+        return Failed;
     }
 
     /*get handles of both volumes */
     cout << "-->SsiGetVolumeHandles..." << endl;
-    count = 10;
+    count = HANDLE_COUNT;
     status = SsiGetVolumeHandles(SSI_NULL_HANDLE, SSI_ScopeTypeNone, SSI_NULL_HANDLE, handles, &count);
     if (status == SSI_StatusOk) {
         cout << "volumes: " << count << endl;
@@ -146,17 +266,12 @@ int main(int argc, char *argv[])
         }
     } else {
         cout << "E: unable to get volume handles (status=" << status << ")" << endl;
+        return Failed;
     }
 
-    status = SsiVolumeDelete(volumeHandle);
-    if (status != SSI_StatusOk) {
-                cout << "E: unable to delete volume (status=" << statusStr[status] << ")" << endl;
+    if (clean() != 0) {
+        cout << "unable to clean up" << endl;
     }
-    status = SsiFinalize();
-    if (status != SSI_StatusOk) {
-        return -2;
-    }
-    return 0;
+    return Passed;
 }
-
 // ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 noexpandtab:
