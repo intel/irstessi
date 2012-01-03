@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ut.h"
 
 TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count);
+TestResult create_delete_and_create(SSI_Handle *endDevices, unsigned int count);
 TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count);
 TestResult create_two_volumes(SSI_Handle *endDevices, unsigned int count);
 int clean();
@@ -84,42 +85,69 @@ int main(int argc, char *argv[])
         cout << "Disk " << i << "\t"<< hex << endDevices[i] << dec << endl;
     }
 
+    cout << "Test 1: Create and Delete" << endl;
     rv = create_and_delete(endDevices, j);
     switch (rv) {
         case Passed:
+            cout << "Passed" << endl;
             passed++;
             break;
         case NotRun:
+            cout << "NotRun" << endl;
             notrun++;
             break;
         default:
+            cout << "Failed" << endl;
             failed++;
     }
 
-    rv = create_and_rename(endDevices, j);
+    cout << "Test 2: Create, Delete and Create" << endl;
+    rv = create_delete_and_create(endDevices, j);
     switch (rv) {
         case Passed:
+            cout << "Passed" << endl;
             passed++;
             break;
         case NotRun:
+            cout << "NotRun" << endl;
             notrun++;
             break;
         default:
+            cout << "Failed" << endl;
+            failed++;
+    }
+
+    /*
+    rv = create_and_rename(endDevices, j);
+    switch (rv) {
+        case Passed:
+            cout << "Passed" << endl;
+            passed++;
+            break;
+        case NotRun:
+            cout << "NotRun" << endl;
+            notrun++;
+            break;
+        default:
+            cout << "Failed" << endl;
             failed++;
     }
 
     rv = create_two_volumes(endDevices, j);
     switch (rv) {
         case Passed:
+            cout << "Passed" << endl;
             passed++;
             break;
         case NotRun:
+            cout << "NotRun" << endl;
             notrun++;
             break;
         default:
+            cout << "Failed" << endl;
             failed++;
     }
-
+*/
     cout << "Passed: " << passed << endl;
     cout << "Failed: " << failed << endl;
     cout << "Not run: " << notrun << endl;
@@ -188,6 +216,21 @@ TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count)
     return Passed;
 }
 
+TestResult create_delete_and_create(SSI_Handle *endDevices, unsigned int count)
+{
+    SSI_Handle volumeHandle;
+    SSI_Status status;
+
+    TestResult rv = create_and_delete(endDevices, count);
+    if (rv != Passed)
+        return NotRun;
+
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return Failed;
+    return Passed;
+}
+
 TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count)
 {
     SSI_Handle volumeHandle;
@@ -196,7 +239,7 @@ TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count)
     status = create(endDevices, count, &volumeHandle);
     if (status != SSI_StatusOk)
         return NotRun;
-    usleep(3000000);
+    usleep(5000000);
     cout << "-->SsiVolumeRename..." << endl;
     status = SsiVolumeRename(volumeHandle, "aaa");
     if (status != SSI_StatusOk) {
