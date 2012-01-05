@@ -188,9 +188,10 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     }
     Volume *pVolume = 0;
     Array *pArray = 0;
+    Container<EndDevice> container;
+    EndDevice *pEndDevice;
+    /* create container */
     try {
-        Container<EndDevice> container;
-        EndDevice *pEndDevice;
         for (unsigned int i = 0; i < params.numDisks; ++i) {
             pEndDevice = pSession->getEndDevice(params.disks[i]);
             if (pEndDevice == 0) {
@@ -206,9 +207,16 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         }
         pArray->setEndDevices(container);
         pArray->create();
+    } catch (Exception ex) {
+        delete pArray;
+        return SSI_StatusFailed;
+    }
+    /* create volume */
+    try {
         try {
             pVolume = new Volume();
         } catch (...) {
+            pArray->remove();
             delete pArray;
             return SSI_StatusInsufficientResources;
         }
@@ -227,6 +235,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         return SSI_StatusOk;
     } catch (Exception ex) {
         delete pVolume;
+        pArray->remove();
         delete pArray;
         switch (ex) {
         case E_INVALID_STRIP_SIZE:
