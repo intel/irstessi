@@ -221,13 +221,6 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         if (params.raidLevel != SSI_Raid1)
             pVolume->setStripSize(params.stripSize);
         pVolume->create();
-        int i = 0;
-        while (pVolume->getKey() == "" && i<10) {
-            pArray->update();
-            pVolume->update();
-            usleep(1000000);
-            i++;
-        }
         pSession->addVolume(pVolume);
         pSession->addArray(pArray);
         *volumeHandle = pVolume->getId();

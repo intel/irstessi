@@ -96,6 +96,7 @@ private:
     void __internal_determine_total_and_free_size();
     void __internal_determine_array_name();
     void __internal_attach_end_device(Session *pSession, const String &path);
+    void __wait_for_container();
 };
 
 #endif /* __ARRAY_H__INCLUDED__ */

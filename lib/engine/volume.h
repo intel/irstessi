@@ -106,6 +106,7 @@ public:
 
 private:
     void __internal_initialize();
+    void __wait_for_volume();
     SSI_Status __toRaid0(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
     SSI_Status __toRaid10(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
     SSI_Status __toRaid5(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);

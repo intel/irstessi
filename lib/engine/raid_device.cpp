@@ -89,13 +89,12 @@ void RaidDevice::update()
 {
     File mapFile = String(MAP_FILE_PATH);
     String map;
-
     try {
         mapFile >> map;
         __internal_update(map);
     } catch (...) {
         dlog("failed to read map file");
-        throw E_ARRAY_CREATE_FAILED;
+        return;
     }
     m_Path = CanonicalPath("/sys/block/" + m_DevName);
 }

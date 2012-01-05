@@ -318,6 +318,34 @@ SSI_Status Array::remove()
     return SSI_StatusFailed;
 }
 
+void Array::__wait_for_container()
+{
+    int i = 0;
+    bool link, found = false;
+    /* first find out what dev name was assigned */
+    do {
+        update();
+        if (getKey() == "") {
+            usleep(1000000);
+            i++;
+        } else {
+            break;
+        }
+    } while (i < 10);
+    /* wait for link - udev should create one but sometimes it does not
+       create link if we know dev name */
+    link = (m_DevName != "");
+    i = 0;
+    do {
+        usleep(1000000);
+        found = (shell("ls /dev/md/" + m_Name) == 0);
+        if (!found && link && shell("ln -s /dev/" + m_DevName + " /dev/md/" + m_Name) == 0) {
+            break;
+        }
+        i++;
+    } while (!found && i < 10);
+}
+
 void Array::create()
 {
     determineDeviceName("Imsm_");
@@ -329,6 +357,7 @@ void Array::create()
     if (shell("mdadm -CR " + m_Name + " -f -amd -eimsm -n" + String(m_BlockDevices) + devices) != 0) {
         throw E_ARRAY_CREATE_FAILED;
     }
+    __wait_for_container();
 }
 
 /* */

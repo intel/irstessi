@@ -463,6 +463,20 @@ void Volume::setStripSize(SSI_StripSize stripSize)
     m_StripSize = stripsize2ui(stripSize);
 }
 
+void Volume::__wait_for_volume()
+{
+    int j = 0;
+    Array *pArray = dynamic_cast<Array *>(m_pParent);
+    if (!pArray)
+        return;
+    while (getKey() == "" && j < 10) {
+        pArray->update();
+        update();
+        usleep(3000000);
+        j++;
+    }
+}
+
 /* */
 void Volume::create()
 {
@@ -487,6 +501,7 @@ void Volume::create()
             chunk + " -n" + String(m_BlockDevices) + devices) != 0) {
         throw E_VOLUME_CREATE_FAILED;
     }
+    __wait_for_volume();
 }
 
 SSI_RaidLevel ui2raidlevel(unsigned int level)
