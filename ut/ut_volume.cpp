@@ -19,6 +19,7 @@ TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count);
 TestResult create_delete_and_create(SSI_Handle *endDevices, unsigned int count);
 TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count);
 TestResult create_two_volumes(SSI_Handle *endDevices, unsigned int count);
+TestResult expand_volume(SSI_Handle *endDevices, unsigned int count);
 int clean();
 
 int main(int argc, char *argv[])
@@ -29,8 +30,6 @@ int main(int argc, char *argv[])
     unsigned int failed = 0;
     unsigned int notrun = 0;
     TestResult rv;
-
-//    SSI_Handle arrayHandle = 0;
     SSI_Handle session;
 
     (void)argc;
@@ -117,7 +116,7 @@ int main(int argc, char *argv[])
             failed++;
     }
 
-    /*
+    cout << "Test 3: Create and Rename" << endl;
     rv = create_and_rename(endDevices, j);
     switch (rv) {
         case Passed:
@@ -133,6 +132,7 @@ int main(int argc, char *argv[])
             failed++;
     }
 
+    cout << "Test 4: Create 2 volumes" << endl;
     rv = create_two_volumes(endDevices, j);
     switch (rv) {
         case Passed:
@@ -147,7 +147,23 @@ int main(int argc, char *argv[])
             cout << "Failed" << endl;
             failed++;
     }
-*/
+
+    cout << "Test 5: Create and Expand" << endl;
+    rv = expand_volume(endDevices, j);
+    switch (rv) {
+        case Passed:
+            cout << "Passed" << endl;
+            passed++;
+            break;
+        case NotRun:
+            cout << "NotRun" << endl;
+            notrun++;
+            break;
+        default:
+            cout << "Failed" << endl;
+            failed++;
+    }
+
     cout << "Passed: " << passed << endl;
     cout << "Failed: " << failed << endl;
     cout << "Not run: " << notrun << endl;
@@ -184,14 +200,14 @@ SSI_Status create(SSI_Handle *endDevices, unsigned int count, SSI_Handle *volume
     strcpy(params.volumeName, "ut_Volume");
     params.stripSize = SSI_StripSize64kB;
     params.raidLevel = SSI_Raid0;
-    params.sizeInBytes = 1024UL*1024*1024*7;
+    params.sizeInBytes = 1024UL*1024*1024*2;
 
     cout << "-->SsiVolumeCreateFromDisks..." << endl;
     status = SsiVolumeCreateFromDisks(params, volumeHandle);
     if (status == SSI_StatusOk) {
         cout << "Created volume: volumeHandle=0x" << hex << *volumeHandle << endl;
     } else {
-        cout << "Volume creation failed (status=" << statusStr[status] << ")"  << endl;
+        cout << "E: Volume creation failed (status=" << statusStr[status] << ")"  << endl;
     }
     usleep(3000000);
     return status;
@@ -209,9 +225,10 @@ TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count)
     status = SsiVolumeDelete(volumeHandle);
     if (status != SSI_StatusOk) {
         cout << "E: unable to delete volume (status=" << statusStr[status] << ")" << endl;
+        clean();
         return Failed;
     } else {
-        cout << "volume deleted" << endl;
+        cout << "Volume deleted" << endl;
     }
     return Passed;
 }
@@ -226,9 +243,9 @@ TestResult create_delete_and_create(SSI_Handle *endDevices, unsigned int count)
         return NotRun;
 
     status = create(endDevices, count, &volumeHandle);
-    if (status != SSI_StatusOk)
-        return Failed;
-    return Passed;
+    rv = (status != SSI_StatusOk)?Failed:Passed;
+    clean();
+    return rv;
 }
 
 TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count)
@@ -241,17 +258,19 @@ TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count)
         return NotRun;
     usleep(5000000);
     cout << "-->SsiVolumeRename..." << endl;
-    status = SsiVolumeRename(volumeHandle, "aaa");
+    status = SsiVolumeRename(volumeHandle, "ut_Renamed");
     if (status != SSI_StatusOk) {
         cout << "E: unable to rename volume (status=" << statusStr[status] << ")" << endl;
         rv = Failed;
     } else {
-        cout << "volume renamed" << endl;
+        /* check if properly renamed */
+        usleep(3000000);
+        if (system("grep ut_Renamed /dev/.mdadm/map") == 0)
+            cout << "Volume renamed" << endl;
+        else
+            rv = Failed;
     }
-    if (clean() != 0) {
-        cout << "unable to clean up" << endl;
-        return rv;
-    }
+    clean();
     return rv;
 }
 
@@ -308,13 +327,32 @@ TestResult create_two_volumes(SSI_Handle *endDevices, unsigned int ecount)
             cout << "\thandle=0x" << hex << handles[i] << dec <<endl;
         }
     } else {
-        cout << "E: unable to get volume handles (status=" << status << ")" << endl;
+        cout << "E: unable to get volume handles (status=" << statusStr[status] << ")" << endl;
         return Failed;
     }
-
-    if (clean() != 0) {
-        cout << "unable to clean up" << endl;
-    }
+    clean();
     return Passed;
+}
+
+TestResult expand_volume(SSI_Handle *endDevices, unsigned int count)
+{
+    SSI_Handle volumeHandle;
+    SSI_Status status;
+    TestResult rv;
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return NotRun;
+    system("mdadm --wait /dev/md/ut_Volume");
+    status = SsiExpandVolume(volumeHandle, 0);
+    if (status == SSI_StatusOk) {
+        /* TODO check needed */
+        cout << "Volume expanded" << endl;
+        rv = Passed;
+    } else {
+        cout << "E: unable to expand volume (status=" << statusStr[status] << ")" << endl;
+        rv = Failed;
+    }
+    clean();
+    return rv;
 }
 // ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 noexpandtab:

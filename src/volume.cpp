@@ -350,7 +350,7 @@ SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
     if (pVolume == 0) {
         return SSI_StatusInvalidHandle;
     }
-    return pVolume->expand(newSizeMB * 1024ULL * 1024ULL);
+    return pVolume->expand(newSizeMB);
 }
 
 /* */

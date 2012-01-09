@@ -231,8 +231,14 @@ SSI_Status Volume::rebuild(EndDevice *pEndDevice)
 /* */
 SSI_Status Volume::expand(unsigned long long newSize)
 {
-    (void)newSize;
-    return SSI_StatusNotSupported;
+    if (m_State != SSI_VolumeStateNormal)
+        return SSI_StatusInvalidState;
+
+    /* convert size to kibibytes or "max" for mdadm */
+    String size = (newSize == 0)?"max":String(newSize * 1024ULL);
+    if (shell("mdadm --grow /dev/" + m_DevName + " --size=" + size) == 0)
+        return SSI_StatusOk;
+    return SSI_StatusFailed;
 }
 
 /* */
