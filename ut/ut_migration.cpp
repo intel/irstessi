@@ -30,6 +30,8 @@ int main(int argc, char *argv[])
     SSI_Uint32 count;
     SSI_Handle ahciDevice[HANDLE_COUNT];
     SSI_Handle scuDevice[HANDLE_COUNT];
+    SSI_Handle *device;
+    unsigned int devCount = 0;
 
     unsigned int ahciCount = 0;
     unsigned int scuCount = 0;
@@ -97,7 +99,10 @@ int main(int argc, char *argv[])
         }
     }
 
-    rv = raid1_to_raid0(ahciDevice, ahciCount);
+    device = scuDevice;
+    devCount = scuCount;
+
+    rv = raid1_to_raid0(device, devCount);
     switch (rv) {
         case 0:
             passed++;
@@ -109,7 +114,7 @@ int main(int argc, char *argv[])
             failed++;
     }
 
-    rv = raid10_to_raid0(scuDevice, scuCount);
+    rv = raid10_to_raid0(device, devCount);
     switch (rv) {
         case 0:
             passed++;
@@ -121,7 +126,7 @@ int main(int argc, char *argv[])
             failed++;
     }
 
-    rv = raid10_to_raid0_olce(scuDevice, scuCount);
+    rv = raid10_to_raid0_olce(device, devCount);
     switch (rv) {
         case 0:
             passed++;
@@ -144,24 +149,40 @@ int main(int argc, char *argv[])
     return 0;
 }
 
+void printVolumeInfo(SSI_Handle volumeHandle, SSI_VolumeInfo &volumeInfo)
+{
+    SSI_Status status;
+
+    status = SsiGetVolumeInfo(SSI_NULL_HANDLE, volumeHandle, &volumeInfo);
+    if (status == SSI_StatusOk) {
+        cout << "\tarrayHandle= 0x" << hex << volumeInfo.arrayHandle << dec << endl;
+        cout << "\tarrayOrdinal: " << volumeInfo.arrayOrdinal << endl;
+        cout << "\tvolumeName: " << volumeInfo.volumeName << endl;
+        cout << "\tvolume state: " << volumestate(volumeInfo.state) << endl;
+        cout << "\tvolume raidLevel: " << raidlevel(volumeInfo.raidLevel) << endl;
+        cout << "\tvolume totalSize: " << volumeInfo.totalSize << endl;
+    } else {
+        cout << "E: unable to get volume info (status=" << statusStr[status] << ")" << endl;
+    }
+}
 
 TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
 {
     SSI_Status status;
     SSI_Handle volumeHandle0 = 0;
-    /* create raid0 volume on AHCI */
+    /* create raid0 volume */
     SSI_CreateFromDisksParams params;
 
     cout << endl << "#### raid1 -> raid0" << endl;
     if (count < 3) {
-     cout << "E: there are not enough available AHCI disks in the system to perform test" << endl;
+     cout << "E: there are not enough available disks in the system to perform test" << endl;
      return NotRun;
     }
 
     params.disks = pDevice;
     params.numDisks = 2;
     params.sourceDisk = SSI_NULL_HANDLE;
-    strcpy(params.volumeName, "ahciR1");
+    strcpy(params.volumeName, "ut_1_0");
     params.stripSize = SSI_StripSizeUnknown;
     params.raidLevel = SSI_Raid1;
     params.sizeInBytes = 1024*1024*16;
@@ -178,6 +199,9 @@ TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
     /* wait for resync to finish */
     system("while grep -i resync /proc/mdstat; do sleep 1; done");
 
+    SSI_VolumeInfo volumeInfo;
+    printVolumeInfo(volumeHandle0, volumeInfo);
+
     /* modify volume */
 
     /* 1 -> 0 */
@@ -188,6 +212,9 @@ TestResult raid1_to_raid0(SSI_Handle *pDevice, unsigned int count)
     modifyParams.diskHandles = pDevice + 2;
     modifyParams.diskHandleCount = 2;
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
+
+    printVolumeInfo(volumeHandle0, volumeInfo);
+
     /* delete volume */
     cout << "-->SsiVolumeDelete..." << endl;
     SSI_Status ss = SsiVolumeDelete(volumeHandle0);
@@ -212,14 +239,14 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
 
     cout << endl << "#### raid10 -> raid0" << endl;
     if (count < 4) {
-        cout << "E: there are not enough available ISCI disks in the system to perform test (raid10_to_raid0)" << endl;
+        cout << "E: there are not enough available disks in the system to perform test (raid10_to_raid0)" << endl;
         return NotRun;
     }
 
     params.disks = pDevice;
     params.numDisks = 4;
     params.sourceDisk = SSI_NULL_HANDLE;
-    strcpy(params.volumeName, "scuR10");
+    strcpy(params.volumeName, "ut_10_0");
     params.stripSize = SSI_StripSize64kB;
     params.raidLevel = SSI_Raid10;
     params.sizeInBytes = 1024*1024*16;
@@ -236,6 +263,9 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     /* wait for resync to finish */
     system("while grep -i resync /proc/mdstat; do sleep 1; done");
 
+    SSI_VolumeInfo volumeInfo;
+    printVolumeInfo(volumeHandle0, volumeInfo);
+
     /* modify volume */
 
     /* 10 -> 0 */
@@ -247,6 +277,7 @@ TestResult raid10_to_raid0(SSI_Handle *pDevice, unsigned int count)
     modifyParams.diskHandleCount = 0;
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
 
+    printVolumeInfo(volumeHandle0, volumeInfo);
 
     /* delete volume */
     cout << "-->SsiVolumeDelete..." << endl;
@@ -268,19 +299,19 @@ TestResult raid10_to_raid0_olce(SSI_Handle *pDevice, unsigned int count)
 {
     SSI_Status status;
     SSI_Handle volumeHandle0 = 0;
-    /* create raid10 volume on SCU */
+    /* create raid10 volume */
     SSI_CreateFromDisksParams params;
 
     cout << endl << "#### raid10 -> raid0 with olce" << endl;
     if (count < 6) {
-        cout << "E: there are not enough available ISCI disks in the system to perform test (raid10_to_raid0)" << endl;
+        cout << "E: there are not enough available disks in the system to perform test (raid10_to_raid0)" << endl;
         return NotRun;
     }
 
     params.disks = pDevice;
     params.numDisks = 4;
     params.sourceDisk = SSI_NULL_HANDLE;
-    strcpy(params.volumeName, "scuR10");
+    strcpy(params.volumeName, "ut_10_0_olce");
     params.stripSize = SSI_StripSize64kB;
     params.raidLevel = SSI_Raid10;
     params.sizeInBytes = 1024*1024*16;
@@ -298,17 +329,7 @@ TestResult raid10_to_raid0_olce(SSI_Handle *pDevice, unsigned int count)
     system("while grep -i resync /proc/mdstat; do sleep 1; done");
 
     SSI_VolumeInfo volumeInfo;
-    status = SsiGetVolumeInfo(SSI_NULL_HANDLE, volumeHandle0, &volumeInfo);
-    if (status == SSI_StatusOk) {
-        cout << "\tarrayHandle=0x" << hex << volumeInfo.arrayHandle << dec << endl;
-        cout << "\tarrayOrdinal" << volumeInfo.arrayOrdinal << endl;
-        cout << "\tvolumeName" << volumeInfo.volumeName << endl;
-        cout << "\tvolume state: " << volumeInfo.state << endl;
-        cout << "\tvolume raidLevel: " << volumeInfo.raidLevel << endl;
-        cout << "\tvolume totalSize: " << volumeInfo.totalSize << endl;
-    } else {
-        cout << "E: unable to get volume info (status=" << statusStr[status] << ")" << endl;
-    }
+    printVolumeInfo(volumeHandle0, volumeInfo);
 
     /* modify volume */
     /* 10 -> 0 */
@@ -319,6 +340,8 @@ TestResult raid10_to_raid0_olce(SSI_Handle *pDevice, unsigned int count)
     modifyParams.diskHandles = pDevice + 4;
     modifyParams.diskHandleCount = 2;       /* 2 new disks added */
     status = SsiRaidLevelModify(volumeHandle0, modifyParams);
+
+    printVolumeInfo(volumeHandle0, volumeInfo);
 
     /* delete volume */
     cout << "-->SsiVolumeDelete..." << endl;
