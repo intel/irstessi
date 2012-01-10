@@ -321,7 +321,7 @@ int main(int argc, char *argv[])
                 cout << "handle=0x" << hex << handles[i] << dec << endl;
                 status = SsiGetEnclosureInfo(session, handles[i], &enclosureInfo);
                 if (status == SSI_StatusOk) {
-                    cout << "\tenclosureKey: " << enclosureInfo.enclosureKey << endl;
+                    cout << "\tenclosureKey: 0x" << hex <<enclosureInfo.enclosureKey << dec << endl;
                     cout << "\tvendorInfo: " << enclosureInfo.vendorInfo << endl;
                     cout << "\tproductId: " << enclosureInfo.productId << endl;
                     cout << "\tproductRev: " << enclosureInfo.productRev << endl;

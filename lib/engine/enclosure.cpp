@@ -102,7 +102,14 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
         return SSI_StatusInvalidParameter;
     }
     pInfo->enclosureHandle = getId();
-    pInfo->enclosureKey = getId();
+    pInfo->enclosureKey = (getId() & 0x0fffffff);
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; ++i) {
+        StorageObject *parent = (*i)->getParent();
+        if (parent && parent->getType() == ObjectType_Controller) {
+            pInfo->enclosureKey |= 0x10000000;
+            break;
+        }
+    }
     m_VendorId.get(pInfo->vendorInfo, sizeof(pInfo->vendorInfo));
     m_Rev.get(pInfo->productRev, sizeof(pInfo->productRev));
     m_ProductId.get(pInfo->productId, sizeof(pInfo->productId));
