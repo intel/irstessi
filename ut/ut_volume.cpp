@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssi.h>
 #include "ut.h"
 
+TestResult mark_as_spare(SSI_Handle *endDevices, unsigned int count);
 TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count);
 TestResult create_delete_and_create(SSI_Handle *endDevices, unsigned int count);
 TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count);
@@ -82,6 +83,22 @@ int main(int argc, char *argv[])
     cout << "Usable disks:" << endl;
     for (unsigned int i = 0; i < j; i++) {
         cout << "Disk " << i << "\t"<< hex << endDevices[i] << dec << endl;
+    }
+
+    cout << "Test 0: Mark as spare" << endl;
+    rv = mark_as_spare(endDevices, j);
+    switch (rv) {
+        case Passed:
+            cout << "Passed" << endl;
+            passed++;
+            break;
+        case NotRun:
+            cout << "NotRun" << endl;
+            notrun++;
+            break;
+        default:
+            cout << "Failed" << endl;
+            failed++;
     }
 
     cout << "Test 1: Create and Delete" << endl;
@@ -211,6 +228,27 @@ SSI_Status create(SSI_Handle *endDevices, unsigned int count, SSI_Handle *volume
     }
     usleep(3000000);
     return status;
+}
+
+TestResult mark_as_spare(SSI_Handle *endDevices, unsigned int count)
+{
+    SSI_Handle volumeHandle;
+    SSI_Status status;
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return NotRun;
+
+    cout << "-->SsiDiskMarkAsSpare..." << endl;
+    status = SsiDiskMarkAsSpare(endDevices[0], SSI_NULL_HANDLE);
+    if (status == SSI_StatusOk) {
+        cout << "E. Disk marked as spare" << endl;
+        clean();
+        return Failed;
+    } else {
+        cout << "Unable to mark disk as spare (status=" << statusStr[status] << ")" << endl;
+        clean();
+        return (status == SSI_StatusInvalidState)?Passed:Failed;
+    }
 }
 
 TestResult create_and_delete(SSI_Handle *endDevices, unsigned int count)
