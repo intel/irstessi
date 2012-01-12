@@ -209,7 +209,18 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pArray->create();
     } catch (Exception ex) {
         delete pArray;
-        return SSI_StatusFailed;
+        switch (ex) {
+            case E_INVALID_STRIP_SIZE:
+                return SSI_StatusInvalidStripSize;
+            case E_INVALID_NAME:
+                return SSI_StatusInvalidString;
+            case E_INVALID_RAID_LEVEL:
+                return SSI_StatusInvalidRaidLevel;
+            case E_INVALID_USAGE:
+                return SSI_StatusInvalidState;
+            default:
+                return SSI_StatusFailed;
+        }
     }
     /* create volume */
     try {
