@@ -21,13 +21,41 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define HANDLE_COUNT 100
 #define MAX_COUNT 200
 
+using namespace std;
+
 enum TestResult {
     NotRun = -1,
     Passed = 0,
     Failed = 1
 };
 
-using namespace std;
+typedef struct _TestStat {
+    unsigned int passed;
+    unsigned int failed;
+    unsigned int notrun;
+    _TestStat():passed(0), failed(0), notrun(0)
+    {
+    }
+    void addResult(TestResult rv);
+} TestStat;
+
+void TestStat::addResult(TestResult rv)
+{
+    switch (rv) {
+        case Passed:
+            cout << "Passed" << endl;
+            passed++;
+            break;
+        case NotRun:
+            cout << "NotRun" << endl;
+            notrun++;
+            break;
+        default:
+            cout << "Failed" << endl;
+            failed++;
+    }
+}
+
 
 string statusStr[] = {"SSI_StatusOk",               "SSI_StatusInsufficientResources",    "SSI_StatusInvalidParameter",       "SSI_StatusInvalidHandle",     "SSI_StatusInvalidStripSize",
                       "SSI_StatusInvalidString",    "SSI_StatusInvalidSize",              "SSI_StatusInvalidRaidLevel",       "SSI_StatusInvalidSession",    "SSI_StatusTimeout",

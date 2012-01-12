@@ -21,16 +21,14 @@ TestResult create_delete_and_create(SSI_Handle *endDevices, unsigned int count);
 TestResult create_and_rename(SSI_Handle *endDevices, unsigned int count);
 TestResult create_two_volumes(SSI_Handle *endDevices, unsigned int count);
 TestResult expand_volume(SSI_Handle *endDevices, unsigned int count);
+TestResult neg_create_volume_twice(SSI_Handle *endDevices, unsigned int count);
 int clean();
 
 int main(int argc, char *argv[])
 {
     SSI_Status status;
     SSI_Uint32 count;
-    unsigned int passed = 0;
-    unsigned int failed = 0;
-    unsigned int notrun = 0;
-    TestResult rv;
+    TestStat stat;
     SSI_Handle session;
 
     (void)argc;
@@ -86,104 +84,29 @@ int main(int argc, char *argv[])
     }
 
     cout << "Test 0: Mark as spare" << endl;
-    rv = mark_as_spare(endDevices, j);
-    switch (rv) {
-        case Passed:
-            cout << "Passed" << endl;
-            passed++;
-            break;
-        case NotRun:
-            cout << "NotRun" << endl;
-            notrun++;
-            break;
-        default:
-            cout << "Failed" << endl;
-            failed++;
-    }
+    stat.addResult(mark_as_spare(endDevices, j));
 
     cout << "Test 1: Create and Delete" << endl;
-    rv = create_and_delete(endDevices, j);
-    switch (rv) {
-        case Passed:
-            cout << "Passed" << endl;
-            passed++;
-            break;
-        case NotRun:
-            cout << "NotRun" << endl;
-            notrun++;
-            break;
-        default:
-            cout << "Failed" << endl;
-            failed++;
-    }
+    stat.addResult(create_and_delete(endDevices, j));
 
     cout << "Test 2: Create, Delete and Create" << endl;
-    rv = create_delete_and_create(endDevices, j);
-    switch (rv) {
-        case Passed:
-            cout << "Passed" << endl;
-            passed++;
-            break;
-        case NotRun:
-            cout << "NotRun" << endl;
-            notrun++;
-            break;
-        default:
-            cout << "Failed" << endl;
-            failed++;
-    }
+    stat.addResult(create_delete_and_create(endDevices, j));
 
     cout << "Test 3: Create and Rename" << endl;
-    rv = create_and_rename(endDevices, j);
-    switch (rv) {
-        case Passed:
-            cout << "Passed" << endl;
-            passed++;
-            break;
-        case NotRun:
-            cout << "NotRun" << endl;
-            notrun++;
-            break;
-        default:
-            cout << "Failed" << endl;
-            failed++;
-    }
+    stat.addResult(create_and_rename(endDevices, j));
 
     cout << "Test 4: Create 2 volumes" << endl;
-    rv = create_two_volumes(endDevices, j);
-    switch (rv) {
-        case Passed:
-            cout << "Passed" << endl;
-            passed++;
-            break;
-        case NotRun:
-            cout << "NotRun" << endl;
-            notrun++;
-            break;
-        default:
-            cout << "Failed" << endl;
-            failed++;
-    }
+    stat.addResult(create_two_volumes(endDevices, j));
 
     cout << "Test 5: Create and Expand" << endl;
-    rv = expand_volume(endDevices, j);
-    switch (rv) {
-        case Passed:
-            cout << "Passed" << endl;
-            passed++;
-            break;
-        case NotRun:
-            cout << "NotRun" << endl;
-            notrun++;
-            break;
-        default:
-            cout << "Failed" << endl;
-            failed++;
-    }
+    stat.addResult(expand_volume(endDevices, j));
 
-    cout << "Passed: " << passed << endl;
-    cout << "Failed: " << failed << endl;
-    cout << "Not run: " << notrun << endl;
+    cout << "Test 6: Negative - create volume twice on the same disks" << endl;
+    stat.addResult(neg_create_volume_twice(endDevices, j));
+
+    cout << "Passed: " << stat.passed << endl;
+    cout << "Failed: " << stat.failed << endl;
+    cout << "Not run: " << stat.notrun << endl;
 
     status = SsiFinalize();
     if (status != SSI_StatusOk) {
@@ -389,6 +312,26 @@ TestResult expand_volume(SSI_Handle *endDevices, unsigned int count)
     } else {
         cout << "E: unable to expand volume (status=" << statusStr[status] << ")" << endl;
         rv = Failed;
+    }
+    clean();
+    return rv;
+}
+
+TestResult neg_create_volume_twice(SSI_Handle *endDevices, unsigned int count)
+{
+    SSI_Handle volumeHandle;
+    SSI_Status status;
+    TestResult rv;
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusOk)
+        return NotRun;
+    /* try to create volume using the same disks  as in first step */
+    status = create(endDevices, count, &volumeHandle);
+    if (status != SSI_StatusInvalidState) {
+        cout << "Wrong status (status=" << statusStr[status] << ")" << endl;
+        rv = Failed;
+    } else {
+        rv = Passed;
     }
     clean();
     return rv;
