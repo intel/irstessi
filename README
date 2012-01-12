@@ -25,6 +25,9 @@ and issues IOCTL calls to get some information from the OS.
 The API exposed to the RAID Management Application can be executed
 via function calls.
 
+NOTE: mdadm configuration file /etc/mdadm.conf will be overwritten
+when library is loaded. Previous version is saved as /etc/mdadm.conf.original
+
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
 
 2. License
