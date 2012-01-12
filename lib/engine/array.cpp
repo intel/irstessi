@@ -187,6 +187,28 @@ SSI_Status Array::setWriteCacheState(bool enable)
 }
 
 /* */
+void Array::setEndDevices(const Container<EndDevice> &container)
+{
+    m_BlockDevices.clear();
+    for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
+        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
+        if (pBlockDevice == 0) {
+            throw E_INVALID_OBJECT;
+        }
+        if (pBlockDevice->isSystemDisk()) {
+            throw E_SYSTEM_DEVICE;
+        }
+        if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
+            throw E_INVALID_USAGE;
+        }
+        if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
+            throw E_NOT_AVAILABLE;
+        }
+        m_BlockDevices.add(pBlockDevice);
+    }
+}
+
+/* */
 SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
 {
     if (pEndDevice->getArray() != this) {

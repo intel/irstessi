@@ -66,7 +66,7 @@ public:
     virtual SSI_Status remove() = 0;
     virtual void create() = 0;
 
-    void setEndDevices(const Container<EndDevice> &endDevices);
+    virtual void setEndDevices(const Container<EndDevice> &endDevices);
     void setName(const String &prefix);
     void determineDeviceName(const String &prefix);
 
