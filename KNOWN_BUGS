@@ -1,0 +1,12 @@
+SSI API ver. 0.1.0 1/13/2012
+
+SsiDiskMarkAsSpare:
+Function will return SSI_StatusFail instead of SSI_StatusInvalidState when called on a disk used by a RAID device.
+
+SsiExpandVolume:
+Function is implemented however this functionality depends on mdadm. During this release mdadm did not support such functionality.
+Tested on mdadm 3.2.3. Future releases of mdadm may support this functionality.
+
+SsiPhyLocate:
+Currently this function is not supported.
+
