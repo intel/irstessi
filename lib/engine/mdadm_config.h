@@ -19,5 +19,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __MDADM_CONFIG_H__INCLUDED__
 
 void check_configuration();
+void get_mdadm_version(char *buffer, size_t size);
 
 #endif /* __MDADM_CONFIG_H__INCLUDED__ */

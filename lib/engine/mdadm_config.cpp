@@ -139,4 +139,14 @@ void check_configuration()
         dlog("Error starting Monitor");
 }
 
+void get_mdadm_version(char *buffer, size_t size)
+{
+    String ver;
+    if (!buffer || size == 0)
+        return;
+    if (shell_cap("mdadm --version 2>&1", ver) == 0) {
+        ver = ver.between("- v", " ");
+        ver.get(buffer, size);
+    }
+}
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

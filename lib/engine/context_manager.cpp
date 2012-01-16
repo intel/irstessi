@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
+#include <cstddef>
 
 #include <ssi.h>
 #include <log/log.h>
@@ -36,6 +37,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "event_manager.h"
 #include "unique_id_manager.h"
 #include "session_manager.h"
+#include "mdadm_config.h"
 
 /* */
 ContextManager::ContextManager()
@@ -64,6 +66,9 @@ SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
     pInfo->interfaceVersionMinor = 0;
     String ver = String(SSI_LIBRARY_VERSION);
     ver.get(pInfo->libraryVersion, sizeof(pInfo->libraryVersion));
+    size_t offset = ver.length() + 1;
+    if (offset < sizeof(pInfo->libraryVersion))
+        get_mdadm_version(pInfo->libraryVersion + offset, sizeof(pInfo->libraryVersion) - offset);
     pInfo->maxSessions = -1U;
     pInfo->setVolCacheSizeSupport = SSI_FALSE;
     pInfo->passthroughCommandSupport = SSI_FALSE;
