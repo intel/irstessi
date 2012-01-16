@@ -62,7 +62,7 @@ SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
     }
     pInfo->interfaceVersionMajor = 1;
     pInfo->interfaceVersionMinor = 0;
-    String ver = String("0.1.0.1"); /* TODO */
+    String ver = String(SSI_LIBRARY_VERSION);
     ver.get(pInfo->libraryVersion, sizeof(pInfo->libraryVersion));
     pInfo->maxSessions = -1U;
     pInfo->setVolCacheSizeSupport = SSI_FALSE;

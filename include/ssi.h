@@ -87,6 +87,12 @@ static const SSI_Handle SSI_NULL_HANDLE = 0;
 */
 static const SSI_Uint32 SSI_INVALID_SLOTNUMBER = 0xFFFFFFFF;
 
+/**
+ * @def SSI_LIBRARY_VERSION
+ *
+ * @brief   Version of ssi api library
+**/
+#define SSI_LIBRARY_VERSION "0.1.0.1"
 
 /**
  * @def SSI_VOLUME_NAME_LENGTH
