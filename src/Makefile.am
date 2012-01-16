@@ -49,7 +49,6 @@ libssi_la_SOURCES =                     \
 libssi_la_LIBADD =                      \
         ../lib/efi/libefi.la            \
         ../lib/log/liblog.la            \
-        ../lib/sgio/libsgio.la          \
         ../lib/orom/liborom.la          \
         ../lib/mpb/libmpb.la            \
         ../lib/engine/libengine.la

@@ -80,7 +80,6 @@ AC_CONFIG_FILES([Makefile
                  lib/mpb/Makefile
                  lib/orom/Makefile
                  lib/log/Makefile
-                 lib/sgio/Makefile
                  src/Makefile
                  tools/Makefile
                  ut/Makefile])

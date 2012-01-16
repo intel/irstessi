@@ -1,3 +1,3 @@
 # Process this file with automake to create Makefile.in
 
-SUBDIRS = efi log sgio mpb orom engine
+SUBDIRS = efi log mpb orom engine
