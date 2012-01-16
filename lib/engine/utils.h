@@ -64,6 +64,8 @@ inline unsigned int sg_make_int(unsigned char *s) {
     return (t << 16) + sg_make_short(s + 2);
 }
 
+void check_dots(String &s);
+
 #endif /* __UTILS_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

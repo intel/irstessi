@@ -146,6 +146,7 @@ void get_mdadm_version(char *buffer, size_t size)
         return;
     if (shell_cap("mdadm --version 2>&1", ver) == 0) {
         ver = ver.between("- v", " ");
+        check_dots(ver);
         ver.get(buffer, size);
     }
 }

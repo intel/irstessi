@@ -189,4 +189,14 @@ int readPidFile(const String &pidfilename, const String &proc)
     return pid;
 }
 
+void check_dots(String &s)
+{
+    String tmp = s;
+    for (int i = 0; i < 3; i++) {
+        tmp = tmp.after(".");
+        if (tmp == "")
+            s += ".0";
+    }
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

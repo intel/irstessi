@@ -118,7 +118,6 @@ protected:
     virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeUnknown;
     }
-    void __check_dots();
 
 public:
     RaidInfo *findRaidInfo(Container<RaidInfo> &container);
