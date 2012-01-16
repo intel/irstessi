@@ -1,6 +1,6 @@
 # Process this file with automake to create Makefile.in
 
-noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string ut_info ut_markasspare ut_migration ut_events ut_initialize_volume
+noinst_PROGRAMS = ut_volume ut_filesystem ut_session ut_string ut_info ut_markasspare ut_migration ut_events ut_initialize_volume ut_phy
 
 ACLOCAL_AMFLAGS = -I m4 nostdinc
 
@@ -62,6 +62,16 @@ ut_migration_CPPFLAGS = \
 	-I$(top_srcdir)/include
 
 ut_migration_LDADD = \
+	../src/libssi.la
+
+ut_phy_SOURCES = \
+	ut_phy.cpp
+
+ut_phy_CPPFLAGS = \
+	-g3 -I$(top_srcdir) \
+	-I$(top_srcdir)/include
+
+ut_phy_LDADD = \
 	../src/libssi.la
 
 ut_initialize_volume_SOURCES = \

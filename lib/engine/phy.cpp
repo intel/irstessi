@@ -91,7 +91,7 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
 /* */
 SSI_Status Phy::locate(bool mode) const
 {
-    return SSI_StatusNotSupported;
+    return m_pParent->locate(mode);
 }
 
 /* */

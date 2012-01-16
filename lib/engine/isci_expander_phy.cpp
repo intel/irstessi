@@ -97,11 +97,5 @@ Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
     return pPort;
 }
 
-/* */
-SSI_Status ISCI_Expander_Phy::locate(bool mode) const
-{
-    (void)mode;
-    return SSI_StatusOk;
-}
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab : */

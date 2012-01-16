@@ -27,7 +27,6 @@ class ISCI_Phy : public Phy {
 public:
     ISCI_Phy(const String &path, unsigned int number, StorageObject *pParent = 0);
     void discover();
-    SSI_Status locate(bool mode) const;
 };
 
 #endif /* __ISCI_PHY_H__INCLUDED__ */

@@ -59,11 +59,5 @@ void ISCI_Phy::discover()
     }
 }
 
-/* */
-SSI_Status ISCI_Phy::locate(bool mode) const
-{
-    (void)mode;
-    return SSI_StatusOk;
-}
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

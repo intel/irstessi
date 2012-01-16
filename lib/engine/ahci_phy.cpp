@@ -113,24 +113,6 @@ void AHCI_Phy::discover()
 }
 
 /* */
-SSI_Status AHCI_Phy::locate(bool mode) const
-{
-    SysfsAttr em_message(m_Path + "/em_message");
-    try {
-        usleep(EM_MSG_WAIT);
-        if (mode) {
-            em_message << 0x00080000;
-        } else {
-            em_message << 0x00080000;
-        }
-        return SSI_StatusOk;
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-}
-
-
-/* */
 EndDevice * AHCI_Phy::__internal_attach_end_device(Iterator<Directory *> i)
 {
     EndDevice *pEndDevice = 0;

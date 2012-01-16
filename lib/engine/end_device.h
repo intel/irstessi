@@ -88,6 +88,7 @@ public:
     Controller * getController() const {
         return m_pParent?m_pParent->getController():0;
     }
+    SSI_Status locate(bool mode);
 
     String getSerialNum() const {
         return m_SerialNum;

@@ -27,7 +27,6 @@ class ISCI_Expander_Phy : public Phy {
 public:
     ISCI_Expander_Phy(const String &path, unsigned int number, StorageObject *pParent = 0);
     void discover();
-    SSI_Status locate(bool mode) const;
 
 private:
     Port * __internal_create_port(const String &portPath);

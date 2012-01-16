@@ -275,6 +275,10 @@ public:
         throw E_INVALID_OPERATION;
     }
 
+    virtual SSI_Status locate(bool mode) {
+        return SSI_StatusNotSupported;
+    }
+
 public:
     virtual Port * getPort() const {
         throw E_INVALID_OPERATION;
