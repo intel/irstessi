@@ -81,8 +81,7 @@ AC_CONFIG_FILES([Makefile
                  lib/orom/Makefile
                  lib/log/Makefile
                  src/Makefile
-                 tools/Makefile
-                 ut/Makefile])
+                 tools/Makefile])
 
 AC_OUTPUT
 

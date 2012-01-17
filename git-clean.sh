@@ -53,16 +53,12 @@ remove_dir lib/log/.deps
 remove_dir lib/log/.libs
 remove_dir lib/mpb/.deps
 remove_dir lib/mpb/.libs
-remove_dir lib/sgio/.deps
-remove_dir lib/sgio/.libs
 remove_dir lib/orom/.deps
 remove_dir lib/orom/.libs
 remove_dir src/.deps
 remove_dir src/.libs
 remove_dir tools/.deps
 remove_dir tools/.libs
-remove_dir ut/.deps
-remove_dir ut/.libs
 
 echo "** Removing Makefiles..."
 remove_file Makefile
@@ -77,8 +73,6 @@ remove_file lib/engine/Makefile
 remove_file lib/engine/Makefile.in
 remove_file lib/log/Makefile
 remove_file lib/log/Makefile.in
-remove_file lib/sgio/Makefile
-remove_file lib/sgio/Makefile.in
 remove_file lib/mpb/Makefile
 remove_file lib/mpb/Makefile.in
 remove_file lib/orom/Makefile
@@ -87,8 +81,6 @@ remove_file tools/Makefile
 remove_file tools/Makefile.in
 remove_file include/Makefile
 remove_file include/Makefile.in
-remove_file ut/Makefile
-remove_file ut/Makefile.in
 remove_file contrib/dist/debian/Makefile
 remove_file contrib/dist/debian/Makefile.in
 remove_file contrib/dist/Makefile
