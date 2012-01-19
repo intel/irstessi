@@ -10,8 +10,8 @@
 #include <sys/wait.h>
 #include <sys/inotify.h>
 
-/* define timeout: once per hour */
-#define SELECT_TIMEOUT (60 * 60 * 1)
+/* default timeout: five seconds */
+#define SELECT_TIMEOUT 5
 #define MAX_LINE_LEN 1024
 #define MAX_CONTAINERS	10
 #define INACTIVE_STR	"inactive"
@@ -452,10 +452,7 @@ static int _handle_all(int stat_fd, int inot_fd, int iwatch_fd)
 	MSGLOG("After pselect: ready=%d, inot_fd=%d, stat_fd=%d", ready,
 	       FD_ISSET(inot_fd, &efds), FD_ISSET(stat_fd, &efds));
 
-	if (!ready)
-	    continue;
-
-	if (FD_ISSET(stat_fd, &efds)) {
+	if (FD_ISSET(stat_fd, &efds) || !ready)  {
 	    _handle_mdstat(stat_fd);
 	}
 	if (FD_ISSET(inot_fd, &rfds)) {
