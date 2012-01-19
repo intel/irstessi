@@ -249,7 +249,7 @@ static int _compare_container_list(container_dev *first,
 	if (j == MAX_CONTAINERS) /* not found */
 	    return 1;
     }
-    if (found)
+    if (found || i == MAX_CONTAINERS)
 	return 0;
     return 1;
 }
