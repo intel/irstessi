@@ -1,3 +1,16 @@
+/*
+Copyright (c) 2011, Intel Corporation
+All rights reserved.
+
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+
+    * Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+    * Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+    * Neither the name of Intel Corporation nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
@@ -10,12 +23,31 @@
 #include <sys/wait.h>
 #include <sys/inotify.h>
 
-/* default timeout: five seconds */
-#define SELECT_TIMEOUT 5
 #define MAX_LINE_LEN 1024
 #define MAX_CONTAINERS	10
 #define INACTIVE_STR	"inactive"
-#define SSIEVENTMONITOR_PIDFILE "/var/run/ssieventmonitor.pid"
+
+#ifndef SELECT_TIMEOUT
+ /* default timeout: five seconds */
+ #define SELECT_TIMEOUT 5
+#endif
+
+#ifndef SSIEVENTMONITOR_PIDFILE
+ #define SSIEVENTMONITOR_PIDFILE "/var/run/ssieventmonitor.pid"
+#endif
+
+#ifndef MDSTAT_FILE_PATH
+ #define MDSTAT_FILE_PATH "/proc/mdstat"
+#endif
+
+#ifndef INOTIFY_WATCH_DIR
+ #define INOTIFY_WATCH_DIR "/dev/disk/by-path"
+#endif
+
+#ifndef SSI_MSG_NAME
+ #define SSI_MSG_NAME "ssimsg"
+#endif
+
 
 #define SENTINEL (const char *)0
 
@@ -57,10 +89,10 @@ static int _exec_ssimsg(void)
     char *cp;
     const char *paths[] = {
 	buffer,
-	"/usr/local/bin/ssimsg",
-	"/usr/bin/ssimsg",
-	"/bin/ssimsg",
-	"ssimsg",
+	"/usr/local/bin/" SSI_MSG_NAME,
+	"/usr/bin/" SSI_MSG_NAME,
+	"/bin/" SSI_MSG_NAME,
+	SSI_MSG_NAME,
 	NULL
     };
     pid_t pid = vfork();
@@ -351,9 +383,9 @@ static int _configure_inotify(int *watch_fd)
 	return 1;
     }
 
-    *watch_fd = inotify_add_watch(ifd, "/dev/disk/by-path", IN_CREATE | IN_DELETE);
+    *watch_fd = inotify_add_watch(ifd, INOTIFY_WATCH_DIR, IN_CREATE | IN_DELETE);
     if (*watch_fd < 0) {
-	perror("Add watch for /dev/disk/by-path");
+	perror("Add watch for " INOTIFY_WATCH_DIR);
 	return -1;
     }
 
@@ -400,7 +432,7 @@ static int _handle_inotify(int ifd, int mdstat_fd, int watch_fd)
 	       IS_SET(event->mask, IN_CREATE),
 	       IS_SET(event->mask, IN_DELETE));
 	if (event->wd == watch_fd) {
-	    MSGLOG("Event for: %s", "/dev/disk/by-path/");
+	    MSGLOG("Event for: %s", INOTIFY_WATCH_DIR);
 	    _exec_ssimsg();
 	    /* event here can result in change of mdstat */
 	    _read_mdstat(mdstat_fd);
@@ -467,7 +499,7 @@ static int _event_watch(void)
 
     _init_containers();
 
-    stat_fd = open("/proc/mdstat", O_RDONLY);
+    stat_fd = open(MDSTAT_FILE_PATH, O_RDONLY);
     if (stat_fd < 0)
 	return 1;
 
