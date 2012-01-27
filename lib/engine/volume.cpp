@@ -233,7 +233,7 @@ SSI_Status Volume::expand(unsigned long long newSize)
 {
     if (m_State != SSI_VolumeStateNormal)
         return SSI_StatusInvalidState;
-    if (newSize < m_ComponentSize * m_BlockDevices)
+    if (newSize && newSize < m_ComponentSize * m_BlockDevices)
         return SSI_StatusInvalidSize;
     /* convert size for mdadm */
     String size = (newSize == 0)?"max":String(newSize/m_BlockDevices);
