@@ -1,12 +1,23 @@
-SSI API ver. 0.1.0 1/13/2012
-
-SsiDiskMarkAsSpare:
-Function will return SSI_StatusFail instead of SSI_StatusInvalidState when called on a disk used by a RAID device.
+SSI API ver. 1.0-1 3/13/2012
 
 SsiExpandVolume:
 Function is implemented however this functionality depends on mdadm. During this release mdadm did not support such functionality.
 Tested on mdadm 3.2.3. Future releases of mdadm may support this functionality.
 
-SsiPhyLocate:
-Currently this function is not supported.
+SsiVolumeDelete:
+Function doesn't work properly on raid in reshape state however this functionality depends on mdadm.
 
+SsiPhyLocate:
+For proper functioning ledmon/ledctrl must intalled on the system. See ledmon package for more details (https://sourceforge.net/projects/ledmon/)
+
+Issue:
+Any operation on RAID 0 performed outside CIM/SSI API will not be visible inside CIM/SSI API. This is because mdadm is not monitoring RAID 0.
+Workaround:
+Workaround for this issue is to run 'ssimsg' program after each operation performed on RAID 0. Ssimsg is a part of SSI API package.
+
+Issue:
+Some operations like raid creation perfomed outside CIM/SSI API (except RAID 0 which is described above) will be visible in CIM/SSI API
+with some delay. It depends on the system state and it could take even 2 minutes.
+Workaround:
+Workaround for this issue is to run 'ssimsg' program after each operation performed manually on RAIDs outside of CIM/SSI API.
+Ssimsg is a part of SSI API package.
