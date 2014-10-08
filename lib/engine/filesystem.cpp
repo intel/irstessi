@@ -251,6 +251,13 @@ void File::__internal_write(char *buffer, unsigned long long size)
 }
 
 /* */
+bool File::__internal_exists()
+{
+    struct stat buf;
+    return stat(get(), &buf) == 0;
+}
+
+/* */
 void AFile::__internal_write(char *buffer, unsigned long long size)
 {
     int fd = open(get(), O_WRONLY | O_APPEND | O_CREAT);

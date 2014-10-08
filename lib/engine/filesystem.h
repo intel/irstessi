@@ -154,6 +154,9 @@ public:
     virtual void write(unsigned short value) {
         write(String(value));
     }
+    bool exists() {
+        return __internal_exists();
+    }
 
 private:
     void __internal_clear_content();
@@ -165,6 +168,7 @@ private:
     void __internal_realloc_content(unsigned long long size, bool copy = true);
     void __internal_read_from_virtual_fs(int fd);
     virtual void __internal_write(char *buffer, unsigned long long size);
+    bool __internal_exists();
 
 protected:
     unsigned char *m_pContent;
