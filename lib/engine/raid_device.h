@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 // Forward declaration
 class Session;
 class BlockDevice;
+class File;
 
 /**
  */
@@ -69,6 +70,7 @@ public:
     virtual void setEndDevices(const Container<EndDevice> &endDevices);
     void setName(const String &prefix);
     void determineDeviceName(const String &prefix);
+    File getMapFile();
 
 private:
     void __internal_initialize();

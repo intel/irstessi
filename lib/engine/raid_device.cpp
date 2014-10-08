@@ -43,8 +43,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "raid_device.h"
 #include "raid_info.h"
 
-#define MAP_FILE_PATH "/dev/.mdadm/map"
-
 /* */
 RaidDevice::RaidDevice(const String &path)
     : StorageDevice(path)
@@ -84,12 +82,31 @@ RaidInfo * RaidDevice::getRaidInfo() const
     return 0;
 }
 
+File RaidDevice::getMapFile()
+{
+    static const char *paths[] = {
+            "/run/mdadm/map",
+            "/var/run/mdadm/map",
+            "/dev/.mdadm/map"
+    };
+
+    int n = sizeof(paths) / sizeof(*paths);
+
+    for (int i = 0; i < n; i++) {
+        File map(paths[i]);
+        if (map.exists())
+            return map;
+    }
+
+    throw E_NOT_FOUND;
+}
+
 /* */
 void RaidDevice::update()
 {
-    File mapFile = String(MAP_FILE_PATH);
     String map;
     try {
+        File mapFile = getMapFile();
         mapFile >> map;
         __internal_update(map);
     } catch (...) {
