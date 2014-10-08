@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <unistd.h>
 #include <asm/types.h>
 #include <sys/stat.h>
+#include <vector>
 
 #include <ssi.h>
 #include <orom/orom.h>
@@ -57,12 +58,27 @@ AHCI::AHCI(const String &path)
 /* */
 void AHCI::discover()
 {
-    Directory dir(m_Path, "host");
     unsigned int number = 0;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
-        CanonicalPath temp = *(*i) + "scsi_host";
+    std::vector<Directory> hosts;
+
+    Directory dir(m_Path, "host");
+
+    if (dir.count() > 0) {
+        for (Iterator<Directory *> i = dir; *i != 0; ++i)
+            hosts.push_back(**i);
+    } else {
+        dir = Directory(m_Path, "ata");
+
+        for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+            Directory port_dir(**i, "host");
+            hosts.push_back(**static_cast<Iterator<Directory *> >(port_dir));
+        }
+    }
+
+    for (std::vector<Directory>::iterator i = hosts.begin(); i != hosts.end(); ++i) {
+        CanonicalPath temp = *i + "scsi_host";
         if (temp) {
-            AHCI_Phy *pPhy = new AHCI_Phy(CanonicalPath(*(*i)), number++, this);
+            AHCI_Phy *pPhy = new AHCI_Phy(CanonicalPath(*i), number++, this);
             attachPhy(pPhy);
             pPhy->discover();
         }
