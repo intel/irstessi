@@ -320,9 +320,6 @@ void Array::acquireId(Session *pSession)
 /* */
 SSI_Status Array::remove()
 {
-    if (m_Volumes > 1) {
-        return SSI_StatusOk;
-    }
     int n = 0;
     do {
         if (shell("mdadm -S /dev/" + m_DevName) == 0) {

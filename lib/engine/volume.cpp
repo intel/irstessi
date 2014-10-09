@@ -271,6 +271,12 @@ SSI_Status Volume::remove()
     }
     if (shell("mdadm -S /dev/" + m_DevName) == 0 &&
         pArray->removeVolume(m_Ordinal) == SSI_StatusOk) {
+
+        Container<Volume> volumes;
+        pArray->getVolumes(volumes);
+        if (volumes.count() > 1)
+            return SSI_StatusOk;
+        else
             return pArray->remove();
     }
     return SSI_StatusFailed;
