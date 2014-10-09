@@ -44,6 +44,7 @@ libssi_la_SOURCES =                     \
         routing_device.cpp              \
         session.cpp                     \
         system.cpp                      \
+	templates.h			\
         volume.cpp
 
 libssi_la_LIBADD =                      \

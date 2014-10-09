@@ -15,42 +15,25 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-#if defined(HAVE_CONFIG_H)
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#if __GNUC_PREREQ(3, 4)
+#pragma once
+#endif /* __GNUC_PREREQ */
 
-#include <features.h>
+#ifndef __TEMPLATES_H__INCLUDED__
+#define __TEMPLATES_H__INCLUDED__
 
 #include <ssi.h>
 
-#include <engine/exception.h>
-#include <engine/list.h>
-#include <engine/container.h>
-#include <engine/string.h>
-#include <engine/object.h>
-#include <engine/cache.h>
-#include <engine/routing_device.h>
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
-#include "templates.h"
-
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<RoutingDevice> &container)
+template <class T>
+SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
+    SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount,
+    void (*getContainer)(ScopeObject *, SSI_ScopeType, Container<T> &))
 {
-    pScopeObject->getRoutingDevices(container, scopeType == SSI_ScopeTypeControllerAll);
-}
+    extern ContextManager *pContextMgr;
 
-/* */
-SSI_Status SsiGetRoutingDeviceHandles(SSI_Handle session, SSI_ScopeType scopeType,
-    SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
-{
-    return SsiGetHandles(session, scopeType, scopeHandle, handleList, handleCount, getItems);
-}
-
-/* */
-SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session,
-    SSI_Handle routingDeviceHandle, SSI_RoutingDeviceInfo *routingDeviceInfo)
-{
     if (pContextMgr == 0) {
         return SSI_StatusNotInitialized;
     }
@@ -63,11 +46,22 @@ SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session,
     if (pSession == 0) {
         return SSI_StatusInvalidSession;
     }
-    RoutingDevice *pRtDevice = pSession->getRoutingDevice(routingDeviceHandle);
-    if (pRtDevice == 0) {
-        return SSI_StatusInvalidHandle;
+    ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
+    if (pScopeObject == 0) {
+        return SSI_StatusInvalidScope;
     }
-    return pRtDevice->getInfo(routingDeviceInfo);
+    if (*pScopeObject != scopeType) {
+        return SSI_StatusInvalidScope;
+    }
+    Container<T> container;
+    try {
+        getContainer(pScopeObject, scopeType, container);
+    } catch (...) {
+        return SSI_StatusInvalidScope;
+    }
+    return container.getHandles(handleList, handleCount);
 }
+
+#endif /* __TEMPLATES_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

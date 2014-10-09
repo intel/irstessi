@@ -33,36 +33,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
+#include "templates.h"
+
+static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Controller> &container)
+{
+    pScopeObject->getControllers(container);
+}
+
 /* */
 SSI_Status SsiGetControllerHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
 {
-    if (pContextMgr == 0) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusNotInitialized;
-    }
-    if (pSession == 0) {
-        return SSI_StatusInvalidSession;
-    }
-    ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
-    if (pScopeObject == 0) {
-        return SSI_StatusInvalidScope;
-    }
-    if (*pScopeObject != scopeType) {
-        return SSI_StatusInvalidScope;
-    }
-    Container<Controller> container;
-    try {
-        pScopeObject->getControllers(container);
-    } catch(...) {
-        return SSI_StatusInvalidScope;
-    }
-    return container.getHandles(handleList, handleCount);
+    return SsiGetHandles(session, scopeType, scopeHandle, handleList, handleCount, getItems);
 }
 
 /* */
