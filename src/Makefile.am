@@ -16,7 +16,6 @@ libssi_la_LDFLAGS =                     \
 libssi_la_SOURCES =                     \
         ../include/ssi.h                \
         ../lib/engine/array.h           \
-        ../lib/engine/cache.h           \
         ../lib/engine/container.h       \
         ../lib/engine/context_manager.h \
         ../lib/engine/controller.h      \

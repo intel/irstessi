@@ -35,8 +35,6 @@ libengine_la_SOURCES =          \
         array.h                 \
         block_device.cpp        \
         block_device.h          \
-        cache.cpp               \
-        cache.h                 \
         container.h             \
         context_manager.cpp     \
         context_manager.h       \

@@ -31,7 +31,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "filesystem.h"
 #include "object.h"
-#include "cache.h"
 #include "unique_id_manager.h"
 
 
@@ -211,33 +210,22 @@ void UniqueIdManager::refresh()
 /* */
 bool Id::operator == (const Object *pObject) const
 {
-    if (pObject == 0) {
+    if (pObject == NULL)
         return false;
-    }
-    Iterator<Object *> i = m_Objects;
-    if (*i == 0) {
+
+    if (m_Objects.empty()) {
         String key = pObject->getKey();
         if (key == m_Key)
             return true;
         return false;
     }
-    return *(*i) == pObject;
 
+    return *m_Objects.front() == pObject;
 }
 
 bool Id::operator != (const Object *pObject) const
 {
-    if (pObject == 0) {
-        return true;
-    }
-    Iterator<Object *> i = m_Objects;
-    if (*i == 0) {
-        String key = pObject->getKey();
-        if (key != m_Key)
-            return true;
-        return false;
-    }
-    return !(*(*i) == pObject);
+    return !this->operator ==(pObject);
 }
 
 /* save id:key to key file */

@@ -34,7 +34,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "filesystem.h"
 #include "object.h"
-#include "cache.h"
 #include "controller.h"
 #include "isci.h"
 #include "raid_info.h"

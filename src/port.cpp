@@ -28,7 +28,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/container.h>
 #include <engine/string.h>
 #include <engine/object.h>
-#include <engine/cache.h>
 #include <engine/session.h>
 #include <engine/port.h>
 #include <engine/context_manager.h>

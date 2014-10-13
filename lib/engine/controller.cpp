@@ -32,7 +32,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "object.h"
 #include "raid_info.h"
-#include "cache.h"
 #include "controller.h"
 #include "storage_device.h"
 #include "raid_device.h"

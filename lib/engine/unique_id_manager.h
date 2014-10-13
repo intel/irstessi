@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UNIQUE_ID_MANAGER_H__INCLUDED__
 #define __UNIQUE_ID_MANAGER_H__INCLUDED__
 
+#include <list>
+
 #define SSI_IDKEY_FILE "/var/run/ssi.keys"
 
 /* */
@@ -39,7 +41,7 @@ public:
         if (pObject == 0) {
             throw E_NULL_POINTER;
         }
-        m_Objects.add(pObject);
+        m_Objects.push_back(pObject);
     }
     void remove(Object *pObject) {
         if (pObject == 0) {
@@ -48,7 +50,7 @@ public:
         m_Objects.remove(pObject);
     }
     unsigned int count() const {
-        return m_Objects.count();
+        return m_Objects.size();
     }
     String getKey() {
         return m_Key;
@@ -64,7 +66,7 @@ public:
 
 private:
     unsigned int m_Id;
-    Cache m_Objects;
+    std::list<Object *> m_Objects;
     String m_Key;
 
     friend class UniqueIdManager;

@@ -33,7 +33,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "container.h"
 #include "string.h"
 #include "object.h"
-#include "cache.h"
 #include "storage_device.h"
 #include "raid_device.h"
 #include "array.h"

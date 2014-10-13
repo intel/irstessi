@@ -31,7 +31,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "container.h"
 #include "string.h"
 #include "object.h"
-#include "cache.h"
 #include "event.h"
 #include "unique_id_manager.h"
 #include "event_manager.h"

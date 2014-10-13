@@ -30,7 +30,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "container.h"
 #include "string.h"
 #include "object.h"
-#include "cache.h"
 #include "session.h"
 #include "event.h"
 #include "context_manager.h"

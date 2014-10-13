@@ -30,7 +30,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/container.h>
 #include <engine/string.h>
 #include <engine/object.h>
-#include <engine/cache.h>
 #include <engine/storage_device.h>
 #include <engine/end_device.h>
 #include <engine/raid_device.h>
