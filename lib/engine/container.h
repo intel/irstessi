@@ -22,16 +22,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __CONTAINER_H__INCLUDED__
 #define __CONTAINER_H__INCLUDED__
 
+#include "list.h"
+
 /* */
 template <typename T>
 class Container : public List<T *> {
 public:
-    Container<T> & operator = (T * elem) {
-        List<T *>::clear();
-        List<T *>::add(elem);
-        return *this;
-    }
-
     SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize) {
         SSI_Status status = SSI_StatusOk;
         if (bufferSize == 0) {
@@ -40,32 +36,32 @@ public:
         if (*bufferSize && pBuffer == 0) {
             return SSI_StatusInvalidParameter;
         }
-        if (*bufferSize < List<T *>::m_Count) {
-            *bufferSize = List<T *>::m_Count;
+        if (*bufferSize < List<T *>::size()) {
+            *bufferSize = List<T *>::size();
             status = SSI_StatusBufferTooSmall;
         } else {
-            for (Iterator<T *> i = List<T *>::first(); *i != 0; ++i, ++pBuffer) {
+            for (typename std::list<T *>::iterator i = this->m_list.begin(); i != this->m_list.end(); ++i, ++pBuffer) {
                 *pBuffer = (*i)->getId();
             }
         }
-        *bufferSize = List<T *>::m_Count;
+        *bufferSize = this->size();
         return status;
     }
 
     T * remove(unsigned int id) {
-        Iterator<T *> i;
-        for (i = List<T *>::first(); *i != 0 && (*i)->getId() != id; ++i) {
+        typename std::list<T *>::iterator i;
+        for (i = this->m_list.begin(); i != this->m_list.end() && (*i)->getId() != id; ++i) {
         }
         T *pObject = *i;
         if (pObject) {
-            List<T *>::remove(i);
+            List<T *>::remove(*i);
         }
         return pObject;
     }
 
     T * find(unsigned int id) const {
-        Iterator<T *> i;
-        for (i = List<T *>::first(); *i != 0 && (*i)->getId() != id; ++i) {
+        typename std::list<T *>::const_iterator i;
+        for (i = this->m_list.begin(); i != this->m_list.end() && (*i)->getId() != id; ++i) {
         }
         return *i;
     }

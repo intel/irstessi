@@ -62,7 +62,8 @@ Enclosure::Enclosure(const String &path)
     } catch (...) {
     }
     Directory dir = m_Path + "/enclosure";
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             SysfsAttr attr =  *(*i) + "components";
             attr >> m_SlotCount;
@@ -85,7 +86,7 @@ Enclosure::Enclosure(const String &path)
 /* */
 Enclosure::~Enclosure()
 {
-    for (Iterator<Slot *> i = m_Slots; *i != 0; ++i)
+    for (Iterator<Slot *> i = m_Slots.begin(); i != m_Slots.end(); ++i)
         delete *i;
 }
 
@@ -103,7 +104,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     }
     pInfo->enclosureHandle = getId();
     pInfo->enclosureKey = (getId() & 0x0fffffff);
-    for (Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; ++i) {
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i) {
         StorageObject *parent = (*i)->getParent();
         if (parent && parent->getType() == ObjectType_Controller) {
             pInfo->enclosureKey |= 0x10000000;
@@ -116,7 +117,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     m_LogicalId.get(pInfo->logicalId, sizeof(pInfo->logicalId));
     pInfo->processorCount = 0;
     pInfo->subenclosureCount = m_SubenclosureCount;
-    pInfo->elementCount = m_Slots;
+    pInfo->elementCount = m_Slots.size();
     pInfo->numberOfSlots = m_SlotCount;
     return SSI_StatusOk;
 }
@@ -155,7 +156,7 @@ void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 /* */
 void Enclosure::attachEndDevices(Container<EndDevice> &EndDevices)
 {
-    for (Iterator<EndDevice *> i = EndDevices; *i != 0; i++) {
+    for (Iterator<EndDevice *> i = EndDevices.begin(); i != EndDevices.end(); ++i) {
         (*i)->setEnclosure(this);
         attachEndDevice(*i);
     }
@@ -171,7 +172,7 @@ void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 void Enclosure::acquireId(Session *pSession)
 {
     Container<EndDevice> container;
-    for(Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; i++) {
+    for(Iterator<RoutingDevice *> i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i) {
         (*i)->getEndDevices(container, false);
         attachEndDevices(container);
     }
@@ -181,7 +182,7 @@ void Enclosure::acquireId(Session *pSession)
 /* */
 unsigned int Enclosure::getSlotNumber(unsigned long long sasAddress) const
 {
-    for (Iterator<Slot *> i = m_Slots; *i != 0; ++i)
+    for (Iterator<Slot *> i = m_Slots.begin(); i != m_Slots.end(); ++i)
         if ((*i)->sasAddress == sasAddress)
             return (*i)->slotNumber;
     return -1U;
@@ -229,7 +230,7 @@ void Enclosure::__get_slot_info(String &buffer)
 /* */
 bool Enclosure::attachedTo(StorageObject *pObject) const
 {
-    for(Iterator<RoutingDevice *> i = m_RoutingDevices; *i != 0; ++i)
+    for(Iterator<RoutingDevice *> i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i)
         if ((*i)->getParent() == pObject)
             return true;
     return false;

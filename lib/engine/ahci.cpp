@@ -63,14 +63,15 @@ void AHCI::discover()
     Directory dir(m_Path, "host");
 
     if (dir.count() > 0) {
-        for (Iterator<Directory *> i = dir; *i != 0; ++i)
+        List<Directory *> dirs = dir.dirs();
+        for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i)
             hosts.push_back(**i);
     } else {
         dir = Directory(m_Path, "ata");
-
-        for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+        List<Directory *> dirs = dir.dirs();
+        for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
             Directory port_dir(**i, "host");
-            hosts.push_back(**static_cast<Iterator<Directory *> >(port_dir));
+            hosts.push_back(**port_dir.dirs().begin());
         }
     }
 

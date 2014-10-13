@@ -112,7 +112,7 @@ public:
         return SSI_RoutingDeviceTypeUnknown;
     }
     virtual unsigned int getNumberOfPhys() const {
-        return m_Phys;
+        return m_Phys.size();
     }
     RaidInfo * getRaidInfo() const;
     Controller * getController() const {

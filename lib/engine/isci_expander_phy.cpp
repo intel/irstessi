@@ -77,8 +77,7 @@ Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
 
     dir.setFilter("expander");
     if (dir > 0) {
-        Iterator<Directory *> i = dir;
-        if (portPath.compare(CanonicalPath(*(*i))) > 0) {
+        if (portPath.compare(CanonicalPath(**dir.dirs().begin())) > 0) {
             /* host of expander behind expander */
             pPort = new ISCI_Expander_SubtractivePort(portPath);
             if (pRtDevice) {

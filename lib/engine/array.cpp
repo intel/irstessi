@@ -51,7 +51,8 @@ Array::Array(const String &path)
 {
     String metadata;
     Directory dir("/sys/devices/virtual/block");
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         SysfsAttr attr = *(*i) + "md/metadata_version";
         try {
             attr >> metadata;
@@ -90,7 +91,7 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
     unsigned int count = 0;
 
     String endDevices;
-    for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = container.begin(); i != container.end(); ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             return SSI_StatusInvalidState;
@@ -145,7 +146,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
     if (status == SSI_StatusOk) {
         usleep(3000000);
         if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " +
-                  String(tmp.count() + container.count())) != 0) {
+                  String(tmp.size() + container.size())) != 0) {
             status = SSI_StatusFailed;
         }
     }
@@ -168,8 +169,8 @@ SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
     pInfo->totalSize = m_TotalSize;
     pInfo->freeSize = m_FreeSize;
     pInfo->writeCachePolicy = SSI_WriteCachePolicyOn;
-    pInfo->numVolumes = m_Volumes;
-    pInfo->numDisks = m_BlockDevices;
+    pInfo->numVolumes = m_Volumes.size();
+    pInfo->numDisks = m_BlockDevices.size();
     return SSI_StatusOk;
 }
 
@@ -179,7 +180,7 @@ SSI_Status Array::setWriteCacheState(bool enable)
     if (m_Busy) {
         return SSI_StatusInvalidState;
     }
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         (*i)->setWriteCache(enable);
     }
     return SSI_StatusOk;
@@ -189,7 +190,7 @@ SSI_Status Array::setWriteCacheState(bool enable)
 void Array::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
-    for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = container.begin(); i != container.end(); ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             throw E_INVALID_OBJECT;
@@ -238,7 +239,7 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
 /* */
 SSI_Status Array::removeVolume(const unsigned int ordinal)
 {
-    if (1 == m_Volumes) {
+    if (1 == m_Volumes.size()) {
         return SSI_StatusOk;
     }
     usleep(3000000);
@@ -272,7 +273,7 @@ SSI_Status Array::assemble()
 void Array::getEndDevices(Container<EndDevice> &container, bool all) const
 {
     container.clear();
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         if (all || (*i)->getDiskUsage() == SSI_DiskUsageArrayMember)
         container.add(*i);
     }
@@ -305,10 +306,10 @@ void Array::acquireId(Session *pSession)
 {
     RaidDevice::acquireId(pSession);
     pSession->addArray(this);
-    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+    for (Iterator<Volume *> i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+    for (Iterator<Volume *> i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
         if ((*i)->getState() != SSI_VolumeStateNormal) {
             m_Busy = true; break;
         }
@@ -323,7 +324,7 @@ SSI_Status Array::remove()
     do {
         if (shell("mdadm -S /dev/" + m_DevName) == 0) {
             String devices;
-            for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+            for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
                 devices += " /dev/" + (*i)->getDevName();
             }
             usleep(3000000);
@@ -369,10 +370,10 @@ void Array::create()
     determineDeviceName("Imsm_");
 
     String devices;
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         devices += " /dev/" + (*i)->getDevName();
     }
-    if (shell("mdadm -CR " + m_Name + " -f -amd -eimsm -n" + String(m_BlockDevices) + devices) != 0) {
+    if (shell("mdadm -CR " + m_Name + " -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices) != 0) {
         throw E_ARRAY_CREATE_FAILED;
     }
     __wait_for_container();
@@ -399,16 +400,16 @@ void Array::attachVolume(Volume *pVolume)
 void Array::__internal_determine_total_and_free_size()
 {
     unsigned int totalSectors = -1U;
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         totalSectors = min(totalSectors, (*i)->getSectors());
     }
-    m_TotalSize = ((totalSectors * m_BlockDevices) * 512);
+    m_TotalSize = ((totalSectors * m_BlockDevices.size()) * 512);
     unsigned long long occupiedSectors = 0;
-    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+    for (Iterator<Volume *> i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
         occupiedSectors += (*i)->getComponentSize();
     }
     if (occupiedSectors > 0) {
-        occupiedSectors = ((occupiedSectors * 1000) / 512) * m_BlockDevices;
+        occupiedSectors = ((occupiedSectors * 1000) / 512) * m_BlockDevices.size();
     }
     m_FreeSize = (m_TotalSize - (occupiedSectors * 512));
 }

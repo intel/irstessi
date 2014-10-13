@@ -255,18 +255,21 @@ public:
     }
 
 public:
-    operator Iterator<File *> () {
+    List<File *> & files() {
         __internal_update_content();
         return m_Files;
     }
-    operator Iterator<Directory *> () {
+
+    List<Directory *> & dirs() {
         __internal_update_content();
         return m_Directories;
     }
-    operator Iterator<Path *> () {
+
+    List<Path *> & contents() {
         __internal_update_content();
         return m_Content;
     }
+
     Directory & operator = (const String &path) {
         __internal_clear_content();
         assign(path);
@@ -286,7 +289,7 @@ public:
     }
     unsigned int count() {
         __internal_update_content();
-        return m_Content.count();
+        return m_Content.size();
     }
     void setFilter(const String &filter, bool update = false) {
         m_Valid = false;

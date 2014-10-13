@@ -45,7 +45,7 @@ EventManager::EventManager()
 /* */
 EventManager::~EventManager()
 {
-    for (Iterator<Event *> i = m_Events; *i != 0; ++i) {
+    for (Iterator<Event *> i = m_Events.begin(); i != m_Events.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
 }
@@ -75,7 +75,7 @@ unsigned int EventManager::registerEvent()
 {
     Event *pEvent;
     unsigned int eventId;
-    if (m_Events == MAX_EVENT_HANDLES)
+    if (m_Events.size() == MAX_EVENT_HANDLES)
         return SSI_NULL_HANDLE;
     try {
         pEvent = new Event();
@@ -97,7 +97,7 @@ unsigned int EventManager::registerEvent()
 	return SSI_NULL_HANDLE;
     }
     /* everything went OK, so start event trigger */
-    if (m_Events != 0) {
+    if (m_Events.size() != 0) {
 	startEventMonitor();
     }
     return eventId;
@@ -117,7 +117,7 @@ SSI_Status EventManager::unregisterEvent(unsigned int id)
         return SSI_StatusInvalidHandle;
     }
     /* everything went OK, so stop event trigger */
-    if (m_Events == 0) {
+    if (m_Events.size() == 0) {
 	stopEventMonitor();
     }
     return SSI_StatusOk;

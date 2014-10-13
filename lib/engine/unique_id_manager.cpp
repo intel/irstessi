@@ -253,12 +253,12 @@ unsigned int IdCache::__findId() const {
     unsigned int id;
     Iterator<Id *> i;
     for(id = 1; id <= 0x0fffffff; id++) {
-        for (i = first(); *i != 0; ++i) {
+        for (i = begin(); i != end(); ++i) {
             if (((*i)->getId() & 0x0fffffff) == id) {
                 break;
             }
         }
-        if (*i == 0) {
+        if (i == end()) {
             break;
         }
     }
@@ -273,7 +273,8 @@ IdCache::IdCache()
 /* */
 IdCache::~IdCache()
 {
-    for (Iterator<Id *> i = first(); *i != 0; ++i) {
+    Iterator<Id *> i;
+    for (i = begin(); i != end(); ++i) {
         delete *i;
     }
 }
@@ -285,10 +286,10 @@ void IdCache::add(Object *pObject)
         throw E_NULL_POINTER;
     }
     Iterator<Id *> i;
-    for (i = first(); *i != 0 && *(*i) != pObject; ++i) {
+    for (i = begin(); i != end() && *(*i) != pObject; ++i) {
     }
     Id *pId = *i;
-    if (pId == 0) {
+    if (i == end()) {
         dlog(String("new object ") + String(pObject->getType()) + " " + String(pObject->getKey()));
         unsigned int id = __findId();
         /* TODO when out of id's clean the id file:
@@ -308,10 +309,10 @@ void IdCache::add(Object *pObject)
 void IdCache::add(unsigned int id, String key)
 {
     Iterator<Id *> i;
-    for (i = first(); *i != 0 && (*i)->getId() != id; ++i) {
+    for (i = begin(); i != end() && (*i)->getId() != id; ++i) {
     }
-    Id *pId = *i;
-    if (pId == 0) {
+    Id *pId;
+    if (i == end()) {
         /* it is not in cache */
         dlog(String(id) + key + " adding to cache");
         pId = new Id(id, key);
@@ -329,12 +330,12 @@ void IdCache::remove(Object *pObject) {
         throw E_NULL_POINTER;
     }
     Iterator<Id *> i;
-    for (i = first(); *i != 0; ++i) {
+    for (i = begin(); i != end(); ++i) {
         if ((*i)->getId() == pObject->getId()) {
             break;
         }
     }
-    if (*i == 0) {
+    if (i == end()) {
         throw E_NOT_FOUND;
     }
     (*i)->remove(pObject);
@@ -345,6 +346,7 @@ void IdCache::remove(Object *pObject) {
     unsigned int type = (*i)->getId() >> 28;
     if ((type == ObjectType_Session || type == ObjectType_Event) &&
         (*i)->count() == 0) {
-        delete List<Id *>::remove(i);
+        delete *i;
+        List<Id *>::remove(*i);
     }
 }

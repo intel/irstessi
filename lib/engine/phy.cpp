@@ -106,7 +106,7 @@ void Phy::fetchSpeeds(SSI_PhyInfo *pInfo) const
         if (pPort != 0) {
             Container<Phy> container;
             pPort->getPhys(container);
-            for(Iterator<Phy *> i = container; *i != 0; i++)
+            for(Iterator<Phy *> i = container.begin(); i != container.end(); ++i)
                 (*i)->setSpeeds(pInfo);
         }
     }
@@ -127,6 +127,7 @@ void Phy::setProperties()
 {
     Path tmp = m_Path.reverse_left("/");
     Directory dir;
+    List<Directory *> dirs;
 
     m_Protocol = SSI_PhyProtocolUnknown;
     m_minHWLinkSpeed = SSI_PhySpeedUnknown;
@@ -139,7 +140,8 @@ void Phy::setProperties()
         case ObjectType_EndDevice:
             tmp = tmp.reverse_left("/");
             dir = tmp + "sas_device";
-            for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+            dirs = dir.dirs();
+            for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
                 try {
                     SysfsAttr attr;
                     String protocol;
@@ -154,7 +156,8 @@ void Phy::setProperties()
         case ObjectType_Controller:
         case ObjectType_RoutingDevice:
             dir = m_Path + "/sas_phy";
-            for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+            dirs = dir.dirs();
+            for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
                 SysfsAttr attr;
                 String linkrate;
                 try {

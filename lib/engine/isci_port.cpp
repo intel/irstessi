@@ -60,19 +60,20 @@ ISCI_Port::ISCI_Port(const String &path)
 /* */
 void ISCI_Port::discover()
 {
-    Iterator<Directory *> i;
     Directory dir(m_Path, "expander");
-    if (*(i = dir) != 0) {
-        ISCI_Expander *pExpander = new ISCI_Expander(*(*i));
+    List<Directory *> dirs = dir.dirs();
+    if (dirs.begin() != dirs.end()) {
+        ISCI_Expander *pExpander = new ISCI_Expander(**dirs.begin());
         pExpander->setParent(m_pParent);
         pExpander->discover();
         attachPort(pExpander->getSubtractivePort());
         return;
     }
     dir.setFilter("end_device");
-    if (*(i = dir) != 0) {
-        Directory target(*(*i), "target");
-        StorageObject *pStorageObject = __internal_create_storage_object(target);
+    dirs = dir.dirs();
+    if (dirs.begin() != dirs.end()) {
+        Directory target(**dirs.begin(), "target");
+        StorageObject *pStorageObject = __internal_create_storage_object(target.dirs());
         if (pStorageObject != 0) {
             pStorageObject->setParent(m_pParent);
             switch  (pStorageObject->getType()) {
@@ -89,32 +90,33 @@ void ISCI_Port::discover()
         return;
     }
     dir.setFilter("host");
-    if (*(i = dir) == 0) {
+    dirs = dir.dirs();
+    if (dirs.begin() == dirs.end()) {
         throw E_INVALID_OBJECT;
     }
 }
 
 /* */
-StorageObject * ISCI_Port::__internal_create_storage_object(Iterator<Directory *> i)
+StorageObject * ISCI_Port::__internal_create_storage_object(List<Directory *> &dirs)
 {
     StorageObject *pStorageObject = 0;
-    if (*i != 0)
-    for (Iterator<Directory *> j = *(*i); *j != 0; ++j) {
-        CanonicalPath temp = *(*j) + "driver";
+    if (dirs.begin() != dirs.end())
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+        CanonicalPath temp = *(*i) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
-            pStorageObject = new ISCI_Disk(*(*j));
+            pStorageObject = new ISCI_Disk(*(*i));
             break;
         } else
         if (temp == "/sys/bus/scsi/drivers/sr") {
-            pStorageObject = new ISCI_CDROM(*(*j));
+            pStorageObject = new ISCI_CDROM(*(*i));
             break;
         } else
         if (temp == "/sys/bus/scsi/drivers/st") {
-            pStorageObject = new ISCI_Tape(*(*j));
+            pStorageObject = new ISCI_Tape(*(*i));
             break;
         }
         if (temp == "/sys/bus/scsi/drivers/ses") {
-            pStorageObject = new Enclosure(*(*j));
+            pStorageObject = new Enclosure(*(*i));
 
             break;
         }

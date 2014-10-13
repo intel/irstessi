@@ -44,7 +44,7 @@ SessionManager::~SessionManager()
 {
     delete m_pNullSession;
 
-    for (Iterator<Session *> i = m_Sessions; *i != 0; ++i) {
+    for (Iterator<Session *> i = m_Sessions.begin(); i != m_Sessions.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
 }

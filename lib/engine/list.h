@@ -22,184 +22,74 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __LIST_H__INCLUDED__
 #define __LIST_H__INCLUDED__
 
-/* */
-template <typename T> class Element {
-private:
-    Element(const T &data)
-        : m_Data(data), m_pNext(0), m_pPrev(0) {
-    }
-    ~Element() {
-        if (m_pNext != 0) {
-            delete m_pNext;
-        }
-        m_pNext = m_pPrev = 0;
-    }
-
-    template <typename K> friend class Iterator;
-    template <typename K> friend class List;
-
-private:
-    const T m_Data;
-    Element<T> *m_pNext;
-    Element<T> *m_pPrev;
-};
+#include <list>
 
 /* */
 template <typename T> class Iterator {
 public:
-    Iterator(Element<T> *pElem = 0)
-        : m_pElem(pElem) {
-    }
-    Iterator(const Iterator<T> &i)
-        : m_pElem(i.m_pElem) {
-    }
-
-public:
-    Element<T> * next() const {
-        return m_pElem ? m_pElem->m_pNext : 0;
-    }
-    Element<T> * prev() const {
-        return m_pElem ? m_pElem->m_pPrev : 0;
-    }
-    const T & data() const {
-        return m_pElem ? m_pElem->m_Data  : 0;
-    }
-
-public:
     bool operator == (const Iterator<T> &i) const {
-        return data() == i.data();
+        return m_iter == i.m_iter;
     }
     bool operator != (const Iterator<T> &i) const {
-        return data() != i.data();
+        return m_iter != i.m_iter;
     }
-    Iterator<T> operator ++ (int) {
-        Iterator<T> result = *this;
-        m_pElem = next();
-        return result;
-    }
-    Iterator<T> & operator ++ () {
-        m_pElem = next();
-        return *this;
-    }
-    Iterator<T> operator -- (int) {
-        Iterator<T> result = *this;
-        m_pElem = prev();
-        return result;
-    }
-    Iterator<T> & operator -- () {
-        m_pElem = prev();
-        return *this;
+    void operator ++ () {
+        ++m_iter;
     }
     const T operator * () const {
-        return m_pElem ? m_pElem->m_Data : 0;
-    }
-    operator Element<T> * () const {
-        return m_pElem;
+        return *m_iter;
     }
 
     template <typename K> friend class List;
 
 private:
-    Element<T> *m_pElem;
+    typename std::list<T>::const_iterator m_iter;
 };
 
 /* */
 template <typename T> class List {
 public:
     List()
-        : m_pHead(0), m_pTail(0), m_Count(0) {
-    }
-    List(const List<T> &list)
-        : m_pHead(0), m_pTail(0), m_Count(0) {
-        add(list);
-    }
-    virtual ~List() {
-        delete m_pHead;
+        : m_list() {
     }
 
 public:
-    unsigned int count() const {
-        return m_Count;
+
+    int size() const {
+        return m_list.size();
     }
-    void add(const List<T> &list) {
-        for (Iterator<T> i = list; *i != 0; ++i) {
-            add(*i);
-        }
-    }
-    void clear() {
-        delete m_pHead;
-        m_pHead = m_pTail = 0;
-        m_Count = 0;
-    }
+
     void add(const T &data) {
-        Element<T> *pElem = new Element<T>(data);
-        if (m_pHead == 0) {
-            m_pHead = pElem;
-        } else {
-            m_pTail->m_pNext = pElem;
-            pElem->m_pPrev = m_pTail;
-        }
-        m_Count++;
-        m_pTail = pElem;
-    }
-    T remove(const T &data) {
-        Element<T> *pElem = m_pHead;
-        while (pElem != 0) {
-            if (pElem->m_Data == data) {
-                break;
-            }
-            pElem = pElem->m_pNext;
-        }
-        return remove(pElem);
-    }
-    T remove(Element<T> *pElem) {
-        if (pElem == 0) {
-            throw E_NULL_POINTER;
-        }
-        T result = pElem->m_Data;
-        if (pElem->m_pPrev) {
-            pElem->m_pPrev->m_pNext = pElem->m_pNext;
-        } else {
-            m_pHead = pElem->m_pNext;
-        }
-        if (pElem->m_pNext) {
-            pElem->m_pNext->m_pPrev = pElem->m_pPrev;
-        } else {
-            m_pTail = pElem->m_pPrev;
-        }
-        m_Count--;
-        pElem->m_pNext = 0;
-        delete pElem;
-        return result;
-    }
-    Iterator<T> first() const {
-        return Iterator<T>(m_pHead);
-    }
-    Iterator<T> last() const {
-        return Iterator<T>(m_pTail);
-    }
-    operator Iterator<T> () const {
-        return first();
-    }
-    operator unsigned int () const {
-        return m_Count;
+        m_list.push_back(data);
     }
 
-public:
-    List<T> & operator = (const List<T> &list) {
-        clear(); add(list); return *this;
+    void add(const List<T> &list) {
+        m_list.insert(m_list.end(), list.m_list.begin(), list.m_list.end());
+    }
+
+    void clear() {
+        m_list.clear();
+    }
+
+    void remove(const T &pElem) {
+        m_list.remove(pElem);
+    }
+
+    Iterator<T> begin() const {
+        Iterator<T> i;
+        i.m_iter = m_list.begin();
+        return i;
+    }
+
+    Iterator<T> end() const {
+        Iterator<T> i;
+        i.m_iter = m_list.end();
+        return i;
     }
 
 protected:
-    Element<T> *m_pHead;
-    Element<T> *m_pTail;
-    unsigned int m_Count;
+    std::list<T> m_list;
 };
-
-template <typename T>
-inline List<T> operator + (const List<T> &left, const List<T> &right) {
-    return List<T>(left).add(right);
-}
 
 #endif /* __LIST_H__INCLUDED__ */
 

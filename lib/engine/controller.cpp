@@ -121,7 +121,7 @@ RaidInfo * Controller::findRaidInfo()
 /* */
 RaidInfo * Controller::findRaidInfo(Container<RaidInfo> &container)
 {
-    for (Iterator<RaidInfo *> i = container; *i != 0; ++i)
+    for (Iterator<RaidInfo *> i = container.begin(); i != container.end(); ++i)
         if ((*i)->getControllerType() == getControllerType()) {
             m_pRaidInfo = *i;
             m_pRaidInfo->attachController(this);
@@ -195,7 +195,7 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
 
 SSI_Status Controller::makeSpare(EndDevice *pEndDevice)
 {
-    for (Iterator<Array *> i = m_Arrays; *i != 0; i++) {
+    for (Iterator<Array *> i = m_Arrays.begin(); i != m_Arrays.end(); ++i) {
         if ((*i)->addSpare(pEndDevice) == SSI_StatusOk)
             return SSI_StatusOk;
     }
@@ -236,7 +236,7 @@ void Controller::getEnclosures(Container<Enclosure> &container, bool all) const
         container = m_Enclosures_Direct;
         return;
     }
-    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; ++i)
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct.begin(); i != m_Enclosures_Direct.end(); ++i)
         if ((*i)->attachedTo(const_cast<Controller *>(this)))
             container.add(*i);
 }
@@ -320,12 +320,12 @@ void Controller::attachPort(Port *pPort)
 void Controller::attachVolume(Volume *pVolume)
 {
     Iterator<Volume *> i;
-    for (i = m_Volumes; *i != 0; ++i) {
+    for (i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
         if (*i == pVolume) {
             break;
         }
     }
-    if (*i == 0) {
+    if (i == m_Volumes.end()) {
         m_Volumes.add(pVolume);
     }
 }
@@ -340,12 +340,12 @@ void Controller::attachPhy(Phy *pPhy)
 void Controller::attachArray(Array *pArray)
 {
     Iterator<Array *> i;
-    for (i = m_Arrays; *i != 0; ++i) {
+    for (i = m_Arrays.begin(); i != m_Arrays.end(); ++i) {
         if (*i == pArray) {
             break;
         }
     }
-    if (*i == 0) {
+    if (i == m_Arrays.end()) {
         m_Arrays.add(pArray);
     }
 }
@@ -353,7 +353,7 @@ void Controller::attachArray(Array *pArray)
 /* */
 void Controller::attachEnclosure(Enclosure *pEnclosure)
 {
-    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; i++)
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct.begin(); i != m_Enclosures_Direct.end(); ++i)
         if (pEnclosure->equal(*i)) {
             RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(pEnclosure->getParent());
             (*i)->attachRoutingDevice(pRoutingDevice);
@@ -367,7 +367,7 @@ void Controller::attachEnclosure(Enclosure *pEnclosure)
 /* */
 void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container)
 {
-    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; i++) {
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct.begin(); i != m_Enclosures_Direct.end(); ++i) {
         if (pRoutingDevice->getEnclosure() != *i && (*i)->attachedTo(pRoutingDevice))
             container.add(*i);
     }
@@ -378,22 +378,22 @@ void Controller::acquireId(Session *pSession)
 {
     pSession->addController(this);
 
-    for (Iterator<EndDevice *> i = m_EndDevices_Direct; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = m_EndDevices_Direct.begin(); i != m_EndDevices_Direct.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<RoutingDevice *> i = m_RoutingDevices_Direct; *i != 0; ++i) {
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices_Direct.begin(); i != m_RoutingDevices_Direct.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+    for (Iterator<Phy *> i = m_Phys.begin(); i != m_Phys.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Array *> i = m_Arrays; *i != 0; ++i) {
+    for (Iterator<Array *> i = m_Arrays.begin(); i != m_Arrays.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Enclosure *> i = m_Enclosures_Direct; *i != 0; ++i) {
+    for (Iterator<Enclosure *> i = m_Enclosures_Direct.begin(); i != m_Enclosures_Direct.end(); ++i) {
         (*i)->acquireId(pSession);
     }
 }

@@ -233,10 +233,10 @@ SSI_Status Volume::expand(unsigned long long newSize)
 {
     if (m_State != SSI_VolumeStateNormal)
         return SSI_StatusInvalidState;
-    if (newSize && newSize < m_ComponentSize * m_BlockDevices)
+    if (newSize && newSize < m_ComponentSize * m_BlockDevices.size())
         return SSI_StatusInvalidSize;
     /* convert size for mdadm */
-    String size = (newSize == 0)?"max":String(newSize/m_BlockDevices);
+    String size = (newSize == 0)?"max":String(newSize/m_BlockDevices.size());
     if (shell("mdadm --grow /dev/" + m_DevName + " --size=" + size) == 0)
         return SSI_StatusOk;
     return SSI_StatusFailed;
@@ -274,7 +274,7 @@ SSI_Status Volume::remove()
 
         Container<Volume> volumes;
         pArray->getVolumes(volumes);
-        if (volumes.count() > 1)
+        if (volumes.size() > 1)
             return SSI_StatusOk;
         else
             return pArray->remove();
@@ -335,7 +335,7 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     if ((raidLevel & info.migrSupport) == 0)
         return SSI_StatusInvalidRaidLevel;
     /* size change is not supported */
-    if (newSize && newSize != (m_ComponentSize << 10) * m_BlockDevices)
+    if (newSize && newSize != (m_ComponentSize << 10) * m_BlockDevices.size())
         return SSI_StatusInvalidSize;
     /* migrate */
     switch (raidLevel) {
@@ -362,9 +362,9 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));
     pInfo->raidLevel = ui2raidlevel(m_RaidLevel);
     pInfo->state = m_State;
-    pInfo->totalSize = (m_ComponentSize << 10) * m_BlockDevices;
+    pInfo->totalSize = (m_ComponentSize << 10) * m_BlockDevices.size();
     pInfo->stripSize = ui2stripsize(m_StripSize);
-    pInfo->numDisks = m_BlockDevices;
+    pInfo->numDisks = m_BlockDevices.size();
     pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
     pInfo->migrProgress = m_MigrationProgress;
     if (m_CachingEnabled == false) {
@@ -409,7 +409,7 @@ SSI_Status Volume::readStorageArea(void *pBuffer, unsigned int bufferSize)
 void Volume::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
 {
     container.clear();
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         container.add(*i);
     }
 }
@@ -421,7 +421,7 @@ void Volume::acquireId(Session *pSession)
     pSession->addVolume(this);
     if (m_RaidLevel == 0) {
         m_State = SSI_VolumeStateNormal;
-        for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+        for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
             if ((*i)->getDiskState() != SSI_DiskStateNormal) {
                 m_State = SSI_VolumeStateNonRedundantVolumeFailedDisk;
             }
@@ -500,7 +500,7 @@ void Volume::create()
         throw E_INVALID_NAME;
     }
     String devices;
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         devices += " /dev/" + (*i)->getDevName();
     }
     String componentSize;
@@ -511,7 +511,7 @@ void Volume::create()
     }
     String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
     if (shell("mdadm -CR " + m_Name + " -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
-            chunk + " -n" + String(m_BlockDevices) + devices) != 0) {
+            chunk + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
         throw E_VOLUME_CREATE_FAILED;
     }
     __wait_for_volume();
@@ -632,11 +632,11 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
     }
     switch (m_RaidLevel) {
         case 0:
-            if (disks == 0 && !chunkChange)
+            if (disks.size() == 0 && !chunkChange)
                 return SSI_StatusOk;
-            if (disks > 0 && chunkChange)
+            if (disks.size() > 0 && chunkChange)
                 return SSI_StatusNotSupported;
-            if (disks > 0)
+            if (disks.size() > 0)
                 return pArray->grow(disks);
             if (shell("mdadm /dev/" + m_DevName + " --grow -l0" + ch) == 0)
                 return SSI_StatusOk;
@@ -644,24 +644,24 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
             if (chunkChange)
                 return SSI_StatusInvalidStripSize;
             if (shell("mdadm /dev/" + m_DevName + " --grow -l0") == 0) {
-                if (disks > 0)
+                if (disks.size() > 0)
                     return pArray->grow(disks);
                 return SSI_StatusOk;
             }
         case 10:
-            if (disks > 0 && chunkChange)
+            if (disks.size() > 0 && chunkChange)
                 return SSI_StatusNotSupported;
             if (shell("mdadm /dev/" + m_DevName + " --grow -l0") == 0) {
-                if (disks == 0 && !chunkChange)
+                if (disks.size() == 0 && !chunkChange)
                     return SSI_StatusOk;
                 usleep(3000000);
-                if (disks > 0)
+                if (disks.size() > 0)
                     return pArray->grow(disks);
                 if (shell("mdadm /dev/" + m_DevName + " --grow -l0" + ch) == 0)
                     return SSI_StatusOk;
             }
         case 5:
-            if (disks > 0)
+            if (disks.size() > 0)
                 return SSI_StatusNotSupported;
             if (chunkChange)
                 return SSI_StatusInvalidStripSize;
@@ -678,7 +678,7 @@ SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSiz
 {
     SSI_Status status;
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (m_RaidLevel != 0 || m_BlockDevices != 2  || disks < 2)
+    if (m_RaidLevel != 0 || m_BlockDevices.size() != 2  || disks.size() < 2)
         return SSI_StatusNotSupported;
     if (stripSize && stripSize != ui2stripsize(m_StripSize))
         return SSI_StatusInvalidStripSize;
@@ -709,7 +709,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
     }
     switch (m_RaidLevel) {
         case 0:
-            if (disks < 1)
+            if (disks.size() < 1)
                 /* check if there are any spares */
                 return SSI_StatusNotSupported;
             status = pArray->addSpare(disks);
@@ -718,16 +718,16 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
             if (shell("mdadm /dev/" + m_DevName + " --grow -l5 --layout=left-asymmetric" + ch) == 0)
                 return SSI_StatusOk;
         case 10:
-            if (disks > 0)
+            if (disks.size() > 0)
                 return SSI_StatusNotSupported;
             if (shell("mdadm /dev/" + m_DevName + " --grow -l0") == 0) {
                 if (shell("mdadm /dev/" + m_DevName + " --grow -l5 --layout=left-asymmetric" + ch) == 0)
                     return SSI_StatusOk;
             }
         case 5:
-            if (disks > 0 && chunkChange)
+            if (disks.size() > 0 && chunkChange)
                 return SSI_StatusNotSupported;
-            if (disks > 0)
+            if (disks.size() > 0)
                 return pArray->grow(disks);
             if (shell("mdadm /dev/" + m_DevName + " --grow -l5" + ch) == 0)
                 return SSI_StatusOk;

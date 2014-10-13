@@ -53,7 +53,8 @@ ISCI_Expander::ISCI_Expander(const String &path)
 {
     Directory dir(m_Path + "/sas_device");
     SysfsAttr attr;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "sas_address";
             attr >> m_SASAddress;
@@ -63,7 +64,8 @@ ISCI_Expander::ISCI_Expander(const String &path)
     }
     dlog(" sas adress %s\n%llu\n", (const char *) path, m_SASAddress);
     dir = m_Path + "/sas_expander";
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "product_id";
             attr >> m_ProductId;
@@ -100,7 +102,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
 /* */
 Port * ISCI_Expander::getPortByPath(const String &path) const
 {
-    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         if ((*i)->getPath() == path) {
             return (*i);
         }
@@ -129,14 +131,15 @@ void ISCI_Expander::discover()
 {
     Directory dir(m_Path, "phy");
     unsigned int number = 0;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++, this);
         attachPhy(pPhy);
     }
-    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+    for (Iterator<Phy *> i = m_Phys.begin(); i != m_Phys.end(); ++i) {
         (*i)->discover();
     }
-    for(Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+    for(Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         (*i)->discover();
     }
 }

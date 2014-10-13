@@ -105,7 +105,8 @@ EndDevice::EndDevice(const String &path)
 
     Directory dir(m_Path + "/block");
     CanonicalPath temp;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         temp = *(*i) + "device";
         if (temp == m_Path) {
             m_DevName = (*i)->reverse_after("/");
@@ -366,7 +367,8 @@ void EndDevice::getAddress(SSI_Address &address) const
 /* */
 void EndDevice::getPhys(Container<Phy> &container) const
 {
-    container = m_pPhy;
+    container.clear();
+    container.add(m_pPhy);
 }
 
 /* */

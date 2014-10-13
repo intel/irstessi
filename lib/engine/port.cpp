@@ -56,7 +56,7 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
     }
     pInfo->portHandle = getId();
     m_pParent->getAddress(pInfo->portAddress);
-    pInfo->numPhys = m_Phys.count();
+    pInfo->numPhys = m_Phys.size();
     switch (m_pParent->getType()) {
     case ObjectType_Controller:
         pInfo->localDeviceType = SSI_DeviceTypeController;

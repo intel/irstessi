@@ -53,16 +53,16 @@ RoutingDevice::~RoutingDevice()
 void RoutingDevice::acquireId(Session *pSession)
 {
     pSession->addRoutingDevice(this);
-    for (Iterator<EndDevice *> i = m_EndDevices_Direct; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = m_EndDevices_Direct.begin(); i != m_EndDevices_Direct.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+    for (Iterator<Phy *> i = m_Phys.begin(); i != m_Phys.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         (*i)->acquireId(pSession);
     }
-    for (Iterator<RoutingDevice *> i = m_RoutingDevices_Direct; *i != 0; ++i) {
+    for (Iterator<RoutingDevice *> i = m_RoutingDevices_Direct.begin(); i != m_RoutingDevices_Direct.end(); ++i) {
         (*i)->acquireId(pSession);
     }
     pSession->addPort(m_pSubtractivePort);

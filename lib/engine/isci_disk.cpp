@@ -44,7 +44,8 @@ ISCI_Disk::ISCI_Disk(const String &path)
     end_path = end_path.reverse_left("/");
     Directory dir(end_path + "/sas_device");
     SysfsAttr attr;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "sas_address";
             attr >> m_SASAddress;

@@ -74,7 +74,8 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 
     guid2str(buf, VENDOR_GUID);
     dir.setFilter((controllerType == SSI_ControllerTypeAHCI)?AHCI_VAR:SCU_VAR);
-    for (Iterator<Directory *> i = dir; *i != 0; i++) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             (*i)->find(buf);
             var_path = *(*i);

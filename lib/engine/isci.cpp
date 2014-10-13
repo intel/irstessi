@@ -57,7 +57,8 @@ void ISCI::discover()
 {
     Directory dir(m_Path, "host");
     SysfsAttr attr;
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         unsigned int number = 0;
         try {
             attr = *(*i) + "scsi_host" + (*i)->reverse_after("/") + "isci_id";
@@ -67,15 +68,16 @@ void ISCI::discover()
         }
         Directory phys(*(*i), "phy");
         number *= 4;
-        for (Iterator<Directory *> j = phys; *j != 0; ++j, ++number) {
+        List<Directory *> phys_dirs = phys.dirs();
+        for (Iterator<Directory *> j = phys_dirs.begin(); j != phys_dirs.end(); ++j, ++number) {
             Phy *pPhy = new ISCI_Phy(*(*j), number, this);
             attachPhy(pPhy);
 		}
     }
-    for (Iterator<Phy *> i = m_Phys; *i != 0; ++i) {
+    for (Iterator<Phy *> i = m_Phys.begin(); i != m_Phys.end(); ++i) {
         (*i)->discover();
     }
-    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         (*i)->discover();
     }
 }
@@ -83,7 +85,7 @@ void ISCI::discover()
 /* */
 Port * ISCI::getPortByPath(const String &path) const
 {
-    for (Iterator<Port *> i = m_Ports; *i != 0; ++i) {
+    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         if ((*i)->getPath() == path) {
             return (*i);
         }

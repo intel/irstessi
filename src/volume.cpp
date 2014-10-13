@@ -215,7 +215,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pVolume->setParent(pArray);
         pVolume->setSourceDisk(pEndDevice);
         pVolume->setEndDevices(container);
-        pVolume->setComponentSize(params.sizeInBytes / container);
+        pVolume->setComponentSize(params.sizeInBytes / container.size());
         pVolume->setName(params.volumeName);
         pVolume->setRaidLevel(params.raidLevel);
         if (params.raidLevel != SSI_Raid1)
@@ -265,7 +265,7 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
     }
     Container<EndDevice> container;
     pArray->getEndDevices(container, false);
-    if (0 == container.count())
+    if (0 == container.size())
         pArray->getEndDevices(container, true);
     try {
         try {
@@ -275,7 +275,7 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         }
         pVolume->setParent(pArray);
         pVolume->setEndDevices(container);
-        pVolume->setComponentSize(params.sizeInBytes / container);
+        pVolume->setComponentSize(params.sizeInBytes / container.size());
         pVolume->setName(params.volumeName);
         pVolume->setStripSize(params.stripSize);
         pVolume->setRaidLevel(params.raidLevel);

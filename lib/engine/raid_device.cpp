@@ -50,7 +50,8 @@ RaidDevice::RaidDevice(const String &path)
     m_DevName = m_Path.reverse_after("/");
 
     Directory dir(m_Path + "/slaves");
-    for (Iterator<Directory *> i = dir; *i != 0; ++i) {
+    List<Directory *> dirs = dir.dirs();
+    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
         m_Components.add(new String((*i)->reverse_after("/")));
     }
     update();
@@ -65,7 +66,7 @@ RaidDevice::RaidDevice() : StorageDevice()
 /* */
 RaidDevice::~RaidDevice()
 {
-    for (Iterator<String *> i = m_Components; *i != 0; ++i) {
+    for (Iterator<String *> i = m_Components.begin(); i != m_Components.end(); ++i) {
         delete *i;
     }
 }
@@ -74,7 +75,7 @@ RaidDevice::~RaidDevice()
 RaidInfo * RaidDevice::getRaidInfo() const
 {
     RaidInfo *pinfo;
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
+    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         pinfo = (*i)->getRaidInfo();
         if ( pinfo != 0)
             return pinfo;
@@ -168,7 +169,7 @@ void RaidDevice::acquireId(Session *pSession)
         throw E_NULL_POINTER;
     }
     Container<EndDevice> endDevices = pSession->getEndDevices();
-    for (Iterator<String *> i = m_Components; *i != 0; ++i) {
+    for (Iterator<String *> i = m_Components.begin(); i != m_Components.end(); ++i) {
         attachComponent(endDevices, *(*i));
     }
 }
@@ -177,7 +178,7 @@ void RaidDevice::acquireId(Session *pSession)
 void RaidDevice::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
-    for (Iterator<EndDevice *> i = container; *i != 0; ++i) {
+    for (Iterator<EndDevice *> i = container.begin(); i != container.end(); ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             throw E_INVALID_OBJECT;
@@ -210,7 +211,7 @@ void RaidDevice::setName(const String &deviceName)
 void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const String &devName)
 {
     Iterator<EndDevice *> i;
-    for (i = endDevices; *i != 0; ++i) {
+    for (i = endDevices.begin(); i != endDevices.end(); ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             continue;
@@ -219,7 +220,7 @@ void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const S
             break;
         }
     }
-    if (*i == 0) {
+    if (i == endDevices.end()) {
         throw E_INVALID_OBJECT;
     }
     attachEndDevice(*i);

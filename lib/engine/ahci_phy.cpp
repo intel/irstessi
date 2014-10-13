@@ -91,7 +91,7 @@ void AHCI_Phy::discover()
         m_pPort->attachPhy(this);
 
         if (dir.count() == 1) {
-            EndDevice *pEndDevice = __internal_attach_end_device(dir);
+            EndDevice *pEndDevice = __internal_attach_end_device(dir.dirs().begin());
             if (pEndDevice != 0) {
                 pEndDevice->setParent(m_pParent);
                 Phy *pPhy = pEndDevice->getPhy();
@@ -115,7 +115,8 @@ void AHCI_Phy::discover()
 EndDevice * AHCI_Phy::__internal_attach_end_device(Iterator<Directory *> i)
 {
     EndDevice *pEndDevice = 0;
-    for (Iterator<Directory *> j = *(*i); *j != 0; ++j) {
+    List<Directory *> dirs = (*i)->dirs();
+    for (Iterator<Directory *> j = dirs.begin(); j != dirs.end(); ++j) {
         CanonicalPath temp = *(*j) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
             pEndDevice = new AHCI_Disk(*(*j));
