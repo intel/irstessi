@@ -51,7 +51,7 @@ RaidDevice::RaidDevice(const String &path)
 
     Directory dir(m_Path + "/slaves");
     List<Directory *> dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         m_Components.add(new String((*i)->reverse_after("/")));
     }
     update();
@@ -66,7 +66,7 @@ RaidDevice::RaidDevice() : StorageDevice()
 /* */
 RaidDevice::~RaidDevice()
 {
-    for (Iterator<String *> i = m_Components.begin(); i != m_Components.end(); ++i) {
+    for (std::list<String *>::const_iterator i = m_Components.begin(); i != m_Components.end(); ++i) {
         delete *i;
     }
 }
@@ -75,7 +75,7 @@ RaidDevice::~RaidDevice()
 RaidInfo * RaidDevice::getRaidInfo() const
 {
     RaidInfo *pinfo;
-    for (Iterator<BlockDevice *> i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
         pinfo = (*i)->getRaidInfo();
         if ( pinfo != 0)
             return pinfo;
@@ -169,7 +169,7 @@ void RaidDevice::acquireId(Session *pSession)
         throw E_NULL_POINTER;
     }
     Container<EndDevice> endDevices = pSession->getEndDevices();
-    for (Iterator<String *> i = m_Components.begin(); i != m_Components.end(); ++i) {
+    for (std::list<String *>::const_iterator i = m_Components.begin(); i != m_Components.end(); ++i) {
         attachComponent(endDevices, *(*i));
     }
 }
@@ -178,7 +178,7 @@ void RaidDevice::acquireId(Session *pSession)
 void RaidDevice::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
-    for (Iterator<EndDevice *> i = container.begin(); i != container.end(); ++i) {
+    for (std::list<EndDevice *>::const_iterator i = container.begin(); i != container.end(); ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             throw E_INVALID_OBJECT;
@@ -210,7 +210,7 @@ void RaidDevice::setName(const String &deviceName)
 /* */
 void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const String &devName)
 {
-    Iterator<EndDevice *> i;
+    std::list<EndDevice *>::const_iterator i;
     for (i = endDevices.begin(); i != endDevices.end(); ++i) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {

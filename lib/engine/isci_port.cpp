@@ -101,7 +101,7 @@ StorageObject * ISCI_Port::__internal_create_storage_object(List<Directory *> &d
 {
     StorageObject *pStorageObject = 0;
     if (dirs.begin() != dirs.end())
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         CanonicalPath temp = *(*i) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
             pStorageObject = new ISCI_Disk(*(*i));

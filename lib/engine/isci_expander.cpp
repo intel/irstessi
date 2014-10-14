@@ -54,7 +54,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
     Directory dir(m_Path + "/sas_device");
     SysfsAttr attr;
     List<Directory *> dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "sas_address";
             attr >> m_SASAddress;
@@ -65,7 +65,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
     dlog(" sas adress %s\n%llu\n", (const char *) path, m_SASAddress);
     dir = m_Path + "/sas_expander";
     dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "product_id";
             attr >> m_ProductId;
@@ -102,7 +102,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
 /* */
 Port * ISCI_Expander::getPortByPath(const String &path) const
 {
-    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    for (std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         if ((*i)->getPath() == path) {
             return (*i);
         }
@@ -132,14 +132,14 @@ void ISCI_Expander::discover()
     Directory dir(m_Path, "phy");
     unsigned int number = 0;
     List<Directory *> dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++, this);
         attachPhy(pPhy);
     }
-    for (Iterator<Phy *> i = m_Phys.begin(); i != m_Phys.end(); ++i) {
+    for (std::list<Phy *>::const_iterator i = m_Phys.begin(); i != m_Phys.end(); ++i) {
         (*i)->discover();
     }
-    for(Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    for(std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         (*i)->discover();
     }
 }

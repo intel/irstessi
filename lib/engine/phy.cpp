@@ -106,7 +106,7 @@ void Phy::fetchSpeeds(SSI_PhyInfo *pInfo) const
         if (pPort != 0) {
             Container<Phy> container;
             pPort->getPhys(container);
-            for(Iterator<Phy *> i = container.begin(); i != container.end(); ++i)
+            for(std::list<Phy *>::const_iterator i = container.begin(); i != container.end(); ++i)
                 (*i)->setSpeeds(pInfo);
         }
     }
@@ -141,7 +141,7 @@ void Phy::setProperties()
             tmp = tmp.reverse_left("/");
             dir = tmp + "sas_device";
             dirs = dir.dirs();
-            for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+            for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
                 try {
                     SysfsAttr attr;
                     String protocol;
@@ -157,7 +157,7 @@ void Phy::setProperties()
         case ObjectType_RoutingDevice:
             dir = m_Path + "/sas_phy";
             dirs = dir.dirs();
-            for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+            for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
                 SysfsAttr attr;
                 String linkrate;
                 try {

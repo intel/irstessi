@@ -59,9 +59,9 @@ AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
 
     unsigned int number = 0;
     List<Directory *> dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         List<Directory *> dirs2 = (*i)->dirs();
-        for (Iterator<Directory *> j = dirs2.begin(); j != dirs2.end(); ++j) {
+        for (std::list<Directory *>::const_iterator j = dirs2.begin(); j != dirs2.end(); ++j) {
             if (__internal_attach_end_device(*(*j), ++number)) {
                 break;
             }

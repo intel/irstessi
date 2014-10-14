@@ -41,7 +41,7 @@ public:
             *bufferSize = _list.size();
             status = SSI_StatusBufferTooSmall;
         } else {
-            for (Iterator<T *> i = _list.begin(); i != _list.end(); ++i, ++pBuffer) {
+            for (typename std::list<T *>::const_iterator i = _list.begin(); i != _list.end(); ++i, ++pBuffer) {
                 *pBuffer = (*i)->getId();
             }
         }
@@ -50,7 +50,7 @@ public:
     }
 
     T * remove(unsigned int id) {
-        Iterator<T *> i;
+        typename std::list<T *>::const_iterator i;
         for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
         }
 
@@ -65,7 +65,7 @@ public:
     }
 
     T * find(unsigned int id) const {
-        Iterator<T *> i;
+        typename std::list<T *>::const_iterator i;
         for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
         }
 
@@ -87,11 +87,11 @@ public:
         return _list.size();
     }
 
-    Iterator<T *> begin() const {
+    typename std::list<T *>::const_iterator begin() const {
         return _list.begin();
     }
 
-    Iterator<T *> end() const {
+    typename std::list<T *>::const_iterator end() const {
         return _list.end();
     }
 

@@ -251,7 +251,7 @@ void Id::store()
 /* when not in cache find new Id */
 unsigned int IdCache::__findId() const {
     unsigned int id;
-    Iterator<Id *> i;
+    std::list<Id *>::const_iterator i;
     for(id = 1; id <= 0x0fffffff; id++) {
         for (i = _list.begin(); i != _list.end(); ++i) {
             if (((*i)->getId() & 0x0fffffff) == id) {
@@ -268,7 +268,7 @@ unsigned int IdCache::__findId() const {
 /* */
 IdCache::~IdCache()
 {
-    for (Iterator<Id *> i = _list.begin(); i != _list.end(); ++i) {
+    for (std::list<Id *>::const_iterator i = _list.begin(); i != _list.end(); ++i) {
         delete *i;
     }
 }
@@ -279,7 +279,7 @@ void IdCache::add(Object *pObject)
     if (pObject == 0) {
         throw E_NULL_POINTER;
     }
-    Iterator<Id *> i;
+    std::list<Id *>::const_iterator i;
     for (i = _list.begin(); i != _list.end() && *(*i) != pObject; ++i) {
     }
     Id *pId;
@@ -303,7 +303,7 @@ void IdCache::add(Object *pObject)
 /* add id + key (from file) to cache */
 void IdCache::add(unsigned int id, String key)
 {
-    Iterator<Id *> i;
+    std::list<Id *>::const_iterator i;
     for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
     }
     if (i == _list.end()) {
@@ -323,7 +323,7 @@ void IdCache::remove(Object *pObject) {
     if (pObject == 0) {
         throw E_NULL_POINTER;
     }
-    Iterator<Id *> i;
+    std::list<Id *>::const_iterator i;
     for (i = _list.begin(); i != _list.end(); ++i) {
         if ((*i)->getId() == pObject->getId()) {
             break;

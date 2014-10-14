@@ -45,7 +45,7 @@ EventManager::EventManager()
 /* */
 EventManager::~EventManager()
 {
-    for (Iterator<Event *> i = m_Events.begin(); i != m_Events.end(); ++i) {
+    for (std::list<Event *>::const_iterator i = m_Events.begin(); i != m_Events.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
 }

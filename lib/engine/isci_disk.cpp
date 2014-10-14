@@ -45,7 +45,7 @@ ISCI_Disk::ISCI_Disk(const String &path)
     Directory dir(end_path + "/sas_device");
     SysfsAttr attr;
     List<Directory *> dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "sas_address";
             attr >> m_SASAddress;

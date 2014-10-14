@@ -64,7 +64,7 @@ Session::Session() : m_pNoneScopeObj(0)
     pContextMgr->refresh();
     dir = "/sys/bus/pci/drivers/ahci";
     dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
             SysfsAttr attr;
@@ -85,7 +85,7 @@ Session::Session() : m_pNoneScopeObj(0)
     }
     dir = "/sys/bus/pci/drivers/isci";
     dirs = dir.dirs();
-    for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
             ISCI *pISCI = new ISCI(CanonicalPath(*(*i)));
@@ -93,7 +93,7 @@ Session::Session() : m_pNoneScopeObj(0)
             pISCI->acquireId(this);
         }
     }
-    for (Iterator<Controller *> i = m_Controllers.begin(); i != m_Controllers.end(); ++i) {
+    for (std::list<Controller *>::const_iterator i = m_Controllers.begin(); i != m_Controllers.end(); ++i) {
         RaidInfo *pRaidInfo = (*i)->findRaidInfo(m_RaidInfo);
         if (pRaidInfo)
             pRaidInfo->acquireId(this);
@@ -101,7 +101,7 @@ Session::Session() : m_pNoneScopeObj(0)
     if (m_EndDevices.size() > 0) {
         dir = "/sys/devices/virtual/block";
         dirs = dir.dirs();
-        for (Iterator<Directory *> i = dirs.begin(); i != dirs.end(); ++i) {
+        for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
             __internal_attach_imsm_device(CanonicalPath(*(*i)));
         }
     }
@@ -114,31 +114,31 @@ Session::~Session()
 {
     delete m_pNoneScopeObj;
 
-    for (Iterator<EndDevice *> i = m_EndDevices.begin(); i != m_EndDevices.end(); ++i) {
+    for (std::list<EndDevice *>::const_iterator i = m_EndDevices.begin(); i != m_EndDevices.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Array *> i = m_Arrays.begin(); i != m_Arrays.end(); ++i) {
+    for (std::list<Array *>::const_iterator i = m_Arrays.begin(); i != m_Arrays.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Enclosure *> i = m_Enclosures.begin(); i != m_Enclosures.end(); ++i) {
+    for (std::list<Enclosure *>::const_iterator i = m_Enclosures.begin(); i != m_Enclosures.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<RaidInfo *> i = m_RaidInfo.begin(); i != m_RaidInfo.end(); ++i) {
+    for (std::list<RaidInfo *>::const_iterator i = m_RaidInfo.begin(); i != m_RaidInfo.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Phy *> i = m_Phys.begin(); i != m_Phys.end(); ++i) {
+    for (std::list<Phy *>::const_iterator i = m_Phys.begin(); i != m_Phys.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Volume *> i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
+    for (std::list<Volume *>::const_iterator i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Port *> i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    for (std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<RoutingDevice *> i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i) {
+    for (std::list<RoutingDevice *>::const_iterator i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
-    for (Iterator<Controller *> i = m_Controllers.begin(); i != m_Controllers.end(); ++i) {
+    for (std::list<Controller *>::const_iterator i = m_Controllers.begin(); i != m_Controllers.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
 }

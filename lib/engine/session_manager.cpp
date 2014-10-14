@@ -44,7 +44,7 @@ SessionManager::~SessionManager()
 {
     delete m_pNullSession;
 
-    for (Iterator<Session *> i = m_Sessions.begin(); i != m_Sessions.end(); ++i) {
+    for (std::list<Session *>::const_iterator i = m_Sessions.begin(); i != m_Sessions.end(); ++i) {
         pContextMgr->releaseId(*i);
     }
 }

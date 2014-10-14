@@ -25,28 +25,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <list>
 
 /* */
-template <typename T> class Iterator {
-public:
-    bool operator == (const Iterator<T> &i) const {
-        return m_iter == i.m_iter;
-    }
-    bool operator != (const Iterator<T> &i) const {
-        return m_iter != i.m_iter;
-    }
-    void operator ++ () {
-        ++m_iter;
-    }
-    const T operator * () const {
-        return *m_iter;
-    }
-
-    template <typename K> friend class List;
-
-private:
-    typename std::list<T>::const_iterator m_iter;
-};
-
-/* */
 template <typename T> class List {
 public:
     List()
@@ -75,16 +53,12 @@ public:
         m_list.remove(pElem);
     }
 
-    Iterator<T> begin() const {
-        Iterator<T> i;
-        i.m_iter = m_list.begin();
-        return i;
+    typename std::list<T>::const_iterator begin() const {
+        return m_list.begin();
     }
 
-    Iterator<T> end() const {
-        Iterator<T> i;
-        i.m_iter = m_list.end();
-        return i;
+    typename std::list<T>::const_iterator end() const {
+        return m_list.end();
     }
 
 protected:

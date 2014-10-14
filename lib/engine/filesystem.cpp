@@ -98,7 +98,7 @@ void Directory::__internal_read_content()
 /* */
 void Directory::__internal_clear_content()
 {
-    for (Iterator<Path *> i = m_Content.begin(); i != m_Content.end(); ++i) {
+    for (std::list<Path *>::const_iterator i = m_Content.begin(); i != m_Content.end(); ++i) {
         delete *i;
     }
     m_Content.clear();
@@ -111,12 +111,12 @@ void Directory::__internal_copy_content(const Directory &directory)
 {
     __internal_clear_content();
 
-    for (Iterator<File *> i = directory.m_Files.begin(); i != directory.m_Files.end(); ++i) {
+    for (std::list<File *>::const_iterator i = directory.m_Files.begin(); i != directory.m_Files.end(); ++i) {
         Path *pPath = new File(*(*i));
         m_Content.add(pPath);
         m_Files.add(dynamic_cast<File *>(pPath));
     }
-    for (Iterator<Directory *> i = directory.m_Directories.begin(); i != directory.m_Directories.end(); ++i) {
+    for (std::list<Directory *>::const_iterator i = directory.m_Directories.begin(); i != directory.m_Directories.end(); ++i) {
         Path *pPath = new Directory(*(*i));
         m_Content.add(pPath);
         m_Directories.add(dynamic_cast<Directory *>(pPath));

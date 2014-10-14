@@ -30,7 +30,7 @@ public:
 
 private:
     String m_PhyPath;
-    EndDevice * __internal_attach_end_device(Iterator<Directory *> i);
+    EndDevice * __internal_attach_end_device(std::list<Directory *>::const_iterator i);
 };
 
 #endif /* __AHCI_PHY_H__INCLUDED__ */
