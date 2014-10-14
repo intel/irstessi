@@ -255,17 +255,17 @@ public:
     }
 
 public:
-    List<File *> & files() {
+    std::list<File *> & files() {
         __internal_update_content();
         return m_Files;
     }
 
-    List<Directory *> & dirs() {
+    std::list<Directory *> & dirs() {
         __internal_update_content();
         return m_Directories;
     }
 
-    List<Path *> & contents() {
+    std::list<Path *> & contents() {
         __internal_update_content();
         return m_Content;
     }
@@ -315,9 +315,9 @@ private:
     void __internal_clear_content();
 
 protected:
-    List<Path *> m_Content;
-    List<File *> m_Files;
-    List<Directory *> m_Directories;
+    std::list<Path *> m_Content;
+    std::list<File *> m_Files;
+    std::list<Directory *> m_Directories;
     bool m_Valid;
     String m_Filter;
 };
@@ -329,7 +329,7 @@ public:
     ~Tokenizer();
 
 private:
-    List<String *> m_Tokens;
+    std::list<String *> m_Tokens;
 };
 
 #endif /* __FILESYSTEM_H__INCLUDED__ */

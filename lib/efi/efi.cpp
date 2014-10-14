@@ -74,7 +74,7 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 
     guid2str(buf, VENDOR_GUID);
     dir.setFilter((controllerType == SSI_ControllerTypeAHCI)?AHCI_VAR:SCU_VAR);
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             (*i)->find(buf);

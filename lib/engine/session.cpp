@@ -59,7 +59,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 Session::Session() : m_pNoneScopeObj(0)
 {
     Directory dir;
-    List<Directory *> dirs;
+    std::list<Directory *> dirs;
     dlog("Open session");
     pContextMgr->refresh();
     dir = "/sys/bus/pci/drivers/ahci";

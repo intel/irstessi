@@ -50,16 +50,10 @@ public:
     }
 
     T * remove(unsigned int id) {
-        typename std::list<T *>::const_iterator i;
-        for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
-        }
+        T *pObject = find(id);
 
-        if (i == _list.end())
-            return NULL;
-
-        T *pObject = *i;
         if (pObject) {
-            _list.remove(*i);
+            _list.remove(pObject);
         }
         return pObject;
     }
@@ -79,8 +73,8 @@ public:
         _list.push_back(data);
     }
 
-    void add(Container<T> const &list) {
-        _list.m_list.insert(_list.m_list.end(), list._list.m_list.begin(), list._list.m_list.end());
+    void add(Container<T> const &c) {
+        _list.insert(_list.end(), c._list.begin(), c._list.end());
     }
 
     int size() const {
@@ -100,7 +94,7 @@ public:
     }
 
 private:
-    List<T *> _list;
+    std::list<T *> _list;
 };
 
 #endif /* __CONTAINER_H__INCLUDED__ */

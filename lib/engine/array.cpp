@@ -51,7 +51,7 @@ Array::Array(const String &path)
 {
     String metadata;
     Directory dir("/sys/devices/virtual/block");
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         SysfsAttr attr = *(*i) + "md/metadata_version";
         try {

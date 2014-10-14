@@ -53,7 +53,7 @@ protected:
     String m_Name;
     String m_Uuid;
     Container<BlockDevice> m_BlockDevices;
-    List<String *> m_Components;
+    std::list<String *> m_Components;
 
     void attachComponent(const Container<EndDevice> &endDevices, const String &devName);
 

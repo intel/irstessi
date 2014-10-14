@@ -83,7 +83,7 @@ public:
 
 private:
     unsigned int __findId() const;
-    List<Id *> _list;
+    std::list<Id *> _list;
 };
 
 /* */

@@ -29,7 +29,7 @@ public:
     void discover();
 
 private:
-    StorageObject * __internal_create_storage_object(List<Directory *> &dirs);
+    StorageObject * __internal_create_storage_object(std::list<Directory *> &dirs);
 };
 
 #endif /* __ISCI_PORT_H__INCLUDED__ */

@@ -61,7 +61,7 @@ ISCI_Port::ISCI_Port(const String &path)
 void ISCI_Port::discover()
 {
     Directory dir(m_Path, "expander");
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     if (dirs.begin() != dirs.end()) {
         ISCI_Expander *pExpander = new ISCI_Expander(**dirs.begin());
         pExpander->setParent(m_pParent);
@@ -97,7 +97,7 @@ void ISCI_Port::discover()
 }
 
 /* */
-StorageObject * ISCI_Port::__internal_create_storage_object(List<Directory *> &dirs)
+StorageObject * ISCI_Port::__internal_create_storage_object(std::list<Directory *> &dirs)
 {
     StorageObject *pStorageObject = 0;
     if (dirs.begin() != dirs.end())

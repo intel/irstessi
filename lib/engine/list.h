@@ -24,37 +24,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <list>
 
-/* */
-template <typename T> class List {
-public:
-
-    int size() const {
-        return m_list.size();
-    }
-
-    void push_back(const T &data) {
-        m_list.push_back(data);
-    }
-
-    void clear() {
-        m_list.clear();
-    }
-
-    void remove(const T &pElem) {
-        m_list.remove(pElem);
-    }
-
-    typename std::list<T>::const_iterator begin() const {
-        return m_list.begin();
-    }
-
-    typename std::list<T>::const_iterator end() const {
-        return m_list.end();
-    }
-
-    std::list<T> m_list;
-};
-
 #endif /* __LIST_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

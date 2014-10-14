@@ -127,7 +127,7 @@ void Phy::setProperties()
 {
     Path tmp = m_Path.reverse_left("/");
     Directory dir;
-    List<Directory *> dirs;
+    std::list<Directory *> dirs;
 
     m_Protocol = SSI_PhyProtocolUnknown;
     m_minHWLinkSpeed = SSI_PhySpeedUnknown;

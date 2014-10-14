@@ -105,7 +105,7 @@ EndDevice::EndDevice(const String &path)
 
     Directory dir(m_Path + "/block");
     CanonicalPath temp;
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         temp = *(*i) + "device";
         if (temp == m_Path) {

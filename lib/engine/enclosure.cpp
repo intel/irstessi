@@ -62,7 +62,7 @@ Enclosure::Enclosure(const String &path)
     } catch (...) {
     }
     Directory dir = m_Path + "/enclosure";
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             SysfsAttr attr =  *(*i) + "components";

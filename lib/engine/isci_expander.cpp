@@ -53,7 +53,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
 {
     Directory dir(m_Path + "/sas_device");
     SysfsAttr attr;
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         try {
             attr = *(*i) + "sas_address";
@@ -131,7 +131,7 @@ void ISCI_Expander::discover()
 {
     Directory dir(m_Path, "phy");
     unsigned int number = 0;
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++, this);
         attachPhy(pPhy);

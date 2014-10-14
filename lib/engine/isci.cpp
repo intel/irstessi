@@ -57,7 +57,7 @@ void ISCI::discover()
 {
     Directory dir(m_Path, "host");
     SysfsAttr attr;
-    List<Directory *> dirs = dir.dirs();
+    std::list<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
         unsigned int number = 0;
         try {
@@ -68,7 +68,7 @@ void ISCI::discover()
         }
         Directory phys(*(*i), "phy");
         number *= 4;
-        List<Directory *> phys_dirs = phys.dirs();
+        std::list<Directory *> phys_dirs = phys.dirs();
         for (std::list<Directory *>::const_iterator j = phys_dirs.begin(); j != phys_dirs.end(); ++j, ++number) {
             Phy *pPhy = new ISCI_Phy(*(*j), number, this);
             attachPhy(pPhy);

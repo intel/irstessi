@@ -115,7 +115,7 @@ void AHCI_Phy::discover()
 EndDevice * AHCI_Phy::__internal_attach_end_device(std::list<Directory *>::const_iterator i)
 {
     EndDevice *pEndDevice = 0;
-    List<Directory *> dirs = (*i)->dirs();
+    std::list<Directory *> dirs = (*i)->dirs();
     for (std::list<Directory *>::const_iterator j = dirs.begin(); j != dirs.end(); ++j) {
         CanonicalPath temp = *(*j) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
