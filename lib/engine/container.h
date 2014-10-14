@@ -27,7 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 template <typename T>
-class Container : public List<T *> {
+class Container {
 public:
     SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize) {
         SSI_Status status = SSI_StatusOk;
@@ -37,43 +37,70 @@ public:
         if (*bufferSize && pBuffer == 0) {
             return SSI_StatusInvalidParameter;
         }
-        if (*bufferSize < List<T *>::size()) {
-            *bufferSize = List<T *>::size();
+        if (*bufferSize < _list.size()) {
+            *bufferSize = _list.size();
             status = SSI_StatusBufferTooSmall;
         } else {
-            for (typename std::list<T *>::iterator i = this->m_list.begin(); i != this->m_list.end(); ++i, ++pBuffer) {
+            for (Iterator<T *> i = _list.begin(); i != _list.end(); ++i, ++pBuffer) {
                 *pBuffer = (*i)->getId();
             }
         }
-        *bufferSize = this->size();
+        *bufferSize = _list.size();
         return status;
     }
 
     T * remove(unsigned int id) {
-        typename std::list<T *>::iterator i;
-        for (i = this->m_list.begin(); i != this->m_list.end() && (*i)->getId() != id; ++i) {
+        Iterator<T *> i;
+        for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
         }
 
-        if (i == this->m_list.end())
+        if (i == _list.end())
             return NULL;
 
         T *pObject = *i;
         if (pObject) {
-            List<T *>::remove(*i);
+            _list.remove(*i);
         }
         return pObject;
     }
 
     T * find(unsigned int id) const {
-        typename std::list<T *>::const_iterator i;
-        for (i = this->m_list.begin(); i != this->m_list.end() && (*i)->getId() != id; ++i) {
+        Iterator<T *> i;
+        for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
         }
 
-        if (i == this->m_list.end())
+        if (i == _list.end())
             return NULL;
 
         return *i;
     }
+
+    void add(T * const &data) {
+        _list.add(data);
+    }
+
+    void add(Container<T> const &list) {
+        _list.add(list._list);
+    }
+
+    int size() const {
+        return _list.size();
+    }
+
+    Iterator<T *> begin() const {
+        return _list.begin();
+    }
+
+    Iterator<T *> end() const {
+        return _list.end();
+    }
+
+    void clear() {
+        _list.clear();
+    }
+
+private:
+    List<T *> _list;
 };
 
 #endif /* __CONTAINER_H__INCLUDED__ */
