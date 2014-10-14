@@ -253,12 +253,12 @@ unsigned int IdCache::__findId() const {
     unsigned int id;
     Iterator<Id *> i;
     for(id = 1; id <= 0x0fffffff; id++) {
-        for (i = begin(); i != end(); ++i) {
+        for (i = _list.begin(); i != _list.end(); ++i) {
             if (((*i)->getId() & 0x0fffffff) == id) {
                 break;
             }
         }
-        if (i == end()) {
+        if (i == _list.end()) {
             break;
         }
     }
@@ -266,15 +266,9 @@ unsigned int IdCache::__findId() const {
 }
 
 /* */
-IdCache::IdCache()
-{
-}
-
-/* */
 IdCache::~IdCache()
 {
-    Iterator<Id *> i;
-    for (i = begin(); i != end(); ++i) {
+    for (Iterator<Id *> i = _list.begin(); i != _list.end(); ++i) {
         delete *i;
     }
 }
@@ -286,10 +280,10 @@ void IdCache::add(Object *pObject)
         throw E_NULL_POINTER;
     }
     Iterator<Id *> i;
-    for (i = begin(); i != end() && *(*i) != pObject; ++i) {
+    for (i = _list.begin(); i != _list.end() && *(*i) != pObject; ++i) {
     }
-    Id *pId = *i;
-    if (i == end()) {
+    Id *pId;
+    if (i == _list.end()) {
         dlog(String("new object ") + String(pObject->getType()) + " " + String(pObject->getKey()));
         unsigned int id = __findId();
         /* TODO when out of id's clean the id file:
@@ -298,9 +292,10 @@ void IdCache::add(Object *pObject)
             throw E_OUT_OF_RESOURCES;
         }
         pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
-        List<Id *>::add(pId);
+        _list.add(pId);
         pId->store();
     }
+    pId = *i;
     pId->add(pObject);
     pObject->setId(pId->getId());
 }
@@ -309,14 +304,13 @@ void IdCache::add(Object *pObject)
 void IdCache::add(unsigned int id, String key)
 {
     Iterator<Id *> i;
-    for (i = begin(); i != end() && (*i)->getId() != id; ++i) {
+    for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
     }
-    Id *pId;
-    if (i == end()) {
+    if (i == _list.end()) {
         /* it is not in cache */
         dlog(String(id) + key + " adding to cache");
-        pId = new Id(id, key);
-        List<Id *>::add(pId);
+        Id *pId = new Id(id, key);
+        _list.add(pId);
     } else {
         /* already in cache */
         if ((*i)->getKey() != key)
@@ -330,12 +324,12 @@ void IdCache::remove(Object *pObject) {
         throw E_NULL_POINTER;
     }
     Iterator<Id *> i;
-    for (i = begin(); i != end(); ++i) {
+    for (i = _list.begin(); i != _list.end(); ++i) {
         if ((*i)->getId() == pObject->getId()) {
             break;
         }
     }
-    if (i == end()) {
+    if (i == _list.end()) {
         throw E_NOT_FOUND;
     }
     (*i)->remove(pObject);
@@ -347,6 +341,6 @@ void IdCache::remove(Object *pObject) {
     if ((type == ObjectType_Session || type == ObjectType_Event) &&
         (*i)->count() == 0) {
         delete *i;
-        List<Id *>::remove(*i);
+        _list.remove(*i);
     }
 }

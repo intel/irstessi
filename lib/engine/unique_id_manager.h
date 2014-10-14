@@ -73,9 +73,8 @@ private:
 };
 
 /* */
-class IdCache : public List<Id *> {
+class IdCache {
 public:
-    IdCache();
     ~IdCache();
 
     void remove(Object *pObject);
@@ -84,6 +83,7 @@ public:
 
 private:
     unsigned int __findId() const;
+    List<Id *> _list;
 };
 
 /* */

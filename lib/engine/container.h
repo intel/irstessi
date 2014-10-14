@@ -22,6 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __CONTAINER_H__INCLUDED__
 #define __CONTAINER_H__INCLUDED__
 
+#include <cstdlib>
 #include "list.h"
 
 /* */
@@ -52,6 +53,10 @@ public:
         typename std::list<T *>::iterator i;
         for (i = this->m_list.begin(); i != this->m_list.end() && (*i)->getId() != id; ++i) {
         }
+
+        if (i == this->m_list.end())
+            return NULL;
+
         T *pObject = *i;
         if (pObject) {
             List<T *>::remove(*i);
@@ -63,6 +68,10 @@ public:
         typename std::list<T *>::const_iterator i;
         for (i = this->m_list.begin(); i != this->m_list.end() && (*i)->getId() != id; ++i) {
         }
+
+        if (i == this->m_list.end())
+            return NULL;
+
         return *i;
     }
 };
