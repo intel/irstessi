@@ -21,7 +21,6 @@ libssi_la_SOURCES =                     \
         ../lib/engine/controller.h      \
         ../lib/engine/enclosure.h       \
         ../lib/engine/end_device.h      \
-        ../lib/engine/list.h            \
         ../lib/engine/object.h          \
         ../lib/engine/phy.h             \
         ../lib/engine/port.h            \

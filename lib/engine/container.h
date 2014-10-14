@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __CONTAINER_H__INCLUDED__
 
 #include <cstdlib>
-#include "list.h"
+#include <list>
 
 /* */
 template <typename T>

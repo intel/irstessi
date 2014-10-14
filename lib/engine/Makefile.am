@@ -72,7 +72,6 @@ libengine_la_SOURCES =          \
         isci_raid_info.h        \
         isci_tape.cpp           \
         isci_tape.h             \
-        list.h                  \
         mdadm_config.cpp        \
         mdadm_config.h          \
         multimedia_device.h     \

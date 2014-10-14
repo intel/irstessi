@@ -32,7 +32,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 
 #include "exception.h"
-#include "list.h"
 #include "string.h"
 #include "filesystem.h"
 #include "utils.h"

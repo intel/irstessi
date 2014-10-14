@@ -23,7 +23,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "exception.h"
 #include "string.h"
-#include "list.h"
 #include "container.h"
 #include "filesystem.h"
 #include "utils.h"

@@ -27,7 +27,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <signal.h>
 
 #include "exception.h"
-#include "list.h"
 #include "container.h"
 #include "string.h"
 #include "object.h"

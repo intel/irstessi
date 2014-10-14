@@ -26,7 +26,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "include/ssi.h"
 #include "lib/engine/exception.h"
-#include "lib/engine/list.h"
 #include "lib/engine/container.h"
 #include "lib/engine/string.h"
 #include "lib/efi/efi.h"

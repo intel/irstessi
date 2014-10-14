@@ -25,7 +25,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <ssi.h>
 
 #include <engine/exception.h>
-#include <engine/list.h>
 #include <engine/container.h>
 #include <engine/string.h>
 #include <engine/object.h>

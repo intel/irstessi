@@ -29,7 +29,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <log/log.h>
 
 #include "exception.h"
-#include "list.h"
 #include "container.h"
 #include "string.h"
 #include "filesystem.h"

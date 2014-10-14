@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __FILESYSTEM_H__INCLUDED__
 #define __FILESYSTEM_H__INCLUDED__
 
+#include <list>
+
 /* */
 class Path : public String {
 public:
