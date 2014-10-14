@@ -76,11 +76,11 @@ public:
     }
 
     void add(T * const &data) {
-        _list.add(data);
+        _list.push_back(data);
     }
 
     void add(Container<T> const &list) {
-        _list.add(list._list);
+        _list.m_list.insert(_list.m_list.end(), list._list.m_list.begin(), list._list.m_list.end());
     }
 
     int size() const {

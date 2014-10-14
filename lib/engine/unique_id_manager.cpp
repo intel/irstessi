@@ -292,7 +292,7 @@ void IdCache::add(Object *pObject)
             throw E_OUT_OF_RESOURCES;
         }
         pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
-        _list.add(pId);
+        _list.push_back(pId);
         pId->store();
     }
     pId = *i;
@@ -310,7 +310,7 @@ void IdCache::add(unsigned int id, String key)
         /* it is not in cache */
         dlog(String(id) + key + " adding to cache");
         Id *pId = new Id(id, key);
-        _list.add(pId);
+        _list.push_back(pId);
     } else {
         /* already in cache */
         if ((*i)->getKey() != key)

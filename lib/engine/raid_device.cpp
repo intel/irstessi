@@ -52,7 +52,7 @@ RaidDevice::RaidDevice(const String &path)
     Directory dir(m_Path + "/slaves");
     List<Directory *> dirs = dir.dirs();
     for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
-        m_Components.add(new String((*i)->reverse_after("/")));
+        m_Components.push_back(new String((*i)->reverse_after("/")));
     }
     update();
 

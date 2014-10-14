@@ -27,22 +27,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 template <typename T> class List {
 public:
-    List()
-        : m_list() {
-    }
-
-public:
 
     int size() const {
         return m_list.size();
     }
 
-    void add(const T &data) {
+    void push_back(const T &data) {
         m_list.push_back(data);
-    }
-
-    void add(const List<T> &list) {
-        m_list.insert(m_list.end(), list.m_list.begin(), list.m_list.end());
     }
 
     void clear() {
@@ -61,7 +52,6 @@ public:
         return m_list.end();
     }
 
-protected:
     std::list<T> m_list;
 };
 

@@ -81,15 +81,15 @@ void Directory::__internal_read_content()
         if (S_ISREG(st.st_mode)) {
             File *pFile = new File(d_path);
             pPath = pFile;
-            m_Files.add(pFile);
+            m_Files.push_back(pFile);
         }
         if (S_ISDIR(st.st_mode)) {
             Directory *pDirectory = new Directory(d_path);
             pPath = pDirectory;
-            m_Directories.add(pDirectory);
+            m_Directories.push_back(pDirectory);
         }
         if (pPath != 0) {
-            m_Content.add(pPath);
+            m_Content.push_back(pPath);
         }
     }
     closedir(pDir);
@@ -113,13 +113,13 @@ void Directory::__internal_copy_content(const Directory &directory)
 
     for (std::list<File *>::const_iterator i = directory.m_Files.begin(); i != directory.m_Files.end(); ++i) {
         Path *pPath = new File(*(*i));
-        m_Content.add(pPath);
-        m_Files.add(dynamic_cast<File *>(pPath));
+        m_Content.push_back(pPath);
+        m_Files.push_back(dynamic_cast<File *>(pPath));
     }
     for (std::list<Directory *>::const_iterator i = directory.m_Directories.begin(); i != directory.m_Directories.end(); ++i) {
         Path *pPath = new Directory(*(*i));
-        m_Content.add(pPath);
-        m_Directories.add(dynamic_cast<Directory *>(pPath));
+        m_Content.push_back(pPath);
+        m_Directories.push_back(dynamic_cast<Directory *>(pPath));
     }
 }
 
