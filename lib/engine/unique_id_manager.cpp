@@ -293,8 +293,9 @@ void IdCache::add(Object *pObject)
         pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
         _list.push_back(pId);
         pId->store();
+    } else {
+        pId = *i;
     }
-    pId = *i;
     pId->add(pObject);
     pObject->setId(pId->getId());
 }
