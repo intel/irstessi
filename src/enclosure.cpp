@@ -38,6 +38,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getEnclosures(container, scopeType == SSI_ScopeTypeControllerAll);
 }
 
+static Enclosure * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getEnclosure(handle);
+}
+
 /* */
 SSI_Status SsiGetEnclosureHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -49,23 +54,7 @@ SSI_Status SsiGetEnclosureHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetEnclosureInfo(SSI_Handle session, SSI_Handle enclosureHandle,
     SSI_EnclosureInfo *enclosureInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Enclosure *pEnclosure = pSession->getEnclosure(enclosureHandle);
-    if (pEnclosure == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pEnclosure->getInfo(enclosureInfo);
+    return SsiGetInfo(session, enclosureHandle, enclosureInfo, getItem);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

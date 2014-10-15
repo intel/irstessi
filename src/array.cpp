@@ -43,6 +43,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getArrays(container);
 }
 
+static Array * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getArray(handle);
+}
+
 /* */
 SSI_Status SsiGetArrayHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -54,23 +59,7 @@ SSI_Status SsiGetArrayHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle,
     SSI_ArrayInfo *arrayInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pArray->getInfo(arrayInfo);
+    return SsiGetInfo(session, arrayHandle, arrayInfo, getItem);
 }
 
 /* */

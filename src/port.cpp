@@ -38,6 +38,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getPorts(container);
 }
 
+static Port * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getPort(handle);
+}
+
 /* */
 SSI_Status SsiGetPortHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -49,23 +54,7 @@ SSI_Status SsiGetPortHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
     SSI_PortInfo *portInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Port *pPort = pSession->getPort(portHandle);
-    if (pPort == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pPort->getInfo(portInfo);
+    return SsiGetInfo(session, portHandle, portInfo, getItem);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

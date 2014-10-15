@@ -38,6 +38,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getControllers(container);
 }
 
+static Controller * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getController(handle);
+}
+
 /* */
 SSI_Status SsiGetControllerHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -49,23 +54,7 @@ SSI_Status SsiGetControllerHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
     SSI_ControllerInfo *controllerInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusNotInitialized;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Controller *pController = pSession->getController(controllerHandle);
-    if (pController == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pController->getInfo(controllerInfo);
+    return SsiGetInfo(session, controllerHandle, controllerInfo, getItem);
 }
 
 /* */

@@ -38,6 +38,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getPhys(container);
 }
 
+static Phy * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getPhy(handle);
+}
+
 /* */
 SSI_Status SsiGetPhyHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -49,23 +54,7 @@ SSI_Status SsiGetPhyHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
     SSI_PhyInfo *phyInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Phy *pPhy = pSession->getPhy(phyHandle);
-    if (pPhy == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pPhy->getInfo(phyInfo);
+    return SsiGetInfo(session, phyHandle, phyInfo, getItem);
 }
 
 /* */

@@ -62,6 +62,30 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     return container.getHandles(handleList, handleCount);
 }
 
+template <class T, class T2>
+SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle arrayHandle,
+    T *info,
+    T2 * (*getItem)(Session *, SSI_Handle))
+{
+    if (pContextMgr == NULL) {
+        return SSI_StatusNotInitialized;
+    }
+    Session *pSession;
+    try {
+        pSession = pContextMgr->getSession(session);
+    } catch (...) {
+        return SSI_StatusFailed;
+    }
+    if (pSession == NULL) {
+        return SSI_StatusInvalidSession;
+    }
+    T2 *pItem = getItem(pSession, arrayHandle);
+    if (pItem == NULL) {
+        return SSI_StatusInvalidHandle;
+    }
+    return pItem->getInfo(info);
+}
+
 #endif /* __TEMPLATES_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

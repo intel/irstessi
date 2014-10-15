@@ -38,6 +38,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getRoutingDevices(container, scopeType == SSI_ScopeTypeControllerAll);
 }
 
+static RoutingDevice * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getRoutingDevice(handle);
+}
+
 /* */
 SSI_Status SsiGetRoutingDeviceHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -49,23 +54,7 @@ SSI_Status SsiGetRoutingDeviceHandles(SSI_Handle session, SSI_ScopeType scopeTyp
 SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session,
     SSI_Handle routingDeviceHandle, SSI_RoutingDeviceInfo *routingDeviceInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    RoutingDevice *pRtDevice = pSession->getRoutingDevice(routingDeviceHandle);
-    if (pRtDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pRtDevice->getInfo(routingDeviceInfo);
+    return SsiGetInfo(session, routingDeviceHandle, routingDeviceInfo, getItem);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

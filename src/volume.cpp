@@ -45,6 +45,11 @@ static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Contain
     pScopeObject->getVolumes(container);
 }
 
+static Volume * getItem(Session *pSession, SSI_Handle handle)
+{
+    return pSession->getVolume(handle);
+}
+
 /* */
 SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
@@ -56,23 +61,7 @@ SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
     SSI_VolumeInfo *volumeInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pVolume->getInfo(volumeInfo);
+    return SsiGetInfo(session, volumeHandle, volumeInfo, getItem);
 }
 
 /* */
