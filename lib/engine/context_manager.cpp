@@ -39,7 +39,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 ContextManager::ContextManager()
-    : m_pSessionMgr(0), m_pEventMgr(0), m_pUniqueIdMgr(0)
+    : m_pSessionMgr(NULL), m_pEventMgr(NULL), m_pUniqueIdMgr(NULL)
 {
     m_pUniqueIdMgr = new UniqueIdManager;
     m_pEventMgr = new EventManager;
@@ -57,7 +57,7 @@ ContextManager::~ContextManager()
 /* */
 SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->interfaceVersionMajor = 1;

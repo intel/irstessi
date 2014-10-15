@@ -76,9 +76,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 EndDevice::EndDevice(const String &path)
     : StorageDevice(path),
       m_SerialNum(""),
-      m_pPhy(0),
-      m_pPort(0),
-      m_pEnclosure(0),
+      m_pPhy(NULL),
+      m_pPort(NULL),
+      m_pEnclosure(NULL),
       m_Model(""),
       m_Firmware(""),
       m_TotalSize(0),
@@ -271,7 +271,7 @@ EndDevice::~EndDevice()
 /* */
 SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->endDeviceHandle = getId();
@@ -279,20 +279,20 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->deviceType = getDeviceType();
 
     RaidInfo *pRaidInfo = getRaidInfo();
-    if (pRaidInfo != 0) {
+    if (pRaidInfo != NULL) {
         pInfo->raidInfoHandle = pRaidInfo->getId();
     } else {
         pInfo->raidInfoHandle = SSI_NULL_HANDLE;
     }
     pInfo->storagePool = getStoragePoolId();
     Array *pArray = getArray();
-    if (pArray != 0) {
+    if (pArray != NULL) {
         pInfo->arrayHandle = pArray->getId();
     } else {
         pInfo->arrayHandle = SSI_NULL_HANDLE;
     }
     Enclosure *pEnclosure = getEnclosure();
-    if (pEnclosure != 0) {
+    if (pEnclosure != NULL) {
         pInfo->enclosureHandle = pEnclosure->getId();
         pEnclosure->getSlotAddress(pInfo->slotAddress,
             getSlotNumber());
@@ -344,12 +344,12 @@ SSI_Status EndDevice::locate(bool mode)
 /* */
 RaidInfo * EndDevice::getRaidInfo() const
 {
-    return m_pPort ? m_pPort->getRaidInfo() : 0;
+    return m_pPort ? m_pPort->getRaidInfo() : NULL;
 }
 
 unsigned int EndDevice::getSlotNumber() const
 {
-    if (m_pEnclosure == 0)
+    if (m_pEnclosure == NULL)
         return -1U;
     return m_pEnclosure->getSlotNumber(m_SASAddress);
 }

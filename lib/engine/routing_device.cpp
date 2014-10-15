@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -40,7 +40,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 RoutingDevice::RoutingDevice(const String &path)
-    : StorageObject(path), m_pSubtractivePort(0)
+    : StorageObject(path), m_pSubtractivePort(NULL)
 {
 }
 
@@ -112,7 +112,7 @@ RaidInfo * RoutingDevice::getRaidInfo() const
 /* */
 SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->routingDeviceHandle = getId();
@@ -120,7 +120,7 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
     getAddress(pInfo->routingDeviceAddress);
 
     Enclosure *pEnclosure = getEnclosure();
-    if (pEnclosure != 0) {
+    if (pEnclosure != NULL) {
         pInfo->enclosureHandle = pEnclosure->getId();
     } else {
         pInfo->enclosureHandle = SSI_NULL_HANDLE;

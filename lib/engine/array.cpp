@@ -93,7 +93,7 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
     String endDevices;
     foreach (i, container) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == 0) {
+        if (pBlockDevice == NULL) {
             return SSI_StatusInvalidState;
         }
         if (pBlockDevice->getArray() == this &&
@@ -126,7 +126,7 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
 SSI_Status Array::addSpare(EndDevice *pEndDevice)
 {
     Container<EndDevice> container;
-    if (pEndDevice == 0) {
+    if (pEndDevice == NULL) {
             return SSI_StatusInvalidHandle;
     }
     container.add(pEndDevice);
@@ -156,7 +156,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
 /* */
 SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->arrayHandle = getId();
@@ -192,7 +192,7 @@ void Array::setEndDevices(const Container<EndDevice> &container)
     m_BlockDevices.clear();
     foreach (i, container) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == 0) {
+        if (pBlockDevice == NULL) {
             throw E_INVALID_OBJECT;
         }
         if (pBlockDevice->isSystemDisk()) {
@@ -215,7 +215,7 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
         return SSI_StatusInvalidState;
     }
     const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
-    if (pBlockDevice == 0) {
+    if (pBlockDevice == NULL) {
         return SSI_StatusInvalidState;
     }
     if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
@@ -383,7 +383,7 @@ void Array::create()
 void Array::attachEndDevice(EndDevice *pObject)
 {
     BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pObject);
-    if (pBlockDevice == 0) {
+    if (pBlockDevice == NULL) {
         throw E_INVALID_OBJECT;
     }
     pBlockDevice->attachArray(this);

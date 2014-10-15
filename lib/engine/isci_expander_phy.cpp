@@ -49,7 +49,7 @@ void ISCI_Expander_Phy::discover()
     CanonicalPath portPath(m_Path + "/port");
     if (portPath) {
         m_pPort = m_pParent->getPortByPath(portPath);
-        if (m_pPort == 0) {
+        if (m_pPort == NULL) {
             m_pPort = __internal_create_port(portPath);
             m_pPort->setParent(m_pParent);
         }
@@ -61,7 +61,7 @@ void ISCI_Expander_Phy::discover()
 Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
 {
     Directory dir(portPath);
-    Port *pPort = 0;
+    Port *pPort = NULL;
     RoutingDevice *pRtDevice = dynamic_cast<RoutingDevice *>(m_pParent);
 
     dir.setFilter("host");

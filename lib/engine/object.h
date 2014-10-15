@@ -213,10 +213,10 @@ class StorageObject : public ScopeObject {
 public:
     virtual ~StorageObject() {
     }
-    StorageObject(StorageObject *pParent = 0)
+    StorageObject(StorageObject *pParent = NULL)
         : m_pParent(pParent) {
     }
-    StorageObject(const String &path, StorageObject *pParent = 0)
+    StorageObject(const String &path, StorageObject *pParent = NULL)
         : m_pParent(pParent), m_Path(path) {
     }
 
@@ -263,10 +263,10 @@ public:
         }
     }
     virtual Controller * getController() const {
-        return 0;
+        return NULL;
     }
     virtual RaidInfo * getRaidInfo() const {
-        return 0;
+        return NULL;
     }
     virtual void getAddress(SSI_Address &) const {
         throw E_INVALID_OPERATION;

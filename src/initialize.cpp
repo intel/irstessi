@@ -34,7 +34,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/mdadm_config.h>
 
 /* */
-ContextManager *pContextMgr = 0;
+ContextManager *pContextMgr = NULL;
 
 /* */
 SSI_Status SsiInitialize(void)
@@ -42,7 +42,7 @@ SSI_Status SsiInitialize(void)
     if (getuid() != 0) {
         return SSI_StatusInsufficientPrivileges;
     }
-    if (pContextMgr != 0) {
+    if (pContextMgr != NULL) {
         return SSI_StatusDuplicate;
     }
     log_init(LOG_NORMAL, "/var/log/ssi.log");
@@ -59,7 +59,7 @@ SSI_Status SsiInitialize(void)
 /* */
 SSI_Status SsiFinalize(void)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     try {
@@ -69,7 +69,7 @@ SSI_Status SsiFinalize(void)
     }
     orom_fini();
     efi_fini();
-    pContextMgr = 0;
+    pContextMgr = NULL;
     log_fini();
     return SSI_StatusOk;
 }

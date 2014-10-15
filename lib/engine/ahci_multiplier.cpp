@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -49,7 +49,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
-    : RoutingDevice(path), m_pPhy(0)
+    : RoutingDevice(path), m_pPhy(NULL)
 {
     m_pPhy = new AHCI_Phy(path, 0, this);
     m_pPhy->setProtocol(SSI_PhyProtocolSATA);
@@ -73,7 +73,7 @@ AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
 bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned int number)
 {
     CanonicalPath temp = path + "driver";
-    EndDevice *pEndDevice = 0;
+    EndDevice *pEndDevice = NULL;
     if (temp == "/sys/bus/scsi/drivers/sd") {
         pEndDevice = new AHCI_Disk(path);
     } else
@@ -83,7 +83,7 @@ bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned in
     if (temp == "/sys/bus/scsi/drivers/st") {
         pEndDevice = new AHCI_Tape(path);
     }
-    if (pEndDevice != 0) {
+    if (pEndDevice != NULL) {
         Phy *pPhy = new Phy(path, number, this);
         attachPhy(pPhy);
         pPhy->setProtocol(SSI_PhyProtocolSATA);
@@ -93,7 +93,7 @@ bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned in
         pPort->attachPhy(pPhy);
         pPort->attachPort(pEndDevice->getPort());
     }
-    return (pEndDevice != 0);
+    return (pEndDevice != NULL);
 }
 
 /* */

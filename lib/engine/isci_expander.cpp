@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -113,7 +113,7 @@ Port * ISCI_Expander::getPortByPath(const String &path) const
             return m_pSubtractivePort;
         }
     }
-    return 0;
+    return NULL;
 }
 
 /* */

@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -40,7 +40,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -49,11 +49,11 @@ SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
-    if (pRaidInfo == 0) {
+    if (pRaidInfo == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pRaidInfo->getRaidLevelInfo(raidLevel, raidLevelInfo);
@@ -63,7 +63,7 @@ SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
 SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     SSI_RaidLevelModifyParams params)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -72,21 +72,21 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
-    if (params.diskHandles == 0 && params.diskHandleCount != 0) {
+    if (params.diskHandles == NULL && params.diskHandleCount != 0) {
         return SSI_StatusInvalidParameter;
     }
     try {
         Container<EndDevice> container;
         for (unsigned int i = 0; i < params.diskHandleCount; i++) {
             EndDevice *pEndDevice = pSession->getEndDevice(params.diskHandles[i]);
-            if (pEndDevice == 0) {
+            if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }
             container.add(pEndDevice);

@@ -212,7 +212,7 @@ static char * __utf8_trim_right(char *buf)
 /* */
 void String::assign(const char *buf, unsigned int count)
 {
-    if (buf != 0) {
+    if (buf != NULL) {
         if (count > 0) {
             count = __utf8_offset(const_cast<char *>(buf), count) - buf;
         }
@@ -266,8 +266,8 @@ unsigned int String::find(const char *buf, unsigned int offset) const
 {
     char *p = __utf8_offset(m_buffer, offset);
     offset = p - m_buffer;
-    if (buf != 0) {
-        if ((p = __find(buf, offset)) != 0) {
+    if (buf != NULL) {
+        if ((p = __find(buf, offset)) != NULL) {
             return __utf8_length(m_buffer, p - m_buffer);
         }
     }
@@ -288,8 +288,8 @@ unsigned int String::reverse_find(const char *buf, unsigned int offset) const
 {
     char *p = __utf8_offset(m_buffer, offset);
     offset = p - m_buffer;
-    if (buf != 0) {
-        if ((p = __reverse_find(buf, offset)) != 0) {
+    if (buf != NULL) {
+        if ((p = __reverse_find(buf, offset)) != NULL) {
             return __utf8_length(m_buffer, p - m_buffer);
         }
     }
@@ -371,7 +371,7 @@ char * String::__reverse_find(const char *buf, unsigned int offset) const
     unsigned int i, j = 0;
     i = __utf8_offset(buf) - buf;
     if (offset < i) {
-        return 0;
+        return NULL;
     }
     offset -= i;
     while (true) {
@@ -387,7 +387,7 @@ char * String::__reverse_find(const char *buf, unsigned int offset) const
             offset--; j = 0;
         }
     }
-    return 0;
+    return NULL;
 }
 
 /* */
@@ -404,7 +404,7 @@ char * String::__find(const char *buf, unsigned int offset) const
             offset++; j = 0;
         }
     }
-    return 0;
+    return NULL;
 }
 
 /* */

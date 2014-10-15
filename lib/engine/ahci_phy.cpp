@@ -92,7 +92,7 @@ void AHCI_Phy::discover()
 
         if (dir.count() == 1) {
             EndDevice *pEndDevice = __internal_attach_end_device(*dir.dirs().begin());
-            if (pEndDevice != 0) {
+            if (pEndDevice != NULL) {
                 pEndDevice->setParent(m_pParent);
                 Phy *pPhy = pEndDevice->getPhy();
                 m_pPort->attachPort(pEndDevice->getPort());
@@ -105,7 +105,7 @@ void AHCI_Phy::discover()
             pMultiplier->setParent(m_pParent);
             m_pPort->attachPort(pMultiplier->getSubtractivePort());
         }
-        if (m_pParent != 0) {
+        if (m_pParent != NULL) {
             m_pParent->attachPort(m_pPort);
         }
     }
@@ -114,7 +114,7 @@ void AHCI_Phy::discover()
 /* */
 EndDevice * AHCI_Phy::__internal_attach_end_device(Directory *dir)
 {
-    EndDevice *pEndDevice = 0;
+    EndDevice *pEndDevice = NULL;
     std::list<Directory *> dirs = dir->dirs();
     foreach (j, dirs) {
         CanonicalPath temp = *(*j) + "driver";

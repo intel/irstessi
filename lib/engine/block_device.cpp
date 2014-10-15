@@ -46,7 +46,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 BlockDevice::BlockDevice(const String &path)
     : EndDevice(path),
-    m_pArray(0),
+    m_pArray(NULL),
     m_DiskUsage(SSI_DiskUsageUnknown),
     m_DiskState(SSI_DiskStateUnknown),
     m_IsSystem(false),
@@ -68,7 +68,7 @@ SSI_Status BlockDevice::unlock(SSI_DiskUnlockInfo *pInfo)
 SSI_Status BlockDevice::makeSpare()
 {
     Controller *pController = getController();
-    if (pController == 0)
+    if (pController == NULL)
            return SSI_StatusFailed;
     return pController->makeSpare(this);
 }
@@ -123,7 +123,7 @@ SSI_Status BlockDevice::writeStorageArea(void *pBuffer, unsigned int bufferSize)
 /* */
 void BlockDevice::attachArray(Array *pArray)
 {
-    if (pArray == 0) {
+    if (pArray == NULL) {
         throw E_NULL_POINTER;
     }
     m_pArray = pArray;
@@ -135,7 +135,7 @@ void BlockDevice::attachArray(Array *pArray)
 /* */
 void BlockDevice::attachVolume(Volume *pVolume)
 {
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         throw E_NULL_POINTER;
     }
     m_Volumes.add(pVolume);

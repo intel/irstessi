@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -98,7 +98,7 @@ void Enclosure::getEndDevices(Container<EndDevice> &container, bool) const
 /* */
 SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->enclosureHandle = getId();

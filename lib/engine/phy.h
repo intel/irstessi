@@ -28,7 +28,7 @@ class Port;
 /* */
 class Phy : public StorageObject {
 public:
-    Phy(const String &path, unsigned int number, StorageObject *pParent = 0);
+    Phy(const String &path, unsigned int number, StorageObject *pParent = NULL);
     virtual ~Phy();
 
     // Object

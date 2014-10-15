@@ -49,7 +49,7 @@ SSI_Status SsiGetPhyHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
     SSI_PhyInfo *phyInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -58,11 +58,11 @@ SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Phy *pPhy = pSession->getPhy(phyHandle);
-    if (pPhy == 0) {
+    if (pPhy == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pPhy->getInfo(phyInfo);
@@ -71,7 +71,7 @@ SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
 /* */
 SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -80,11 +80,11 @@ SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Phy *pPhy = pSession->getPhy(phyHandle);
-    if (pPhy == 0) {
+    if (pPhy == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pPhy->locate(mode == SSI_TRUE);

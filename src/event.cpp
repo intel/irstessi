@@ -33,10 +33,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 SSI_Status SsiGetEventHandle(SSI_Handle *eventHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    if (eventHandle == 0) {
+    if (eventHandle == NULL) {
         return SSI_StatusInvalidParameter;
     }
     try {
@@ -53,7 +53,7 @@ SSI_Status SsiGetEventHandle(SSI_Handle *eventHandle)
 /* */
 SSI_Status SsiFreeEventHandle(SSI_Handle eventHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     try {
@@ -66,7 +66,7 @@ SSI_Status SsiFreeEventHandle(SSI_Handle eventHandle)
 /* */
 SSI_Status SsiEventWait(SSI_Uint32 timeout, SSI_Handle eventHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Event *pEvent;
@@ -75,7 +75,7 @@ SSI_Status SsiEventWait(SSI_Uint32 timeout, SSI_Handle eventHandle)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pEvent == 0) {
+    if (pEvent == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pEvent->wait(timeout);

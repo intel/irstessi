@@ -22,12 +22,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 #include <cstdio>
 #include <sys/wait.h>
-#include <errno.h>
+#include <cerrno>
 #include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
+#include <cstring>
+#include <cstdlib>
 
 #include "exception.h"
 #include "string.h"
@@ -49,7 +49,7 @@ int shell_cap(const String &s, void *buf, size_t &size)
     unsigned char *buffer = reinterpret_cast<unsigned char *>(buf);
     FILE *pd = popen(s, "r");
 
-    if (pd == 0) {
+    if (pd == NULL) {
         return -1;
     }
     do {
@@ -66,7 +66,7 @@ int shell_cap(const String &s, String &r)
     char buffer[1024];
     int count;
     FILE *pd = popen(s, "r");
-    if (pd == 0) {
+    if (pd == NULL) {
         return -1;
     }
     r.clear();

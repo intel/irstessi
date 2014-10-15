@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <asm/types.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 #include <orom/orom.h>
@@ -49,7 +49,7 @@ void RaidInfo::acquireId(Session *pSession)
 /* */
 SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->raidHandle = getId();
@@ -70,7 +70,7 @@ SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
 /* */
 SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
 

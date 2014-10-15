@@ -37,7 +37,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 Phy::Phy(const String &path, unsigned int number, StorageObject *pParent)
-    : StorageObject(path, pParent), m_pRemotePhy(0), m_pPort(0), m_Number(number)
+    : StorageObject(path, pParent), m_pRemotePhy(NULL), m_pPort(NULL), m_Number(number)
 {
     setProperties();
 }
@@ -50,14 +50,14 @@ Phy::~Phy()
 /* */
 SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->phyHandle = getId();
     m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
     pInfo->protocol = m_Protocol;
-    if (m_pPort != 0) {
+    if (m_pPort != NULL) {
         pInfo->associatedPort = m_pPort->getId();
     } else {
         pInfo->associatedPort = SSI_NULL_HANDLE;
@@ -98,13 +98,13 @@ SSI_Status Phy::locate(bool mode) const
 /* */
 void Phy::fetchSpeeds(SSI_PhyInfo *pInfo) const
 {
-    if (m_pRemotePhy != 0) {
+    if (m_pRemotePhy != NULL) {
         m_pRemotePhy->setSpeeds(pInfo);
         return;
     }
-    if (m_pPort != 0) {
+    if (m_pPort != NULL) {
         Port *pPort = m_pPort->getRemotePort();
-        if (pPort != 0) {
+        if (pPort != NULL) {
             Container<Phy> container;
             pPort->getPhys(container);
             foreach (i, container)
@@ -289,7 +289,7 @@ void Phy::attachPhy(Phy *pPhy)
 {
     if (pPhy != this ) {
         m_pRemotePhy = pPhy;
-        if (pPhy == 0) {
+        if (pPhy == NULL) {
             throw E_NULL_POINTER;
         }
         m_pRemotePhy->attachPhy(this);
@@ -299,7 +299,7 @@ void Phy::attachPhy(Phy *pPhy)
 /* */
 void Phy::attachPort(Port *pPort)
 {
-    if (pPort == 0) {
+    if (pPort == NULL) {
         throw E_NULL_POINTER;
     }
     m_pPort = pPort;

@@ -99,13 +99,13 @@ void AHCI::getAddress(SSI_Address &address) const
 RaidInfo *AHCI::findRaidInfo()
 {
     struct orom_info *pInfo = efi_get(getControllerType());
-    if (pInfo == 0)
+    if (pInfo == NULL)
         pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != 0) {
+    if (pInfo != NULL) {
         m_pRaidInfo = new AHCI_RaidInfo(this,pInfo);
         return m_pRaidInfo;
     }
-    return 0;
+    return NULL;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

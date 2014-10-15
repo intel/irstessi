@@ -34,13 +34,13 @@ public:
         return m_Id;
     }
     void add(Object * pObject) {
-        if (pObject == 0) {
+        if (pObject == NULL) {
             throw E_NULL_POINTER;
         }
         m_Objects.push_back(pObject);
     }
     void remove(Object *pObject) {
-        if (pObject == 0) {
+        if (pObject == NULL) {
             throw E_NULL_POINTER;
         }
         m_Objects.remove(pObject);

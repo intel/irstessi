@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 #include <unistd.h>
 
 #include <ssi.h>
@@ -57,7 +57,7 @@ Volume::Volume() : RaidDevice(),
       m_StripSize(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
-      m_pSourceDisk(0)
+      m_pSourceDisk(NULL)
 {
 }
 
@@ -75,7 +75,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_StripSize(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
-      m_pSourceDisk(0)
+      m_pSourceDisk(NULL)
 {
     String temp;
     try {
@@ -220,7 +220,7 @@ SSI_Status Volume::initialize()
 SSI_Status Volume::rebuild(EndDevice *pEndDevice)
 {
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusFailed;
     } else {
         return pArray->addSpare(pEndDevice);
@@ -245,7 +245,7 @@ SSI_Status Volume::expand(unsigned long long newSize)
 SSI_Status Volume::rename(const String &newName)
 {
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusFailed;
     }
 
@@ -265,7 +265,7 @@ SSI_Status Volume::rename(const String &newName)
 SSI_Status Volume::remove()
 {
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusFailed;
     }
     if (shell("mdadm -S /dev/" + m_DevName) == 0 &&
@@ -324,7 +324,7 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
     /* get raidlevel info for this volume */
-    if (pRaidInfo == 0)
+    if (pRaidInfo == NULL)
         return SSI_StatusFailed;
     pRaidInfo->getRaidLevelInfo(volumeLevel, &info);
     /* check new chunk is valid for this level */
@@ -352,7 +352,7 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
 /* */
 SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->volumeHandle = getId();
@@ -431,7 +431,7 @@ void Volume::acquireId(Session *pSession)
 void Volume::attachEndDevice(EndDevice *pEndDevice)
 {
     BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pEndDevice);
-    if (pBlockDevice == 0) {
+    if (pBlockDevice == NULL) {
         throw E_INVALID_OBJECT;
     }
     pBlockDevice->attachVolume(this);
@@ -617,7 +617,7 @@ unsigned int stripsize2ui(SSI_StripSize stripSize)
 SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks)
 {
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == 0)
+    if (pArray == NULL)
         return SSI_StatusFailed;
 
     bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
@@ -679,7 +679,7 @@ SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSiz
         return SSI_StatusNotSupported;
     if (stripSize && stripSize != ui2stripsize(m_StripSize))
         return SSI_StatusInvalidStripSize;
-    if (pArray == 0)
+    if (pArray == NULL)
         return SSI_StatusFailed;
     status = pArray->addSpare(disks);
     if (status != SSI_StatusOk)
@@ -694,7 +694,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
 {
     SSI_Status status = SSI_StatusOk;
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == 0)
+    if (pArray == NULL)
         return SSI_StatusFailed;
 
     bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);

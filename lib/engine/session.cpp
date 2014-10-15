@@ -55,7 +55,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "mdadm_config.h"
 
 /* */
-Session::Session() : m_pNoneScopeObj(0)
+Session::Session() : m_pNoneScopeObj(NULL)
 {
     Directory dir;
     std::list<Directory *> dirs;
@@ -150,7 +150,7 @@ ScopeObject * Session::getObject(unsigned int id) const
     if (id == 0) {
         return m_pNoneScopeObj;
     }
-    Object *pObject = 0;
+    Object *pObject = NULL;
     try {
         switch (getTypeOfId(id)) {
         case ObjectType_EndDevice:
@@ -181,10 +181,10 @@ ScopeObject * Session::getObject(unsigned int id) const
             pObject = m_Controllers.find(id);
             break;
         default:
-            pObject = 0;
+            pObject = NULL;
         }
     } catch (...) {
-        pObject = 0;
+        pObject = NULL;
     }
     return dynamic_cast<ScopeObject *>(pObject);
 }
@@ -192,7 +192,7 @@ ScopeObject * Session::getObject(unsigned int id) const
 /* */
 RaidInfo * Session::getRaidInfo(unsigned int id) const
 {
-    RaidInfo *pResult = 0;
+    RaidInfo *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_RaidInfo) {
         pResult = dynamic_cast<RaidInfo *>(m_RaidInfo.find(id));
     }
@@ -202,7 +202,7 @@ RaidInfo * Session::getRaidInfo(unsigned int id) const
 /* */
 Array * Session::getArray(unsigned int id) const
 {
-    Array *pResult = 0;
+    Array *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_Array) {
         pResult = dynamic_cast<Array *>(m_Arrays.find(id));
     }
@@ -212,7 +212,7 @@ Array * Session::getArray(unsigned int id) const
 /* */
 Controller * Session::getController(unsigned int id) const
 {
-    Controller *pResult = 0;
+    Controller *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_Controller) {
         pResult = dynamic_cast<Controller *>(m_Controllers.find(id));
     }
@@ -222,7 +222,7 @@ Controller * Session::getController(unsigned int id) const
 /* */
 StorageDevice * Session::getDevice(unsigned int id) const
 {
-    StorageDevice *pResult = 0;
+    StorageDevice *pResult = NULL;
     switch (getTypeOfId(id)) {
     case ObjectType_Array:
         pResult = dynamic_cast<StorageDevice *>(m_Arrays.find(id));
@@ -234,7 +234,7 @@ StorageDevice * Session::getDevice(unsigned int id) const
         pResult = dynamic_cast<StorageDevice *>(m_Volumes.find(id));
         break;
     default:
-        pResult = 0;
+        pResult = NULL;
     }
     return pResult;
 }
@@ -242,7 +242,7 @@ StorageDevice * Session::getDevice(unsigned int id) const
 /* */
 Phy * Session::getPhy(unsigned int id) const
 {
-    Phy *pResult = 0;
+    Phy *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_Phy) {
         pResult = dynamic_cast<Phy *>(m_Phys.find(id));
     }
@@ -252,7 +252,7 @@ Phy * Session::getPhy(unsigned int id) const
 /* */
 Port * Session::getPort(unsigned int id) const
 {
-    Port *pResult = 0;
+    Port *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_Port) {
         pResult = dynamic_cast<Port *>(m_Ports.find(id));
     }
@@ -262,7 +262,7 @@ Port * Session::getPort(unsigned int id) const
 /* */
 RoutingDevice * Session::getRoutingDevice(unsigned int id) const
 {
-    RoutingDevice *pResult = 0;
+    RoutingDevice *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_RoutingDevice) {
         pResult = dynamic_cast<RoutingDevice *>(m_RoutingDevices.find(id));
     }
@@ -272,7 +272,7 @@ RoutingDevice * Session::getRoutingDevice(unsigned int id) const
 /* */
 Volume * Session::getVolume(unsigned int id) const
 {
-    Volume *pResult = 0;
+    Volume *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_Volume) {
         pResult = dynamic_cast<Volume *>(m_Volumes.find(id));
     }
@@ -282,7 +282,7 @@ Volume * Session::getVolume(unsigned int id) const
 /* */
 Enclosure * Session::getEnclosure(unsigned int id) const
 {
-    Enclosure *pResult = 0;
+    Enclosure *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_Enclosure) {
         pResult = dynamic_cast<Enclosure *>(m_Enclosures.find(id));
     }
@@ -292,7 +292,7 @@ Enclosure * Session::getEnclosure(unsigned int id) const
 /* */
 EndDevice * Session::getEndDevice(unsigned int id) const
 {
-    EndDevice *pResult = 0;
+    EndDevice *pResult = NULL;
     if (getTypeOfId(id) == ObjectType_EndDevice) {
         pResult = dynamic_cast<EndDevice *>(m_EndDevices.find(id));
     }
@@ -302,7 +302,7 @@ EndDevice * Session::getEndDevice(unsigned int id) const
 /* */
 void Session::addEndDevice(EndDevice *pEndDevice)
 {
-    if (pEndDevice == 0) {
+    if (pEndDevice == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pEndDevice);
@@ -312,7 +312,7 @@ void Session::addEndDevice(EndDevice *pEndDevice)
 /* */
 void Session::addArray(Array *pArray)
 {
-    if (pArray == 0) {
+    if (pArray == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pArray);
@@ -322,7 +322,7 @@ void Session::addArray(Array *pArray)
 /* */
 void Session::addRoutingDevice(RoutingDevice *pRoutingDevice)
 {
-    if (pRoutingDevice == 0) {
+    if (pRoutingDevice == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pRoutingDevice);
@@ -332,7 +332,7 @@ void Session::addRoutingDevice(RoutingDevice *pRoutingDevice)
 /* */
 void Session::addEnclosure(Enclosure *pEnclosure)
 {
-    if (pEnclosure == 0) {
+    if (pEnclosure == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pEnclosure);
@@ -342,7 +342,7 @@ void Session::addEnclosure(Enclosure *pEnclosure)
 /* */
 void Session::addPhy(Phy *pPhy)
 {
-    if (pPhy == 0) {
+    if (pPhy == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pPhy);
@@ -352,7 +352,7 @@ void Session::addPhy(Phy *pPhy)
 /* */
 void Session::addVolume(Volume *pVolume)
 {
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pVolume);
@@ -362,7 +362,7 @@ void Session::addVolume(Volume *pVolume)
 /* */
 void Session::addPort(Port *pPort)
 {
-    if (pPort == 0) {
+    if (pPort == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pPort);
@@ -372,7 +372,7 @@ void Session::addPort(Port *pPort)
 /* */
 void Session::addController(Controller *pController)
 {
-    if (pController == 0) {
+    if (pController == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pController);
@@ -382,7 +382,7 @@ void Session::addController(Controller *pController)
 /* */
 void Session::addRaidInfo(RaidInfo *pRaidInfo)
 {
-    if (pRaidInfo == 0) {
+    if (pRaidInfo == NULL) {
         throw E_NULL_POINTER;
     }
     pContextMgr->acquireId(pRaidInfo);

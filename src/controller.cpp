@@ -49,7 +49,7 @@ SSI_Status SsiGetControllerHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
     SSI_ControllerInfo *controllerInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -58,11 +58,11 @@ SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
     } catch (...) {
         return SSI_StatusNotInitialized;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Controller *pController = pSession->getController(controllerHandle);
-    if (pController == 0) {
+    if (pController == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pController->getInfo(controllerInfo);
@@ -71,7 +71,7 @@ SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
 /* */
 SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -80,11 +80,11 @@ SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
     } catch (...) {
         return SSI_StatusNotInitialized;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Controller *pController = pSession->getController(controllerHandle);
-    if (pController == 0) {
+    if (pController == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pController->readPatrolSetState(enable == SSI_TRUE);

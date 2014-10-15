@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <asm/types.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 #include <orom/orom.h>
@@ -89,7 +89,7 @@ Controller::Controller(const String &path)
         /* TODO: log that PCI header cannot be read from sysfs. */
     }
     struct orom_info *pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != 0) {
+    if (pInfo != NULL) {
         m_PrebootMgrVersion =
             String(pInfo->prod_ver.major) + String(".") +
             String(pInfo->prod_ver.minor) + String(".") +
@@ -114,7 +114,7 @@ Controller::~Controller()
 /* */
 RaidInfo * Controller::findRaidInfo()
 {
-    return 0;
+    return NULL;
 }
 
 /* */
@@ -124,7 +124,7 @@ RaidInfo * Controller::findRaidInfo(Container<RaidInfo> &container)
         if ((*i)->getControllerType() == getControllerType()) {
             m_pRaidInfo = *i;
             m_pRaidInfo->attachController(this);
-            return 0;
+            return NULL;
         }
     return findRaidInfo();
 }
@@ -132,7 +132,7 @@ RaidInfo * Controller::findRaidInfo(Container<RaidInfo> &container)
 /* */
 SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->controllerHandle = getId();
@@ -141,7 +141,7 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     m_Name.get(pInfo->controllerName, sizeof(pInfo->controllerName));
 
     pInfo->controllerType = getControllerType();
-    if (m_pRaidInfo != 0) {
+    if (m_pRaidInfo != NULL) {
         pInfo->raidInfoHandle = m_pRaidInfo->getId();
     } else {
         pInfo->raidInfoHandle = SSI_NULL_HANDLE;
@@ -198,7 +198,7 @@ SSI_Status Controller::makeSpare(EndDevice *pEndDevice)
         if ((*i)->addSpare(pEndDevice) == SSI_StatusOk)
             return SSI_StatusOk;
     }
-    Array *pArray = 0;
+    Array *pArray = NULL;
     Container<EndDevice> container;
     container.add(pEndDevice);
     try {

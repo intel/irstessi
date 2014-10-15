@@ -31,10 +31,10 @@ class Container {
 public:
     SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize) {
         SSI_Status status = SSI_StatusOk;
-        if (bufferSize == 0) {
+        if (bufferSize == NULL) {
             return SSI_StatusInvalidParameter;
         }
-        if (*bufferSize && pBuffer == 0) {
+        if (*bufferSize && pBuffer == NULL) {
             return SSI_StatusInvalidParameter;
         }
         if (*bufferSize < m_list.size()) {

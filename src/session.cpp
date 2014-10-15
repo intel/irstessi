@@ -33,10 +33,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 SSI_Status SsiSessionOpen(SSI_Handle *pSession)
 {
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     try {
@@ -53,7 +53,7 @@ SSI_Status SsiSessionOpen(SSI_Handle *pSession)
 /* */
 SSI_Status SsiSessionClose(SSI_Handle session)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     try {

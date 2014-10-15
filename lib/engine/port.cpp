@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -38,7 +38,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 Port::Port(const String &path)
-    : StorageObject(path), m_pRemotePort(0)
+    : StorageObject(path), m_pRemotePort(NULL)
 {
 }
 
@@ -50,7 +50,7 @@ Port::~Port()
 /* */
 SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
 {
-    if (pInfo == 0) {
+    if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
     pInfo->portHandle = getId();
@@ -70,7 +70,7 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
         pInfo->localDeviceType = SSI_DeviceTypeUnknown;
     }
     pInfo->localDeviceHandle = m_pParent->getId();
-    if (m_pRemotePort != 0) {
+    if (m_pRemotePort != NULL) {
         pInfo->connectedToPort = m_pRemotePort->getId();
     } else {
         pInfo->connectedToPort = SSI_NULL_HANDLE;

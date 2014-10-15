@@ -22,9 +22,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 
 #include <ssi.h>
-#include <stdio.h>
+#include <cstdio>
 #include <sys/types.h>
-#include <signal.h>
+#include <csignal>
 
 #include "exception.h"
 #include "container.h"

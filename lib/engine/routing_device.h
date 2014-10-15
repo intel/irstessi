@@ -116,7 +116,7 @@ public:
     }
     RaidInfo * getRaidInfo() const;
     Controller * getController() const {
-        return m_pParent?m_pParent->getController():0;
+        return m_pParent ? m_pParent->getController() : NULL;
     }
     SSI_Status getInfo(SSI_RoutingDeviceInfo *pInfo) const;
 

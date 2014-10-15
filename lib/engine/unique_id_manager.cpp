@@ -47,7 +47,7 @@ UniqueIdManager::~UniqueIdManager()
 /* */
 unsigned int UniqueIdManager::acquireId(Object *pObject)
 {
-    if (pObject == 0) {
+    if (pObject == NULL) {
         throw E_NULL_POINTER;
     }
     switch (pObject->getType()) {
@@ -133,7 +133,7 @@ void UniqueIdManager::add(unsigned int id, String key)
 /* */
 void UniqueIdManager::releaseId(Object *pObject)
 {
-    if (pObject == 0) {
+    if (pObject == NULL) {
         throw E_NULL_POINTER;
     }
     switch (pObject->getType()) {
@@ -275,7 +275,7 @@ IdCache::~IdCache()
 /* add object to cache and set Id */
 void IdCache::add(Object *pObject)
 {
-    if (pObject == 0) {
+    if (pObject == NULL) {
         throw E_NULL_POINTER;
     }
 
@@ -329,7 +329,7 @@ void IdCache::add(unsigned int id, String key)
 
 /* remove object from cache */
 void IdCache::remove(Object *pObject) {
-    if (pObject == 0) {
+    if (pObject == NULL) {
         throw E_NULL_POINTER;
     }
 

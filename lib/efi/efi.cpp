@@ -42,7 +42,7 @@ struct node {
 };
 
 /* */
-static struct node *efi_cache = 0;
+static struct node *efi_cache = NULL;
 
 /* */
 static struct orom_info *__efi_add_info(SSI_ControllerType controllerType, struct orom_info *data)
@@ -57,7 +57,7 @@ static struct orom_info *__efi_add_info(SSI_ControllerType controllerType, struc
         efi_cache = elem;
     } else {
         delete data;
-        data = 0;
+        data = NULL;
     }
     return data;
 }
@@ -66,7 +66,7 @@ static struct orom_info *__efi_add_info(SSI_ControllerType controllerType, struc
 struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 {
     unsigned int size = 0;
-    struct orom_info *data = 0;
+    struct orom_info *data = NULL;
     unsigned int var_size = sizeof(struct orom_info);
     Directory dir(EFI_VAR_DIR);
     Path var_path = "";
@@ -85,21 +85,21 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
         }
     }
     if (var_path  == "")
-        return 0;
+        return NULL;
     try {
         SysfsAttr attr = var_path + "size";
         attr >> size;
     } catch (...) {
     }
     if (size != var_size)
-        return 0;
+        return NULL;
     data = new struct orom_info;
     try {
         SysfsAttr attr = var_path + "data";
         attr.read(data, size);
     } catch (...) {
         delete data;
-        return 0;
+        return NULL;
     }
     return data;
 }
@@ -108,7 +108,7 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 static struct orom_info * __efi_init(SSI_ControllerType controllerType)
 {
     struct orom_info *result = __read_efi_variable(controllerType);
-    if (result != 0)
+    if (result != NULL)
         result = __efi_add_info(controllerType, result);
     return result;
 }
@@ -123,7 +123,7 @@ static struct orom_info * __efi_get(SSI_ControllerType controllerType)
         }
         elem = elem->next;
     }
-    return elem?elem->data:0;
+    return elem ? elem->data : NULL;
 }
 
 /* */
@@ -148,7 +148,7 @@ void efi_fini(void)
 struct orom_info * efi_get(SSI_ControllerType controllerType)
 {
     struct orom_info *result = __efi_get(controllerType);
-    if (result == 0) {
+    if (result == NULL) {
         result = __efi_init(controllerType);
     }
     return result;

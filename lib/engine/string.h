@@ -179,7 +179,7 @@ public:
         return __offset(offset);
     }
     void get(char *dest, unsigned int size, unsigned int offset = 0) const {
-        if (dest == 0) {
+        if (dest == NULL) {
             throw E_NULL_POINTER;
         }
         __get(dest, size, offset);
@@ -379,13 +379,13 @@ public:
         return this == &s || __compare(s.get()) == 0;
     }
     bool equal(const char *buf) const {
-        return buf != 0 && __compare(buf) == 0;
+        return buf != NULL && __compare(buf) == 0;
     }
     bool different(const String &s) const {
         return this != &s && __compare(s.get()) != 0;
     }
     bool different(const char *buf) const {
-        return buf != 0 && __compare(buf) != 0;
+        return buf != NULL && __compare(buf) != 0;
     }
     int compare(const String &s) const {
         return __compare(s.get());

@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 #include <unistd.h>
 
 #include <ssi.h>
@@ -56,7 +56,7 @@ SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
     SSI_VolumeInfo *volumeInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -65,11 +65,11 @@ SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->getInfo(volumeInfo);
@@ -78,7 +78,7 @@ SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
 /* */
 SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -87,11 +87,11 @@ SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->markAsNormal();
@@ -100,7 +100,7 @@ SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 /* */
 SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -109,15 +109,15 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == 0) {
+    if (pEndDevice == NULL) {
         return SSI_StatusInvalidHandle;
     }
     if (pVolume->getState() != SSI_VolumeStateDegraded)
@@ -129,7 +129,7 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 /* */
 SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -138,11 +138,11 @@ SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->remove();
@@ -151,10 +151,10 @@ SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
 /* */
 SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle *volumeHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    if (volumeHandle == 0) {
+    if (volumeHandle == NULL) {
         return SSI_StatusInvalidParameter;
     }
     Session *pSession;
@@ -163,18 +163,18 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
-    Volume *pVolume = 0;
-    Array *pArray = 0;
+    Volume *pVolume = NULL;
+    Array *pArray = NULL;
     Container<EndDevice> container;
     EndDevice *pEndDevice;
     /* create container */
     try {
         for (unsigned int i = 0; i < params.numDisks; ++i) {
             pEndDevice = pSession->getEndDevice(params.disks[i]);
-            if (pEndDevice == 0) {
+            if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }
             container.add(pEndDevice);
@@ -244,9 +244,9 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 /* */
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
-    Volume *pVolume = 0;
+    Volume *pVolume = NULL;
 
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -255,11 +255,11 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Array *pArray = pSession->getArray(params.arrayHandle);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
     Container<EndDevice> container;
@@ -303,7 +303,7 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
     const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -312,11 +312,11 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->rename(volumeName);
@@ -325,7 +325,7 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
 /* */
 SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -334,11 +334,11 @@ SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->expand(newSizeMB*1024ULL);
@@ -348,7 +348,7 @@ SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
     SSI_VolumeCachePolicy policy)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -357,11 +357,11 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->setCachePolicy(policy == SSI_VolumeCachePolicyOff);
@@ -370,7 +370,7 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
 /* */
 SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -379,11 +379,11 @@ SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pVolume->initialize();
@@ -392,7 +392,7 @@ SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 /* */
 SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -401,11 +401,11 @@ SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     if (pVolume->getState() != SSI_VolumeStateNormal)
@@ -417,7 +417,7 @@ SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 /* */
 SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -426,11 +426,11 @@ SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusFailed;
     }
     Volume *pVolume = pSession->getVolume(volumeHandle);
-    if (pVolume == 0) {
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
     if (pVolume->getState() != SSI_VolumeStateVerifying &&

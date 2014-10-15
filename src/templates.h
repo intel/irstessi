@@ -34,7 +34,7 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
 {
     extern ContextManager *pContextMgr;
 
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -43,11 +43,11 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
-    if (pScopeObject == 0) {
+    if (pScopeObject == NULL) {
         return SSI_StatusInvalidScope;
     }
     if (*pScopeObject != scopeType) {

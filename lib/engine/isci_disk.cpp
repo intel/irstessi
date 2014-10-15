@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -58,7 +58,7 @@ ISCI_Disk::ISCI_Disk(const String &path)
 /* */
 SSI_DiskType ISCI_Disk::getDiskType() const
 {
-    if (m_pPhy != 0) {
+    if (m_pPhy != NULL) {
         if (m_pPhy->getProtocol() == SSI_PhyProtocolSATA)
             return SSI_DiskTypeSATA;
     }

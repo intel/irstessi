@@ -86,7 +86,7 @@ public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     RaidInfo * getRaidInfo() const;
     Controller * getController() const {
-        return m_pParent?m_pParent->getController():0;
+        return m_pParent ? m_pParent->getController() : NULL;
     }
     SSI_Status locate(bool mode);
 
@@ -106,7 +106,7 @@ public:
         return 0xff;
     }
     virtual Array * getArray() const {
-        return 0;
+        return NULL;
     }
     virtual Enclosure * getEnclosure() const {
         return m_pEnclosure;

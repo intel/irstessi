@@ -21,7 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <asm/types.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 #include <orom/orom.h>

@@ -49,7 +49,7 @@ SSI_Status SsiGetEnclosureHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetEnclosureInfo(SSI_Handle session, SSI_Handle enclosureHandle,
     SSI_EnclosureInfo *enclosureInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -58,11 +58,11 @@ SSI_Status SsiGetEnclosureInfo(SSI_Handle session, SSI_Handle enclosureHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Enclosure *pEnclosure = pSession->getEnclosure(enclosureHandle);
-    if (pEnclosure == 0) {
+    if (pEnclosure == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pEnclosure->getInfo(enclosureInfo);

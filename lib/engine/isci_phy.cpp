@@ -49,7 +49,7 @@ void ISCI_Phy::discover()
     CanonicalPath portPath(m_Path + "/port");
     if (portPath) {
         m_pPort = m_pParent->getPortByPath(portPath);
-        if (m_pPort == 0) {
+        if (m_pPort == NULL) {
             m_pParent->attachPort(m_pPort = new ISCI_Port(portPath));
             m_pPort->setParent(m_pParent);
         }

@@ -35,7 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 SessionManager::SessionManager()
-    : m_pNullSession(0)
+    : m_pNullSession(NULL)
 {
 }
 

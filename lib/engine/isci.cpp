@@ -88,7 +88,7 @@ Port * ISCI::getPortByPath(const String &path) const
             return (*i);
         }
     }
-    return 0;
+    return NULL;
 }
 
 /* */
@@ -116,13 +116,13 @@ void ISCI::setAddress(SSI_Address &address)
 RaidInfo *ISCI::findRaidInfo()
 {
     struct orom_info *pInfo = efi_get(getControllerType());
-    if (pInfo == 0)
+    if (pInfo == NULL)
         pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != 0) {
+    if (pInfo != NULL) {
         m_pRaidInfo = new ISCI_RaidInfo(this,pInfo);
         return m_pRaidInfo;
     }
-    return 0;
+    return NULL;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

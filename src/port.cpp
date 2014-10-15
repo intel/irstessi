@@ -49,7 +49,7 @@ SSI_Status SsiGetPortHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
     SSI_PortInfo *portInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -58,11 +58,11 @@ SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Port *pPort = pSession->getPort(portHandle);
-    if (pPort == 0) {
+    if (pPort == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pPort->getInfo(portInfo);

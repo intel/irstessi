@@ -23,7 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
-#include <time.h>
+#include <ctime>
 
 #include <ssi.h>
 #include <log/log.h>

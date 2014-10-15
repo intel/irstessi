@@ -49,7 +49,7 @@ SSI_Status SsiGetRoutingDeviceHandles(SSI_Handle session, SSI_ScopeType scopeTyp
 SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session,
     SSI_Handle routingDeviceHandle, SSI_RoutingDeviceInfo *routingDeviceInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -58,11 +58,11 @@ SSI_Status SsiGetRoutingDeviceInfo(SSI_Handle session,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     RoutingDevice *pRtDevice = pSession->getRoutingDevice(routingDeviceHandle);
-    if (pRtDevice == 0) {
+    if (pRtDevice == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pRtDevice->getInfo(routingDeviceInfo);

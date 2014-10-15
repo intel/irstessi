@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 
 #include <ssi.h>
 
@@ -54,7 +54,7 @@ SSI_Status SsiGetArrayHandles(SSI_Handle session, SSI_ScopeType scopeType,
 SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle,
     SSI_ArrayInfo *arrayInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -63,11 +63,11 @@ SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pArray->getInfo(arrayInfo);
@@ -77,7 +77,7 @@ SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle,
 SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     SSI_Uint32 diskHandleCount)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -86,14 +86,14 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
-    if (diskHandles == 0) {
+    if (diskHandles == NULL) {
         return SSI_StatusInvalidParameter;
     }
     if (diskHandleCount == 0) {
@@ -103,7 +103,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
         Container<EndDevice> container;
         for (unsigned int i = 0; i < diskHandleCount; i++) {
             EndDevice *pEndDevice = pSession->getEndDevice(diskHandles[i]);
-            if (pEndDevice == 0) {
+            if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }
             container.add(pEndDevice);
@@ -118,7 +118,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
 SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle,
     SSI_Bool cacheEnable)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -127,11 +127,11 @@ SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == 0) {
+    if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pArray->setWriteCacheState(cacheEnable == SSI_TRUE);

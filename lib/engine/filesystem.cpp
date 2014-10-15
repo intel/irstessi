@@ -39,7 +39,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 void CanonicalPath::__canonicalize_path_name(const char *path)
 {
-    if (path == 0) {
+    if (path == NULL) {
         throw E_NULL_POINTER;
     }
     char *p = canonicalize_file_name(path);
@@ -56,11 +56,11 @@ void Directory::__internal_read_content()
     struct stat st;
 
     DIR *pDir = opendir(m_buffer);
-    if (pDir == 0) {
+    if (pDir == NULL) {
         throw errno_to_exception_code(errno);
     }
     struct dirent *dirent;
-    while ((dirent = readdir(pDir)) != 0) {
+    while ((dirent = readdir(pDir)) != NULL) {
         String d_name = dirent->d_name;
         if (d_name == "." || d_name == "..") {
             continue;
@@ -76,7 +76,7 @@ void Directory::__internal_read_content()
         if (stat(d_path, &st) < 0) {
             throw errno_to_exception_code(errno);
         }
-        Path *pPath = 0;
+        Path *pPath = NULL;
         if (S_ISREG(st.st_mode)) {
             File *pFile = new File(d_path);
             pPath = pFile;
@@ -87,7 +87,7 @@ void Directory::__internal_read_content()
             pPath = pDirectory;
             m_Directories.push_back(pDirectory);
         }
-        if (pPath != 0) {
+        if (pPath != NULL) {
             m_Content.push_back(pPath);
         }
     }
@@ -125,7 +125,7 @@ void Directory::__internal_copy_content(const Directory &directory)
 /* */
 void File::read(void *buffer, unsigned int size)
 {
-    if (buffer == 0) {
+    if (buffer == NULL) {
         throw E_NULL_POINTER;
     }
     __internal_read_content();
@@ -140,9 +140,9 @@ void File::__internal_clear_content()
 {
     m_ContentCapacity = 0;
     m_ContentSize = 0;
-    if (m_pContent != 0) {
+    if (m_pContent != NULL) {
         delete [] m_pContent;
-        m_pContent = 0;
+        m_pContent = NULL;
     }
 }
 
@@ -151,7 +151,7 @@ void File::__internal_realloc_content(unsigned long long size, bool copy)
 {
     if (size > m_ContentCapacity) {
         unsigned char *p = new unsigned char[size + 1];
-        if (m_pContent != 0) {
+        if (m_pContent != NULL) {
             if (copy == true && m_ContentSize > 0) {
                 memcpy(p, m_pContent, m_ContentSize);
             }
@@ -220,7 +220,7 @@ void File::__internal_read_content()
 /* */
 unsigned long long File::__internal_to_ulonglong()
 {
-    if (m_pContent == 0) {
+    if (m_pContent == NULL) {
         throw E_NULL_POINTER;
     }
     return strtoull(reinterpret_cast<char *>(m_pContent), NULL, 0);
@@ -229,7 +229,7 @@ unsigned long long File::__internal_to_ulonglong()
 /* */
 long long File::__internal_to_longlong()
 {
-    if (m_pContent == 0) {
+    if (m_pContent == NULL) {
         throw E_NULL_POINTER;
     }
     return strtoll(reinterpret_cast<char *>(m_pContent), NULL, 0);

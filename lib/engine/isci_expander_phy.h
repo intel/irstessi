@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ISCI_Expander_Phy : public Phy {
 public:
-    ISCI_Expander_Phy(const String &path, unsigned int number, StorageObject *pParent = 0);
+    ISCI_Expander_Phy(const String &path, unsigned int number, StorageObject *pParent = NULL);
     void discover();
 
 private:

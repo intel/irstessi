@@ -35,7 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
     SSI_Uint32 *handleCount)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -44,7 +44,7 @@ SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     return pSession->getRaidInfo().getHandles(handleList, handleCount);
@@ -54,7 +54,7 @@ SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
 SSI_Status SsiGetRaidInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     SSI_RaidInfo *raidInfo)
 {
-    if (pContextMgr == 0) {
+    if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     Session *pSession;
@@ -63,11 +63,11 @@ SSI_Status SsiGetRaidInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == 0) {
+    if (pSession == NULL) {
         return SSI_StatusInvalidSession;
     }
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
-    if (pRaidInfo == 0) {
+    if (pRaidInfo == NULL) {
         return SSI_StatusInvalidHandle;
     }
     return pRaidInfo->getInfo(raidInfo);

@@ -20,7 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <stddef.h>
+#include <cstddef>
 #include <ssi.h>
 
 #include "exception.h"
@@ -75,7 +75,7 @@ void ISCI_Port::discover()
     if (dirs.begin() != dirs.end()) {
         Directory target(**dirs.begin(), "target");
         StorageObject *pStorageObject = __internal_create_storage_object(target.dirs());
-        if (pStorageObject != 0) {
+        if (pStorageObject != NULL) {
             pStorageObject->setParent(m_pParent);
             switch  (pStorageObject->getType()) {
                     case ObjectType_EndDevice:
@@ -100,7 +100,7 @@ void ISCI_Port::discover()
 /* */
 StorageObject * ISCI_Port::__internal_create_storage_object(std::list<Directory *> &dirs)
 {
-    StorageObject *pStorageObject = 0;
+    StorageObject *pStorageObject = NULL;
     if (dirs.begin() != dirs.end()) {
         foreach (i, dirs) {
             CanonicalPath temp = *(*i) + "driver";

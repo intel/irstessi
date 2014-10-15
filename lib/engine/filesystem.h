@@ -44,7 +44,7 @@ inline Path operator + (const Path &left, const String &right) {
     return Path(left.get() + String("/") + right);
 }
 inline Path operator + (const Path &left, const char *right) {
-    if (right == 0) {
+    if (right == NULL) {
         throw E_NULL_POINTER;
     }
     return Path(left.get() + String("/") + right);
@@ -53,7 +53,7 @@ inline Path operator + (const String &left, const Path &right) {
     return Path(left + String("/") + right.get());
 }
 inline Path operator + (const char *left, const Path &right) {
-    if (left == 0) {
+    if (left == NULL) {
         throw E_NULL_POINTER;
     }
     return Path(left + String("/") + right.get());
@@ -84,10 +84,10 @@ private:
 class File : public Path {
 public:
     File(const String &path)
-        : Path(path), m_pContent(0), m_ContentCapacity(0), m_ContentSize(0) {
+        : Path(path), m_pContent(NULL), m_ContentCapacity(0), m_ContentSize(0) {
     }
     File(const File &file)
-        : Path(file), m_pContent(0), m_ContentCapacity(0), m_ContentSize(0) {
+        : Path(file), m_pContent(NULL), m_ContentCapacity(0), m_ContentSize(0) {
     }
     virtual ~File() {
         __internal_clear_content();

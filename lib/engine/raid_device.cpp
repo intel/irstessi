@@ -75,10 +75,10 @@ RaidInfo * RaidDevice::getRaidInfo() const
     RaidInfo *pinfo;
     foreach (i, m_BlockDevices) {
         pinfo = (*i)->getRaidInfo();
-        if ( pinfo != 0)
+        if (pinfo != NULL)
             return pinfo;
     }
-    return 0;
+    return NULL;
 }
 
 File RaidDevice::getMapFile()
@@ -163,7 +163,7 @@ bool RaidDevice::equal(const Object *pObject) const
 /* */
 void RaidDevice::acquireId(Session *pSession)
 {
-    if (pSession == 0) {
+    if (pSession == NULL) {
         throw E_NULL_POINTER;
     }
     Container<EndDevice> endDevices = pSession->getEndDevices();
@@ -177,7 +177,7 @@ void RaidDevice::setEndDevices(const Container<EndDevice> &container)
     m_BlockDevices.clear();
     foreach (i, container) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == 0) {
+        if (pBlockDevice == NULL) {
             throw E_INVALID_OBJECT;
         }
         if (pBlockDevice->isSystemDisk()) {
@@ -209,7 +209,7 @@ void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const S
 {
     foreach (i, endDevices) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == 0) {
+        if (pBlockDevice == NULL) {
             continue;
         }
         if (pBlockDevice->getDevName() == devName) {
