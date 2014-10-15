@@ -31,6 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "filesystem.h"
 #include "object.h"
 #include "unique_id_manager.h"
+#include "utils.h"
 
 
 /* */
@@ -250,16 +251,16 @@ void Id::store()
 /* when not in cache find new Id */
 unsigned int IdCache::__findId() const {
     unsigned int id;
-    std::list<Id *>::const_iterator i;
     for(id = 1; id <= 0x0fffffff; id++) {
-        for (i = _list.begin(); i != _list.end(); ++i) {
+        Id *pId = NULL;
+        foreach (i, m_list) {
             if (((*i)->getId() & 0x0fffffff) == id) {
+                pId = *i;
                 break;
             }
         }
-        if (i == _list.end()) {
+        if (pId == NULL)
             break;
-        }
     }
     return (id & 0x0fffffff);
 }
@@ -267,9 +268,8 @@ unsigned int IdCache::__findId() const {
 /* */
 IdCache::~IdCache()
 {
-    for (std::list<Id *>::const_iterator i = _list.begin(); i != _list.end(); ++i) {
+    foreach (i, m_list)
         delete *i;
-    }
 }
 
 /* add object to cache and set Id */
@@ -278,11 +278,16 @@ void IdCache::add(Object *pObject)
     if (pObject == 0) {
         throw E_NULL_POINTER;
     }
-    std::list<Id *>::const_iterator i;
-    for (i = _list.begin(); i != _list.end() && *(*i) != pObject; ++i) {
+
+    Id *pId = NULL;
+    foreach (i, m_list) {
+        if (**i == pObject) {
+            pId = *i;
+            break;
+        }
     }
-    Id *pId;
-    if (i == _list.end()) {
+
+    if (pId == NULL) {
         dlog(String("new object ") + String(pObject->getType()) + " " + String(pObject->getKey()));
         unsigned int id = __findId();
         /* TODO when out of id's clean the id file:
@@ -291,11 +296,10 @@ void IdCache::add(Object *pObject)
             throw E_OUT_OF_RESOURCES;
         }
         pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
-        _list.push_back(pId);
+        m_list.push_back(pId);
         pId->store();
-    } else {
-        pId = *i;
     }
+
     pId->add(pObject);
     pObject->setId(pId->getId());
 }
@@ -303,18 +307,23 @@ void IdCache::add(Object *pObject)
 /* add id + key (from file) to cache */
 void IdCache::add(unsigned int id, String key)
 {
-    std::list<Id *>::const_iterator i;
-    for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
+    Id *pId = NULL;
+    foreach (i, m_list) {
+        if ((*i)->getId() == id) {
+            pId = *i;
+            break;
+        }
     }
-    if (i == _list.end()) {
+
+    if (pId == NULL) {
         /* it is not in cache */
         dlog(String(id) + key + " adding to cache");
         Id *pId = new Id(id, key);
-        _list.push_back(pId);
+        m_list.push_back(pId);
     } else {
         /* already in cache */
-        if ((*i)->getKey() != key)
-            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + (*i)->getKey());
+        if (pId->getKey() != key)
+            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + pId->getKey());
     }
 }
 
@@ -323,24 +332,26 @@ void IdCache::remove(Object *pObject) {
     if (pObject == 0) {
         throw E_NULL_POINTER;
     }
-    std::list<Id *>::const_iterator i;
-    for (i = _list.begin(); i != _list.end(); ++i) {
+
+    Id *pId = NULL;
+    foreach (i, m_list) {
         if ((*i)->getId() == pObject->getId()) {
+            pId = *i;
             break;
         }
     }
-    if (i == _list.end()) {
+
+    if (pId == NULL)
         throw E_NOT_FOUND;
-    }
-    (*i)->remove(pObject);
+
+    pId->remove(pObject);
 
     /* session and event Id's can be reused so remove from cache
      * other object type Id's should remain even when no objects left
      * for consistency between sessions */
-    unsigned int type = (*i)->getId() >> 28;
-    if ((type == ObjectType_Session || type == ObjectType_Event) &&
-        (*i)->count() == 0) {
-        delete *i;
-        _list.remove(*i);
+    unsigned int type = pId->getId() >> 28;
+    if ((type == ObjectType_Session || type == ObjectType_Event) && pId->count() == 0) {
+        delete pId;
+        m_list.remove(pId);
     }
 }

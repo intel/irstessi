@@ -408,9 +408,8 @@ SSI_Status Volume::readStorageArea(void *pBuffer, unsigned int bufferSize)
 void Volume::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
 {
     container.clear();
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices)
         container.add(*i);
-    }
 }
 
 /* */
@@ -420,7 +419,7 @@ void Volume::acquireId(Session *pSession)
     pSession->addVolume(this);
     if (m_RaidLevel == 0) {
         m_State = SSI_VolumeStateNormal;
-        for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+        foreach (i, m_BlockDevices) {
             if ((*i)->getDiskState() != SSI_DiskStateNormal) {
                 m_State = SSI_VolumeStateNonRedundantVolumeFailedDisk;
             }
@@ -499,9 +498,8 @@ void Volume::create()
         throw E_INVALID_NAME;
     }
     String devices;
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices)
         devices += " /dev/" + (*i)->getDevName();
-    }
     String componentSize;
     if (m_ComponentSize == 0) {
         componentSize = "max";

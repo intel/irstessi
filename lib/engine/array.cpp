@@ -41,6 +41,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "filesystem.h"
 #include "session.h"
 #include "block_device.h"
+#include "utils.h"
 
 #include "log/log.h"
 /* */
@@ -51,7 +52,7 @@ Array::Array(const String &path)
     String metadata;
     Directory dir("/sys/devices/virtual/block");
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         SysfsAttr attr = *(*i) + "md/metadata_version";
         try {
             attr >> metadata;
@@ -90,7 +91,7 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
     unsigned int count = 0;
 
     String endDevices;
-    for (std::list<EndDevice *>::const_iterator i = container.begin(); i != container.end(); ++i) {
+    foreach (i, container) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             return SSI_StatusInvalidState;
@@ -179,7 +180,7 @@ SSI_Status Array::setWriteCacheState(bool enable)
     if (m_Busy) {
         return SSI_StatusInvalidState;
     }
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices) {
         (*i)->setWriteCache(enable);
     }
     return SSI_StatusOk;
@@ -189,7 +190,7 @@ SSI_Status Array::setWriteCacheState(bool enable)
 void Array::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
-    for (std::list<EndDevice *>::const_iterator i = container.begin(); i != container.end(); ++i) {
+    foreach (i, container) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             throw E_INVALID_OBJECT;
@@ -272,7 +273,7 @@ SSI_Status Array::assemble()
 void Array::getEndDevices(Container<EndDevice> &container, bool all) const
 {
     container.clear();
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices) {
         if (all || (*i)->getDiskUsage() == SSI_DiskUsageArrayMember)
         container.add(*i);
     }
@@ -305,10 +306,10 @@ void Array::acquireId(Session *pSession)
 {
     RaidDevice::acquireId(pSession);
     pSession->addArray(this);
-    for (std::list<Volume *>::const_iterator i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
+    foreach (i, m_Volumes) {
         (*i)->acquireId(pSession);
     }
-    for (std::list<Volume *>::const_iterator i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
+    foreach (i, m_Volumes) {
         if ((*i)->getState() != SSI_VolumeStateNormal) {
             m_Busy = true; break;
         }
@@ -323,7 +324,7 @@ SSI_Status Array::remove()
     do {
         if (shell("mdadm -S /dev/" + m_DevName) == 0) {
             String devices;
-            for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+            foreach (i, m_BlockDevices) {
                 devices += " /dev/" + (*i)->getDevName();
             }
             usleep(3000000);
@@ -369,7 +370,7 @@ void Array::create()
     determineDeviceName("Imsm_");
 
     String devices;
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices) {
         devices += " /dev/" + (*i)->getDevName();
     }
     if (shell("mdadm -CR " + m_Name + " -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices) != 0) {
@@ -399,12 +400,12 @@ void Array::attachVolume(Volume *pVolume)
 void Array::__internal_determine_total_and_free_size()
 {
     unsigned int totalSectors = -1U;
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices) {
         totalSectors = min(totalSectors, (*i)->getSectors());
     }
     m_TotalSize = ((totalSectors * m_BlockDevices.size()) * 512);
     unsigned long long occupiedSectors = 0;
-    for (std::list<Volume *>::const_iterator i = m_Volumes.begin(); i != m_Volumes.end(); ++i) {
+    foreach (i, m_Volumes) {
         occupiedSectors += (*i)->getComponentSize();
     }
     if (occupiedSectors > 0) {

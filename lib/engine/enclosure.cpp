@@ -62,7 +62,7 @@ Enclosure::Enclosure(const String &path)
     }
     Directory dir = m_Path + "/enclosure";
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         try {
             SysfsAttr attr =  *(*i) + "components";
             attr >> m_SlotCount;
@@ -85,7 +85,7 @@ Enclosure::Enclosure(const String &path)
 /* */
 Enclosure::~Enclosure()
 {
-    for (std::list<Slot *>::const_iterator i = m_Slots.begin(); i != m_Slots.end(); ++i)
+    foreach (i, m_Slots)
         delete *i;
 }
 
@@ -103,7 +103,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     }
     pInfo->enclosureHandle = getId();
     pInfo->enclosureKey = (getId() & 0x0fffffff);
-    for (std::list<RoutingDevice *>::const_iterator i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i) {
+    foreach (i, m_RoutingDevices) {
         StorageObject *parent = (*i)->getParent();
         if (parent && parent->getType() == ObjectType_Controller) {
             pInfo->enclosureKey |= 0x10000000;
@@ -155,7 +155,7 @@ void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 /* */
 void Enclosure::attachEndDevices(Container<EndDevice> &EndDevices)
 {
-    for (std::list<EndDevice *>::const_iterator i = EndDevices.begin(); i != EndDevices.end(); ++i) {
+    foreach (i, EndDevices) {
         (*i)->setEnclosure(this);
         attachEndDevice(*i);
     }
@@ -171,7 +171,7 @@ void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 void Enclosure::acquireId(Session *pSession)
 {
     Container<EndDevice> container;
-    for(std::list<RoutingDevice *>::const_iterator i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i) {
+    foreach (i, m_RoutingDevices) {
         (*i)->getEndDevices(container, false);
         attachEndDevices(container);
     }
@@ -181,7 +181,7 @@ void Enclosure::acquireId(Session *pSession)
 /* */
 unsigned int Enclosure::getSlotNumber(unsigned long long sasAddress) const
 {
-    for (std::list<Slot *>::const_iterator i = m_Slots.begin(); i != m_Slots.end(); ++i)
+    foreach (i, m_Slots)
         if ((*i)->sasAddress == sasAddress)
             return (*i)->slotNumber;
     return -1U;
@@ -229,7 +229,7 @@ void Enclosure::__get_slot_info(String &buffer)
 /* */
 bool Enclosure::attachedTo(StorageObject *pObject) const
 {
-    for(std::list<RoutingDevice *>::const_iterator i = m_RoutingDevices.begin(); i != m_RoutingDevices.end(); ++i)
+    foreach (i, m_RoutingDevices)
         if ((*i)->getParent() == pObject)
             return true;
     return false;

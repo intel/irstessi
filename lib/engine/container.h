@@ -37,15 +37,15 @@ public:
         if (*bufferSize && pBuffer == 0) {
             return SSI_StatusInvalidParameter;
         }
-        if (*bufferSize < _list.size()) {
-            *bufferSize = _list.size();
+        if (*bufferSize < m_list.size()) {
+            *bufferSize = m_list.size();
             status = SSI_StatusBufferTooSmall;
         } else {
-            for (typename std::list<T *>::const_iterator i = _list.begin(); i != _list.end(); ++i, ++pBuffer) {
+            for (typename std::list<T *>::iterator i = m_list.begin(); i != m_list.end(); ++i, ++pBuffer) {
                 *pBuffer = (*i)->getId();
             }
         }
-        *bufferSize = _list.size();
+        *bufferSize = m_list.size();
         return status;
     }
 
@@ -53,48 +53,48 @@ public:
         T *pObject = find(id);
 
         if (pObject) {
-            _list.remove(pObject);
+            m_list.remove(pObject);
         }
         return pObject;
     }
 
     T * find(unsigned int id) const {
         typename std::list<T *>::const_iterator i;
-        for (i = _list.begin(); i != _list.end() && (*i)->getId() != id; ++i) {
+        for (i = m_list.begin(); i != m_list.end() && (*i)->getId() != id; ++i) {
         }
 
-        if (i == _list.end())
+        if (i == m_list.end())
             return NULL;
 
         return *i;
     }
 
     void add(T * const &data) {
-        _list.push_back(data);
+        m_list.push_back(data);
     }
 
     void add(Container<T> const &c) {
-        _list.insert(_list.end(), c._list.begin(), c._list.end());
+        m_list.insert(m_list.end(), c.m_list.begin(), c.m_list.end());
     }
 
     int size() const {
-        return _list.size();
+        return m_list.size();
     }
 
-    typename std::list<T *>::const_iterator begin() const {
-        return _list.begin();
+    typename std::list<T *>::iterator begin() const {
+        return const_cast<Container *>(this)->m_list.begin();
     }
 
-    typename std::list<T *>::const_iterator end() const {
-        return _list.end();
+    typename std::list<T *>::iterator end() const {
+        return const_cast<Container *>(this)->m_list.end();
     }
 
     void clear() {
-        _list.clear();
+        m_list.clear();
     }
 
 private:
-    std::list<T *> _list;
+    std::list<T *> m_list;
 };
 
 #endif /* __CONTAINER_H__INCLUDED__ */

@@ -43,6 +43,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "pci_header.h"
 #include "isci_raid_info.h"
+#include "utils.h"
 
 /* */
 ISCI::ISCI(const String &path)
@@ -57,7 +58,7 @@ void ISCI::discover()
     Directory dir(m_Path, "host");
     SysfsAttr attr;
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         unsigned int number = 0;
         try {
             attr = *(*i) + "scsi_host" + (*i)->reverse_after("/") + "isci_id";
@@ -68,23 +69,21 @@ void ISCI::discover()
         Directory phys(*(*i), "phy");
         number *= 4;
         std::list<Directory *> phys_dirs = phys.dirs();
-        for (std::list<Directory *>::const_iterator j = phys_dirs.begin(); j != phys_dirs.end(); ++j, ++number) {
-            Phy *pPhy = new ISCI_Phy(*(*j), number, this);
+        foreach (j, phys_dirs) {
+            Phy *pPhy = new ISCI_Phy(*(*j), number++, this);
             attachPhy(pPhy);
 		}
     }
-    for (std::list<Phy *>::const_iterator i = m_Phys.begin(); i != m_Phys.end(); ++i) {
+    foreach (i, m_Phys)
         (*i)->discover();
-    }
-    for (std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    foreach (i, m_Ports)
         (*i)->discover();
-    }
 }
 
 /* */
 Port * ISCI::getPortByPath(const String &path) const
 {
-    for (std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    foreach (i, m_Ports) {
         if ((*i)->getPath() == path) {
             return (*i);
         }

@@ -43,6 +43,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_phy.h"
 #include "isci_expander_phy.h"
 #include "isci_expander.h"
+#include "utils.h"
+
 #include "log/log.h"
 
 /* */
@@ -53,7 +55,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
     Directory dir(m_Path + "/sas_device");
     SysfsAttr attr;
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         try {
             attr = *(*i) + "sas_address";
             attr >> m_SASAddress;
@@ -64,7 +66,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
     dlog(" sas adress %s\n%llu\n", (const char *) path, m_SASAddress);
     dir = m_Path + "/sas_expander";
     dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         try {
             attr = *(*i) + "product_id";
             attr >> m_ProductId;
@@ -101,7 +103,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
 /* */
 Port * ISCI_Expander::getPortByPath(const String &path) const
 {
-    for (std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    foreach (i, m_Ports) {
         if ((*i)->getPath() == path) {
             return (*i);
         }
@@ -131,16 +133,14 @@ void ISCI_Expander::discover()
     Directory dir(m_Path, "phy");
     unsigned int number = 0;
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++, this);
         attachPhy(pPhy);
     }
-    for (std::list<Phy *>::const_iterator i = m_Phys.begin(); i != m_Phys.end(); ++i) {
+    foreach (i, m_Phys)
         (*i)->discover();
-    }
-    for(std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    foreach (i, m_Ports)
         (*i)->discover();
-    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

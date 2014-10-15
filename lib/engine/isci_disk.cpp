@@ -34,6 +34,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "block_device.h"
 #include "isci_disk.h"
 #include "phy.h"
+#include "utils.h"
 
 /* */
 ISCI_Disk::ISCI_Disk(const String &path)
@@ -44,7 +45,7 @@ ISCI_Disk::ISCI_Disk(const String &path)
     Directory dir(end_path + "/sas_device");
     SysfsAttr attr;
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         try {
             attr = *(*i) + "sas_address";
             attr >> m_SASAddress;

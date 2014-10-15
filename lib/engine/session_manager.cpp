@@ -31,6 +31,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "unique_id_manager.h"
 #include "session_manager.h"
 #include "context_manager.h"
+#include "utils.h"
 
 /* */
 SessionManager::SessionManager()
@@ -43,9 +44,8 @@ SessionManager::~SessionManager()
 {
     delete m_pNullSession;
 
-    for (std::list<Session *>::const_iterator i = m_Sessions.begin(); i != m_Sessions.end(); ++i) {
+    foreach (i, m_Sessions)
         pContextMgr->releaseId(*i);
-    }
 }
 
 /* */

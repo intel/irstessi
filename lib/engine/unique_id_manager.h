@@ -30,8 +30,6 @@ public:
     Id(unsigned int id, String key)
         : m_Id(id), m_Key(key) {
     }
-    ~Id() {
-    }
     unsigned int getId() const {
         return m_Id;
     }
@@ -81,7 +79,7 @@ public:
 
 private:
     unsigned int __findId() const;
-    std::list<Id *> _list;
+    std::list<Id *> m_list;
 };
 
 /* */

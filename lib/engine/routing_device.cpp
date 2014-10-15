@@ -36,6 +36,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "enclosure.h"
 #include "controller.h"
+#include "utils.h"
 
 /* */
 RoutingDevice::RoutingDevice(const String &path)
@@ -52,18 +53,14 @@ RoutingDevice::~RoutingDevice()
 void RoutingDevice::acquireId(Session *pSession)
 {
     pSession->addRoutingDevice(this);
-    for (std::list<EndDevice *>::const_iterator i = m_EndDevices_Direct.begin(); i != m_EndDevices_Direct.end(); ++i) {
+    foreach (i, m_EndDevices_Direct)
         (*i)->acquireId(pSession);
-    }
-    for (std::list<Phy *>::const_iterator i = m_Phys.begin(); i != m_Phys.end(); ++i) {
+    foreach (i, m_Phys)
         (*i)->acquireId(pSession);
-    }
-    for (std::list<Port *>::const_iterator i = m_Ports.begin(); i != m_Ports.end(); ++i) {
+    foreach (i, m_Ports)
         (*i)->acquireId(pSession);
-    }
-    for (std::list<RoutingDevice *>::const_iterator i = m_RoutingDevices_Direct.begin(); i != m_RoutingDevices_Direct.end(); ++i) {
+    foreach (i, m_RoutingDevices_Direct)
         (*i)->acquireId(pSession);
-    }
     pSession->addPort(m_pSubtractivePort);
 }
 

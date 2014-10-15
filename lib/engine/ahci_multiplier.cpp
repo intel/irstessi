@@ -45,6 +45,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci_multiplier.h"
 #include "ahci_phy.h"
 #include "remote_port.h"
+#include "utils.h"
 
 /* */
 AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
@@ -58,9 +59,9 @@ AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
 
     unsigned int number = 0;
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         std::list<Directory *> dirs2 = (*i)->dirs();
-        for (std::list<Directory *>::const_iterator j = dirs2.begin(); j != dirs2.end(); ++j) {
+        foreach (j, dirs2) {
             if (__internal_attach_end_device(*(*j), ++number)) {
                 break;
             }

@@ -44,6 +44,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "pci_header.h"
 #include "ahci_phy.h"
 #include "ahci_raid_info.h"
+#include "utils.h"
 
 /* */
 AHCI::AHCI(const String &path)
@@ -63,18 +64,18 @@ void AHCI::discover()
 
     if (dir.count() > 0) {
         std::list<Directory *> dirs = dir.dirs();
-        for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i)
+        foreach (i, dirs)
             hosts.push_back(**i);
     } else {
         dir = Directory(m_Path, "ata");
         std::list<Directory *> dirs = dir.dirs();
-        for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+        foreach (i, dirs) {
             Directory port_dir(**i, "host");
             hosts.push_back(**port_dir.dirs().begin());
         }
     }
 
-    for (std::vector<Directory>::iterator i = hosts.begin(); i != hosts.end(); ++i) {
+    foreach (i, hosts) {
         CanonicalPath temp = *i + "scsi_host";
         if (temp) {
             AHCI_Phy *pPhy = new AHCI_Phy(CanonicalPath(*i), number++, this);

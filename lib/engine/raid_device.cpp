@@ -50,7 +50,7 @@ RaidDevice::RaidDevice(const String &path)
 
     Directory dir(m_Path + "/slaves");
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         m_Components.push_back(new String((*i)->reverse_after("/")));
     }
     update();
@@ -65,16 +65,15 @@ RaidDevice::RaidDevice() : StorageDevice()
 /* */
 RaidDevice::~RaidDevice()
 {
-    for (std::list<String *>::const_iterator i = m_Components.begin(); i != m_Components.end(); ++i) {
+    foreach (i, m_Components)
         delete *i;
-    }
 }
 
 /* */
 RaidInfo * RaidDevice::getRaidInfo() const
 {
     RaidInfo *pinfo;
-    for (std::list<BlockDevice *>::const_iterator i = m_BlockDevices.begin(); i != m_BlockDevices.end(); ++i) {
+    foreach (i, m_BlockDevices) {
         pinfo = (*i)->getRaidInfo();
         if ( pinfo != 0)
             return pinfo;
@@ -168,16 +167,15 @@ void RaidDevice::acquireId(Session *pSession)
         throw E_NULL_POINTER;
     }
     Container<EndDevice> endDevices = pSession->getEndDevices();
-    for (std::list<String *>::const_iterator i = m_Components.begin(); i != m_Components.end(); ++i) {
+    foreach (i, m_Components)
         attachComponent(endDevices, *(*i));
-    }
 }
 
 /* */
 void RaidDevice::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
-    for (std::list<EndDevice *>::const_iterator i = container.begin(); i != container.end(); ++i) {
+    foreach (i, container) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             throw E_INVALID_OBJECT;
@@ -209,20 +207,18 @@ void RaidDevice::setName(const String &deviceName)
 /* */
 void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const String &devName)
 {
-    std::list<EndDevice *>::const_iterator i;
-    for (i = endDevices.begin(); i != endDevices.end(); ++i) {
+    foreach (i, endDevices) {
         BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
         if (pBlockDevice == 0) {
             continue;
         }
         if (pBlockDevice->getDevName() == devName) {
-            break;
+            attachEndDevice(*i);
+            return;
         }
     }
-    if (i == endDevices.end()) {
-        throw E_INVALID_OBJECT;
-    }
-    attachEndDevice(*i);
+
+    throw E_INVALID_OBJECT;
 }
 
 /* */

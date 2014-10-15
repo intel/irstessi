@@ -32,6 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "lib/orom/orom.h"
 #include "lib/engine/filesystem.h"
 #include "lib/log/log.h"
+#include "lib/engine/utils.h"
 
 /* */
 struct node {
@@ -74,7 +75,7 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
     guid2str(buf, VENDOR_GUID);
     dir.setFilter((controllerType == SSI_ControllerTypeAHCI)?AHCI_VAR:SCU_VAR);
     std::list<Directory *> dirs = dir.dirs();
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
+    foreach (i, dirs) {
         try {
             (*i)->find(buf);
             var_path = *(*i);

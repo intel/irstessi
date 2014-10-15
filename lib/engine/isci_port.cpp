@@ -48,6 +48,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_disk.h"
 #include "isci_cdrom.h"
 #include "isci_tape.h"
+#include "utils.h"
+
 #include "log/log.h"
 
 /* */
@@ -99,25 +101,26 @@ void ISCI_Port::discover()
 StorageObject * ISCI_Port::__internal_create_storage_object(std::list<Directory *> &dirs)
 {
     StorageObject *pStorageObject = 0;
-    if (dirs.begin() != dirs.end())
-    for (std::list<Directory *>::const_iterator i = dirs.begin(); i != dirs.end(); ++i) {
-        CanonicalPath temp = *(*i) + "driver";
-        if (temp == "/sys/bus/scsi/drivers/sd") {
-            pStorageObject = new ISCI_Disk(*(*i));
-            break;
-        } else
-        if (temp == "/sys/bus/scsi/drivers/sr") {
-            pStorageObject = new ISCI_CDROM(*(*i));
-            break;
-        } else
-        if (temp == "/sys/bus/scsi/drivers/st") {
-            pStorageObject = new ISCI_Tape(*(*i));
-            break;
-        }
-        if (temp == "/sys/bus/scsi/drivers/ses") {
-            pStorageObject = new Enclosure(*(*i));
+    if (dirs.begin() != dirs.end()) {
+        foreach (i, dirs) {
+            CanonicalPath temp = *(*i) + "driver";
+            if (temp == "/sys/bus/scsi/drivers/sd") {
+                pStorageObject = new ISCI_Disk(*(*i));
+                break;
+            } else
+            if (temp == "/sys/bus/scsi/drivers/sr") {
+                pStorageObject = new ISCI_CDROM(*(*i));
+                break;
+            } else
+            if (temp == "/sys/bus/scsi/drivers/st") {
+                pStorageObject = new ISCI_Tape(*(*i));
+                break;
+            }
+            if (temp == "/sys/bus/scsi/drivers/ses") {
+                pStorageObject = new Enclosure(*(*i));
 
-            break;
+                break;
+            }
         }
     }
     return pStorageObject;

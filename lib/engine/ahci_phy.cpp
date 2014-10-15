@@ -51,6 +51,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci_cdrom.h"
 #include "ahci_tape.h"
 #include "ahci_multiplier.h"
+#include "utils.h"
 
 #include "log/log.h"
 
@@ -90,7 +91,7 @@ void AHCI_Phy::discover()
         m_pPort->attachPhy(this);
 
         if (dir.count() == 1) {
-            EndDevice *pEndDevice = __internal_attach_end_device(dir.dirs().begin());
+            EndDevice *pEndDevice = __internal_attach_end_device(*dir.dirs().begin());
             if (pEndDevice != 0) {
                 pEndDevice->setParent(m_pParent);
                 Phy *pPhy = pEndDevice->getPhy();
@@ -111,11 +112,11 @@ void AHCI_Phy::discover()
 }
 
 /* */
-EndDevice * AHCI_Phy::__internal_attach_end_device(std::list<Directory *>::const_iterator i)
+EndDevice * AHCI_Phy::__internal_attach_end_device(Directory *dir)
 {
     EndDevice *pEndDevice = 0;
-    std::list<Directory *> dirs = (*i)->dirs();
-    for (std::list<Directory *>::const_iterator j = dirs.begin(); j != dirs.end(); ++j) {
+    std::list<Directory *> dirs = dir->dirs();
+    foreach (j, dirs) {
         CanonicalPath temp = *(*j) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
             pEndDevice = new AHCI_Disk(*(*j));
