@@ -70,7 +70,7 @@ SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
     SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     if (storageArea != SSI_StorageAreaCim) {
@@ -88,7 +88,7 @@ SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle,
     SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     if (storageArea != SSI_StorageAreaCim) {

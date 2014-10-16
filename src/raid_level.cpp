@@ -43,7 +43,7 @@ SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, pSession))
+    if (SSI_Status status = getSession(session, &pSession))
         return status;
 
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
@@ -58,7 +58,7 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     SSI_RaidLevelModifyParams params)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     Volume *pVolume = pSession->getVolume(volumeHandle);

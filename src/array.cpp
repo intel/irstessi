@@ -67,7 +67,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     SSI_Uint32 diskHandleCount)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     Array *pArray = getItem(pSession, arrayHandle);
@@ -100,7 +100,7 @@ SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle,
     SSI_Bool cacheEnable)
 {
     Array *pArray = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, arrayHandle, pArray, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, arrayHandle, &pArray, getItem))
         return status;
 
     return pArray->setWriteCacheState(cacheEnable == SSI_TRUE);

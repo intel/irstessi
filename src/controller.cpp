@@ -61,7 +61,7 @@ SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
 SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
 {
     Controller *pController = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, controllerHandle, pController, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, controllerHandle, &pController, getItem))
         return status;
 
     return pController->readPatrolSetState(enable == SSI_TRUE);

@@ -68,7 +68,7 @@ SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
 SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     return pVolume->markAsNormal();
@@ -78,7 +78,7 @@ SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     Volume *pVolume = getItem(pSession, volumeHandle);
@@ -99,7 +99,7 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     return pVolume->remove();
@@ -112,7 +112,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         return SSI_StatusInvalidParameter;
     }
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     Volume *pVolume = NULL;
@@ -194,7 +194,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
         return status;
 
     Array *pArray = pSession->getArray(params.arrayHandle);
@@ -244,7 +244,7 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
     const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     return pVolume->rename(volumeName);
@@ -254,7 +254,7 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
 SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     return pVolume->expand(newSizeMB*1024ULL);
@@ -265,7 +265,7 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
     SSI_VolumeCachePolicy policy)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     return pVolume->setCachePolicy(policy == SSI_VolumeCachePolicyOff);
@@ -275,7 +275,7 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
 SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     return pVolume->initialize();
@@ -285,7 +285,7 @@ SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     if (pVolume->getState() != SSI_VolumeStateNormal)
@@ -298,7 +298,7 @@ SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
         return status;
 
     if (pVolume->getState() != SSI_VolumeStateVerifying &&

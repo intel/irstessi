@@ -63,17 +63,17 @@ SSI_Status SsiSessionClose(SSI_Handle session)
     }
 }
 
-SSI_Status getSession(SSI_Handle session, Session *pSession)
+SSI_Status getSession(SSI_Handle session, Session **pSession)
 {
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
     try {
-        pSession = pContextMgr->getSession(session);
+        *pSession = pContextMgr->getSession(session);
     } catch (...) {
         return SSI_StatusFailed;
     }
-    if (pSession == NULL) {
+    if (*pSession == NULL) {
         return session == SSI_NULL_HANDLE
                 ? SSI_StatusFailed : SSI_StatusInvalidSession;
     }

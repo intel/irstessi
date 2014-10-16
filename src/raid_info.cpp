@@ -38,7 +38,7 @@ SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
     SSI_Uint32 *handleCount)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, pSession))
+    if (SSI_Status status = getSession(session, &pSession))
         return status;
 
     return pSession->getRaidInfo().getHandles(handleList, handleCount);
@@ -49,7 +49,7 @@ SSI_Status SsiGetRaidInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     SSI_RaidInfo *raidInfo)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, pSession))
+    if (SSI_Status status = getSession(session, &pSession))
         return status;
 
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);

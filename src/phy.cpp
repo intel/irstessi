@@ -61,7 +61,7 @@ SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
 SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
 {
     Phy *pPhy = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, phyHandle, pPhy, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, phyHandle, &pPhy, getItem))
         return status;
 
     return pPhy->locate(mode == SSI_TRUE);

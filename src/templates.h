@@ -27,7 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
-SSI_Status getSession(SSI_Handle session, Session *pSession);
+SSI_Status getSession(SSI_Handle session, Session **pSession);
 
 template <class T>
 SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
@@ -35,7 +35,7 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     void (*getItems)(ScopeObject *, SSI_ScopeType, Container<T> &))
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, pSession))
+    if (SSI_Status status = getSession(session, &pSession))
         return status;
 
     ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
@@ -55,15 +55,15 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
 }
 
 template <class T, class T2>
-SSI_Status SsiGetItem(SSI_Handle session, SSI_Handle itemHandle, T *pItem,
+SSI_Status SsiGetItem(SSI_Handle session, SSI_Handle itemHandle, T **pItem,
     T2 * (*getItem)(Session *, SSI_Handle))
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, pSession))
+    if (SSI_Status status = getSession(session, &pSession))
         return status;
 
-    pItem = getItem(pSession, itemHandle);
-    if (pItem == NULL)
+    *pItem = getItem(pSession, itemHandle);
+    if (*pItem == NULL)
         return SSI_StatusInvalidHandle;
 
     return SSI_StatusOk;
@@ -74,7 +74,7 @@ SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle itemHandle, T *info,
     T2 * (*getItem)(Session *, SSI_Handle))
 {
     T2 *pItem = NULL;
-    if (SSI_Status status = SsiGetItem(session, itemHandle, pItem, getItem))
+    if (SSI_Status status = SsiGetItem(session, itemHandle, &pItem, getItem))
         return status;
 
     return pItem->getInfo(info);
