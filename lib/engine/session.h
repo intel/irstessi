@@ -40,7 +40,7 @@ class Controller;
 class RaidInfo;
 
 /* */
-class Session : public Object {
+class Session : public ScopeObject {
 public:
     Session();
     virtual ~Session();
@@ -57,42 +57,43 @@ protected:
     Container<Controller> m_Controllers;
 
 public:
-    Container<EndDevice> getEndDevices() const {
-        return m_EndDevices;
+    void getEndDevices(Container<EndDevice> &container, bool) const {
+        container = m_EndDevices;
     }
-    Container<Array> getArrays() const {
-        return m_Arrays;
+    void getArrays(Container<Array> &container) const {
+        container = m_Arrays;
     }
-    Container<Enclosure> getEnclosures() const {
-        return m_Enclosures;
+    void getEnclosures(Container<Enclosure> &container, bool) const {
+        container = m_Enclosures;
     }
-    Container<RaidInfo> getRaidInfo() const {
-        return m_RaidInfo;
+    void getRaidInfo(Container<RaidInfo> &container) const {
+        container = m_RaidInfo;
     }
-    Container<Phy> getPhys() const {
-        return m_Phys;
+    void getPhys(Container<Phy> &container) const {
+        container = m_Phys;
     }
-    Container<Volume> getVolumes() const {
-        return m_Volumes;
+    void getVolumes(Container<Volume> &container) const {
+        container = m_Volumes;
     }
-    Container<Port> getPorts() const {
-        return m_Ports;
+    void getPorts(Container<Port> &container) const {
+        container = m_Ports;
     }
-    Container<RoutingDevice> getRoutingDevices() const {
-        return m_RoutingDevices;
+    void getRoutingDevices(Container<RoutingDevice> &container, bool) const {
+        container = m_RoutingDevices;
     }
-    Container<Controller> getControllers() const {
-        return m_Controllers;
+    void getControllers(Container<Controller> &container) const {
+        container = m_Controllers;
+    }
+    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+        return scopeType == SSI_ScopeTypeNone;
     }
 
 private:
-    NoneScopeObject *m_pNoneScopeObj;
-
     void __internal_attach_imsm_array(const String &path);
     void __internal_attach_imsm_device(const String &path);
 
 public:
-    ScopeObject * getObject(unsigned int id) const;
+    ScopeObject * getObject(unsigned int id);
     StorageDevice * getDevice(unsigned int id) const;
     EndDevice * getEndDevice(unsigned int id) const;
     Array * getArray(unsigned int id) const;

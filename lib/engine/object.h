@@ -183,32 +183,6 @@ inline bool operator == (SSI_ScopeType scopeType, const ScopeObject &object) {
 
 /**
  */
-class NoneScopeObject : public ScopeObject {
-public:
-    NoneScopeObject(Session *pSession)
-        : m_pSession(pSession) {
-    }
-
-protected:
-    Session *m_pSession;
-
-public:
-    void getEndDevices(Container<EndDevice> &, bool) const;
-    void getRoutingDevices(Container<RoutingDevice> &, bool) const;
-    void getPorts(Container<Port> &) const;
-    void getVolumes(Container<Volume> &) const;
-    void getArrays(Container<Array> &) const;
-    void getControllers(Container<Controller> &) const;
-    void getPhys(Container<Phy> &) const;
-    void getEnclosures(Container<Enclosure> &, bool) const;
-
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
-        return scopeType == SSI_ScopeTypeNone;
-    }
-};
-
-/**
- */
 class StorageObject : public ScopeObject {
 public:
     virtual ~StorageObject() {

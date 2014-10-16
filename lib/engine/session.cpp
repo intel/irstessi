@@ -55,7 +55,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "mdadm_config.h"
 
 /* */
-Session::Session() : m_pNoneScopeObj(NULL)
+Session::Session()
 {
     Directory dir;
     std::list<Directory *> dirs;
@@ -104,15 +104,12 @@ Session::Session() : m_pNoneScopeObj(NULL)
             __internal_attach_imsm_device(CanonicalPath(*(*i)));
         }
     }
-    m_pNoneScopeObj = new NoneScopeObject(this);
     check_configuration();
 }
 
 /* */
 Session::~Session()
 {
-    delete m_pNoneScopeObj;
-
     foreach (i, m_EndDevices)
         pContextMgr->releaseId(*i);
     foreach (i, m_Arrays)
@@ -145,10 +142,10 @@ String Session::getKey() const
 }
 
 /* */
-ScopeObject * Session::getObject(unsigned int id) const
+ScopeObject * Session::getObject(unsigned int id)
 {
     if (id == 0) {
-        return m_pNoneScopeObj;
+        return this;
     }
     Object *pObject = NULL;
     try {

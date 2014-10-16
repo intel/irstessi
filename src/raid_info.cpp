@@ -41,7 +41,9 @@ SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
     if (SSI_Status status = getSession(session, &pSession))
         return status;
 
-    return pSession->getRaidInfo().getHandles(handleList, handleCount);
+    Container<RaidInfo> container;
+    pSession->getRaidInfo(container);
+    return container.getHandles(handleList, handleCount);
 }
 
 /* */

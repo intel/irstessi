@@ -166,7 +166,8 @@ void RaidDevice::acquireId(Session *pSession)
     if (pSession == NULL) {
         throw E_NULL_POINTER;
     }
-    Container<EndDevice> endDevices = pSession->getEndDevices();
+    Container<EndDevice> endDevices;
+    pSession->getEndDevices(endDevices, false);
     foreach (i, m_Components)
         attachComponent(endDevices, *(*i));
 }
