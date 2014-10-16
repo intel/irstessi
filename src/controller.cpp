@@ -60,22 +60,10 @@ SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
 /* */
 SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusNotInitialized;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Controller *pController = pSession->getController(controllerHandle);
-    if (pController == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    Controller *pController = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, controllerHandle, pController, getItem))
+        return status;
+
     return pController->readPatrolSetState(enable == SSI_TRUE);
 }
 

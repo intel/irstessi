@@ -64,44 +64,24 @@ SSI_Status SsiGetEndDeviceInfo(SSI_Handle session, SSI_Handle endDeviceHandle,
 /* */
 SSI_Status SsiDiskClearMetadata(SSI_Handle diskHandle)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    EndDevice *pEndDevice = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, pEndDevice, getItem))
+        return status;
+
     return pEndDevice->clearMetadata();
 }
 
 /* */
 SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+        return status;
+
+    EndDevice *pEndDevice = getItem(pSession, diskHandle);
+    if (pEndDevice == NULL)
         return SSI_StatusInvalidHandle;
-    }
+
     if (arrayHandle == SSI_NULL_HANDLE) {
         return pEndDevice->makeSpare();
     }
@@ -118,22 +98,10 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 /* */
 SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    EndDevice *pEndDevice = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, pEndDevice, getItem))
+        return status;
+
     Array *pArray = pEndDevice->getArray();
     if (pArray == NULL) {
         return SSI_StatusInvalidState;
@@ -144,66 +112,30 @@ SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 /* */
 SSI_Status SsiDiskMarkAsNormal(SSI_Handle diskHandle)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    EndDevice *pEndDevice = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, pEndDevice, getItem))
+        return status;
+
     return pEndDevice->markAsNormal();
 }
 
 /* */
 SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlockInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    EndDevice *pEndDevice = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, pEndDevice, getItem))
+        return status;
+
     return pEndDevice->unlock(unlockInfo);
 }
 
 /* */
 SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 poolId)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    EndDevice *pEndDevice = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, pEndDevice, getItem))
+        return status;
+
     return pEndDevice->assignPoolId(poolId);
 }
 
@@ -211,22 +143,10 @@ SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 poolId)
 SSI_Status SsiPassthroughCommand(SSI_Handle deviceHandle, void *cmdInfoUnit,
     void *dataBuffer, SSI_Uint32 dataBufferLen, SSI_DataDirection dataDirection)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    EndDevice *pEndDevice = pSession->getEndDevice(deviceHandle);
-    if (pEndDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    EndDevice *pEndDevice = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, deviceHandle, pEndDevice, getItem))
+        return status;
+
     return pEndDevice->passthroughCmd(cmdInfoUnit, dataBuffer, dataBufferLen,
         dataDirection);
 }

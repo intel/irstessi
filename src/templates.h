@@ -27,25 +27,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
+SSI_Status getSession(SSI_Handle session, Session *pSession);
+
 template <class T>
 SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount,
-    void (*getContainer)(ScopeObject *, SSI_ScopeType, Container<T> &))
+    void (*getItems)(ScopeObject *, SSI_ScopeType, Container<T> &))
 {
-    extern ContextManager *pContextMgr;
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(session, pSession))
+        return status;
 
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
     ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
     if (pScopeObject == NULL) {
         return SSI_StatusInvalidScope;
@@ -55,7 +47,7 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     }
     Container<T> container;
     try {
-        getContainer(pScopeObject, scopeType, container);
+        getItems(pScopeObject, scopeType, container);
     } catch (...) {
         return SSI_StatusInvalidScope;
     }
@@ -63,26 +55,28 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
 }
 
 template <class T, class T2>
-SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle arrayHandle,
-    T *info,
+SSI_Status SsiGetItem(SSI_Handle session, SSI_Handle itemHandle, T *pItem,
     T2 * (*getItem)(Session *, SSI_Handle))
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    T2 *pItem = getItem(pSession, arrayHandle);
-    if (pItem == NULL) {
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(session, pSession))
+        return status;
+
+    pItem = getItem(pSession, itemHandle);
+    if (pItem == NULL)
         return SSI_StatusInvalidHandle;
-    }
+
+    return SSI_StatusOk;
+}
+
+template <class T, class T2>
+SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle itemHandle, T *info,
+    T2 * (*getItem)(Session *, SSI_Handle))
+{
+    T2 *pItem = NULL;
+    if (SSI_Status status = SsiGetItem(session, itemHandle, pItem, getItem))
+        return status;
+
     return pItem->getInfo(info);
 }
 

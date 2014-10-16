@@ -36,22 +36,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/raid_info.h>
 #include <engine/context_manager.h>
 
+#include "templates.h"
+
 /* */
 SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(session, pSession))
+        return status;
+
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
     if (pRaidInfo == NULL) {
         return SSI_StatusInvalidHandle;
@@ -63,18 +57,10 @@ SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
 SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     SSI_RaidLevelModifyParams params)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+        return status;
+
     Volume *pVolume = pSession->getVolume(volumeHandle);
     if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;

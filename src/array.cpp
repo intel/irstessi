@@ -66,22 +66,14 @@ SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle,
 SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     SSI_Uint32 diskHandleCount)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == NULL) {
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+        return status;
+
+    Array *pArray = getItem(pSession, arrayHandle);
+    if (pArray == NULL)
         return SSI_StatusInvalidHandle;
-    }
+
     if (diskHandles == NULL) {
         return SSI_StatusInvalidParameter;
     }
@@ -107,22 +99,10 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
 SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle,
     SSI_Bool cacheEnable)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
-    Array *pArray = pSession->getArray(arrayHandle);
-    if (pArray == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    Array *pArray = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, arrayHandle, pArray, getItem))
+        return status;
+
     return pArray->setWriteCacheState(cacheEnable == SSI_TRUE);
 }
 

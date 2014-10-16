@@ -31,22 +31,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
+#include "templates.h"
+
 /* */
 SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
     SSI_Uint32 *handleCount)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(session, pSession))
+        return status;
+
     return pSession->getRaidInfo().getHandles(handleList, handleCount);
 }
 
@@ -54,18 +48,10 @@ SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList,
 SSI_Status SsiGetRaidInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
     SSI_RaidInfo *raidInfo)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusInvalidSession;
-    }
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(session, pSession))
+        return status;
+
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
     if (pRaidInfo == NULL) {
         return SSI_StatusInvalidHandle;

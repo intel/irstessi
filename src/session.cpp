@@ -63,4 +63,21 @@ SSI_Status SsiSessionClose(SSI_Handle session)
     }
 }
 
+SSI_Status getSession(SSI_Handle session, Session *pSession)
+{
+    if (pContextMgr == NULL) {
+        return SSI_StatusNotInitialized;
+    }
+    try {
+        pSession = pContextMgr->getSession(session);
+    } catch (...) {
+        return SSI_StatusFailed;
+    }
+    if (pSession == NULL) {
+        return session == SSI_NULL_HANDLE
+                ? SSI_StatusFailed : SSI_StatusInvalidSession;
+    }
+    return SSI_StatusOk;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 expandtab: */

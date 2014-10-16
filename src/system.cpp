@@ -31,6 +31,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
+#include "templates.h"
+
 /* */
 SSI_Status SsiGetSystemInfo(SSI_SystemInfo *systemInfo)
 {
@@ -67,15 +69,10 @@ SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize cacheSize)
 SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
     SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+        return status;
+
     if (storageArea != SSI_StorageAreaCim) {
         return SSI_StatusInvalidParameter;
     }
@@ -90,15 +87,10 @@ SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
 SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle,
     SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, pSession))
+        return status;
+
     if (storageArea != SSI_StorageAreaCim) {
         return SSI_StatusInvalidParameter;
     }

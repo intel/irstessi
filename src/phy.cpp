@@ -60,22 +60,10 @@ SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
 /* */
 SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
 {
-    if (pContextMgr == NULL) {
-        return SSI_StatusNotInitialized;
-    }
-    Session *pSession;
-    try {
-        pSession = pContextMgr->getSession(SSI_NULL_HANDLE);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
-    if (pSession == NULL) {
-        return SSI_StatusFailed;
-    }
-    Phy *pPhy = pSession->getPhy(phyHandle);
-    if (pPhy == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
+    Phy *pPhy = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, phyHandle, pPhy, getItem))
+        return status;
+
     return pPhy->locate(mode == SSI_TRUE);
 }
 
