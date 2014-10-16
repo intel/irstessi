@@ -77,16 +77,13 @@ void ISCI_Port::discover()
         StorageObject *pStorageObject = __internal_create_storage_object(target.dirs());
         if (pStorageObject != NULL) {
             pStorageObject->setParent(m_pParent);
-            switch  (pStorageObject->getType()) {
-                    case ObjectType_EndDevice:
-                        attachPort(pStorageObject->getPort());
-                        break;
-                    case ObjectType_Enclosure:
-                        attachEnclosure(dynamic_cast<Enclosure *>(pStorageObject));
-                        break;
-                    default:
-                        delete pStorageObject;
-                }
+
+            if (dynamic_cast<EndDevice *>(pStorageObject))
+                attachPort(pStorageObject->getPort());
+            else if (Enclosure * tmp = dynamic_cast<Enclosure *>(pStorageObject))
+                attachEnclosure(tmp);
+            else
+                delete pStorageObject;
         }
         return;
     }

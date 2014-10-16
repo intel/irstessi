@@ -29,6 +29,8 @@ class Phy;
 class RaidInfo;
 class Port;
 
+#include "storage_device.h"
+
 /* */
 class EndDevice : public StorageDevice {
 public:

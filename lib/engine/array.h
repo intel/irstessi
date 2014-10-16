@@ -27,6 +27,8 @@ class Volume;
 class BlockDevice;
 class EndDevice;
 
+#include "raid_device.h"
+
 /* */
 class Array : public RaidDevice {
 public:

@@ -33,60 +33,54 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "unique_id_manager.h"
 #include "utils.h"
 
+#include "event.h"
+#include "session.h"
+#include "raid_info.h"
+#include "controller.h"
+#include "enclosure.h"
+#include "phy.h"
+#include "port.h"
+#include "routing_device.h"
+#include "end_device.h"
+#include "array.h"
+#include "volume.h"
 
-/* */
-UniqueIdManager::UniqueIdManager()
-{
-}
 
-/* */
-UniqueIdManager::~UniqueIdManager()
+IdCache * UniqueIdManager::getContainer(Object *pObject)
 {
+    if (pObject == NULL)
+        throw E_NULL_POINTER;
+
+    if (dynamic_cast<Session *>(pObject))
+        return &m_Sessions;
+    else if (dynamic_cast<Event *>(pObject))
+        return &m_Events;
+    else if (dynamic_cast<EndDevice *>(pObject))
+        return &m_EndDevices;
+    else if (dynamic_cast<Array *>(pObject))
+        return &m_Arrays;
+    else if (dynamic_cast<Enclosure *>(pObject))
+        return &m_Enclosures;
+    else if (dynamic_cast<Phy *>(pObject))
+        return &m_Phys;
+    else if (dynamic_cast<Volume *>(pObject))
+        return &m_Volumes;
+    else if (dynamic_cast<Port *>(pObject))
+        return &m_Ports;
+    else if (dynamic_cast<RoutingDevice *>(pObject))
+        return &m_RoutingDevices;
+    else if (dynamic_cast<RaidInfo *>(pObject))
+        return &m_RaidInfo;
+    else if (dynamic_cast<Controller *>(pObject))
+        return &m_Controllers;
+    else
+        throw E_INVALID_OBJECT;
 }
 
 /* */
 unsigned int UniqueIdManager::acquireId(Object *pObject)
 {
-    if (pObject == NULL) {
-        throw E_NULL_POINTER;
-    }
-    switch (pObject->getType()) {
-    case ObjectType_Session:
-        m_Sessions.add(pObject);
-        break;
-    case ObjectType_Event:
-        m_Events.add(pObject);
-        break;
-    case ObjectType_EndDevice:
-        m_EndDevices.add(pObject);
-        break;
-    case ObjectType_Array:
-        m_Arrays.add(pObject);
-        break;
-    case ObjectType_Enclosure:
-        m_Enclosures.add(pObject);
-        break;
-    case ObjectType_Phy:
-        m_Phys.add(pObject);
-        break;
-    case ObjectType_Volume:
-        m_Volumes.add(pObject);
-        break;
-    case ObjectType_Port:
-        m_Ports.add(pObject);
-        break;
-    case ObjectType_RoutingDevice:
-        m_RoutingDevices.add(pObject);
-        break;
-    case ObjectType_RaidInfo:
-        m_RaidInfo.add(pObject);
-        break;
-    case ObjectType_Controller:
-        m_Controllers.add(pObject);
-        break;
-    default:
-        break;
-    }
+    getContainer(pObject)->add(pObject);
     return pObject->getId();
 }
 /* */
@@ -133,46 +127,7 @@ void UniqueIdManager::add(unsigned int id, String key)
 /* */
 void UniqueIdManager::releaseId(Object *pObject)
 {
-    if (pObject == NULL) {
-        throw E_NULL_POINTER;
-    }
-    switch (pObject->getType()) {
-    case ObjectType_Session:
-        m_Sessions.remove(pObject);
-        break;
-    case ObjectType_Event:
-        m_Events.remove(pObject);
-        break;
-    case ObjectType_EndDevice:
-        m_EndDevices.remove(pObject);
-        break;
-    case ObjectType_Array:
-        m_Arrays.remove(pObject);
-        break;
-    case ObjectType_Enclosure:
-        m_Enclosures.remove(pObject);
-        break;
-    case ObjectType_Phy:
-        m_Phys.remove(pObject);
-        break;
-    case ObjectType_Volume:
-        m_Volumes.remove(pObject);
-        break;
-    case ObjectType_Port:
-        m_Ports.remove(pObject);
-        break;
-    case ObjectType_RoutingDevice:
-        m_RoutingDevices.remove(pObject);
-        break;
-    case ObjectType_RaidInfo:
-        m_RaidInfo.remove(pObject);
-        break;
-    case ObjectType_Controller:
-        m_Controllers.remove(pObject);
-        break;
-    default:
-        break;
-    }
+    getContainer(pObject)->remove(pObject);
 }
 
 /* reload id:key file */
@@ -288,7 +243,6 @@ void IdCache::add(Object *pObject)
     }
 
     if (pId == NULL) {
-        dlog(String("new object ") + String(pObject->getType()) + " " + String(pObject->getKey()));
         unsigned int id = __findId();
         /* TODO when out of id's clean the id file:
          * remove all id:key pairs of the same type that have no objects in cache */

@@ -45,20 +45,14 @@ RemotePort::RemotePort(const String &path)
 /* */
 void RemotePort::attachPort(Port *pPort)
 {
-    if (pPort == this) {
+    if (pPort == this)
         throw E_INVALID_OBJECT;
-    }
+
     m_pRemotePort = pPort;
-    switch (m_pParent->getType()) {
-    case ObjectType_RoutingDevice:
-        m_pRemotePort->attachRoutingDevice(dynamic_cast<RoutingDevice *>(m_pParent));
-        break;
-    case ObjectType_EndDevice:
-        m_pRemotePort->attachEndDevice(dynamic_cast<EndDevice *>(m_pParent));
-        break;
-    default:
-        break;
-    }
+    if (RoutingDevice *tmp = dynamic_cast<RoutingDevice *>(m_pParent))
+        m_pRemotePort->attachRoutingDevice(tmp);
+    else if (EndDevice *tmp = dynamic_cast<EndDevice *>(m_pParent))
+        m_pRemotePort->attachEndDevice(tmp);
 }
 
 /* */

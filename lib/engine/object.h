@@ -76,12 +76,6 @@ public:
     unsigned int getId() const {
         return m_Id;
     }
-    operator unsigned int () const {
-        return getId();
-    }
-    operator ObjectType () const {
-        return getType();
-    }
     bool operator == (const Object *pObject) const {
         try {
             return equal(pObject);

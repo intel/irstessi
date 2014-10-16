@@ -35,6 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "storage_device.h"
 #include "end_device.h"
+#include "controller.h"
 
 /* */
 Enclosure::Enclosure(const String &path)
@@ -105,7 +106,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     pInfo->enclosureKey = (getId() & 0x0fffffff);
     foreach (i, m_RoutingDevices) {
         StorageObject *parent = (*i)->getParent();
-        if (parent && parent->getType() == ObjectType_Controller) {
+        if (parent && dynamic_cast<Controller *>(parent)) {
             pInfo->enclosureKey |= 0x10000000;
             break;
         }

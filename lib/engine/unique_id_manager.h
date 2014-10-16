@@ -84,10 +84,6 @@ private:
 
 /* */
 class UniqueIdManager {
-public:
-    UniqueIdManager();
-    ~UniqueIdManager();
-
 private:
     IdCache m_Sessions;
     IdCache m_Events;
@@ -100,6 +96,7 @@ private:
     IdCache m_RoutingDevices;
     IdCache m_RaidInfo;
     IdCache m_Controllers;
+    IdCache * getContainer(Object *pObject);
 
 public:
     unsigned int acquireId(Object *);

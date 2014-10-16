@@ -35,6 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "enclosure.h"
 #include "port.h"
 #include "session.h"
+#include "controller.h"
 
 /* */
 Port::Port(const String &path)
@@ -56,19 +57,16 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
     pInfo->portHandle = getId();
     m_pParent->getAddress(pInfo->portAddress);
     pInfo->numPhys = m_Phys.size();
-    switch (m_pParent->getType()) {
-    case ObjectType_Controller:
+
+    if (dynamic_cast<Controller *>(m_pParent))
         pInfo->localDeviceType = SSI_DeviceTypeController;
-        break;
-    case ObjectType_EndDevice:
+    else if (dynamic_cast<EndDevice *>(m_pParent))
         pInfo->localDeviceType = SSI_DeviceTypeEndDevice;
-        break;
-    case ObjectType_RoutingDevice:
+    else if (dynamic_cast<RoutingDevice *>(m_pParent))
         pInfo->localDeviceType = SSI_DeviceTypeRoutingDevice;
-        break;
-    default:
+    else
         pInfo->localDeviceType = SSI_DeviceTypeUnknown;
-    }
+
     pInfo->localDeviceHandle = m_pParent->getId();
     if (m_pRemotePort != NULL) {
         pInfo->connectedToPort = m_pRemotePort->getId();

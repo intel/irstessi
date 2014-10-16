@@ -32,6 +32,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "filesystem.h"
 #include "utils.h"
+#include "controller.h"
+#include "end_device.h"
+#include "routing_device.h"
 
 #include "log/log.h"
 
@@ -62,29 +65,25 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     } else {
         pInfo->associatedPort = SSI_NULL_HANDLE;
     }
-    switch (m_pParent->getType()) {
-    case ObjectType_Controller:
+
+    if (dynamic_cast<Controller *>(m_pParent))
         pInfo->deviceType = SSI_DeviceTypeController;
-        break;
-    case ObjectType_EndDevice:
+    else if (dynamic_cast<EndDevice *>(m_pParent))
         pInfo->deviceType = SSI_DeviceTypeEndDevice;
-        break;
-    case ObjectType_RoutingDevice:
+    else if (dynamic_cast<RoutingDevice *>(m_pParent))
         pInfo->deviceType = SSI_DeviceTypeRoutingDevice;
-        break;
-    default:
+    else
         pInfo->deviceType = SSI_DeviceTypeUnknown;
-    }
+
     pInfo->deviceHandle = m_pParent->getId();
     pInfo->isExternal = SSI_FALSE;
     pInfo->hotPlugCap = SSI_FALSE;
-    switch (m_pParent->getType()) {
-        case ObjectType_EndDevice:
-            fetchSpeeds(pInfo);
-            break;
-        default:
-            setSpeeds(pInfo);
-    }
+
+    if (dynamic_cast<EndDevice *>(m_pParent))
+        fetchSpeeds(pInfo);
+    else
+        setSpeeds(pInfo);
+
     pInfo->countsValid = SSI_FALSE;
     return SSI_StatusOk;
 }
@@ -137,83 +136,77 @@ void Phy::setProperties()
     m_maxLinkSpeed = SSI_PhySpeedUnknown;
     m_negotiatedLinkSpeed = SSI_PhySpeedUnknown;
 
-    switch (m_pParent->getType()) {
-        case ObjectType_EndDevice:
-            tmp = tmp.reverse_left("/");
-            dir = tmp + "sas_device";
-            dirs = dir.dirs();
-            foreach (i, dirs) {
-                try {
-                    SysfsAttr attr;
-                    String protocol;
-                    attr = *(*i) + "target_port_protocols";
-                    attr >> protocol;
-                    m_Protocol = __internal_parse_protocol(protocol);
-                } catch (...) {
-                    /* TODO: report read failure of attribtue. */
-                }
-            }
-            break;
-        case ObjectType_Controller:
-        case ObjectType_RoutingDevice:
-            dir = m_Path + "/sas_phy";
-            dirs = dir.dirs();
-            foreach (i, dirs) {
+    if (dynamic_cast<EndDevice *>(m_pParent)) {
+        tmp = tmp.reverse_left("/");
+        dir = tmp + "sas_device";
+        dirs = dir.dirs();
+        foreach (i, dirs) {
+            try {
                 SysfsAttr attr;
-                String linkrate;
-                try {
-                    String protocol;
-                    attr = *(*i) + "target_port_protocols";
-                    attr >> protocol;
-                    m_Protocol = __internal_parse_protocol(protocol);
-                } catch (...) {
-                }
-                try {
-                    attr = *(*i) + "maximum_linkrate";
-                    attr >> linkrate;
-                    m_maxLinkSpeed = __internal_parse_linkrate(linkrate);
-                } catch (...) {
-                }
-                try {
-                    attr = *(*i) + "maximum_linkrate_hw";
-                    attr >> linkrate;
-                    m_maxHWLinkSpeed = __internal_parse_linkrate(linkrate);
-                } catch (...) {
-                }
-                try {
-                    attr = *(*i) + "minimum_linkrate";
-                    attr >> linkrate;
-                    m_minLinkSpeed = __internal_parse_linkrate(linkrate);
-                } catch (...) {
-                }
-                try {
-                    attr = *(*i) + "minimum_linkrate_hw";
-                    attr >> linkrate;
-                    m_minHWLinkSpeed = __internal_parse_linkrate(linkrate);
-                } catch (...) {
-                }
-                try {
-                    attr = *(*i) + "negotiated_linkrate";
-                    attr >> linkrate;
-                    m_negotiatedLinkSpeed = __internal_parse_linkrate(linkrate);
-                } catch (...) {
-                }
-                try {
-                    unsigned long long sasAddress;
-                    attr = *(*i) + "sas_address";
-                    attr >> sasAddress;
-                    if (sasAddress) {
-                        SSI_Address address;
-                        address.sasAddressPresent = SSI_TRUE;
-                        address.sasAddress = sasAddress;
-                        m_pParent->setAddress(address);
-                    }
-                } catch (...) {
-                }
+                String protocol;
+                attr = *(*i) + "target_port_protocols";
+                attr >> protocol;
+                m_Protocol = __internal_parse_protocol(protocol);
+            } catch (...) {
+                /* TODO: report read failure of attribtue. */
             }
-            break;
-        default:
-            ;
+        }
+    } else if (dynamic_cast<Controller *>(m_pParent) || dynamic_cast<RoutingDevice *>(m_pParent)) {
+        dir = m_Path + "/sas_phy";
+        dirs = dir.dirs();
+        foreach (i, dirs) {
+            SysfsAttr attr;
+            String linkrate;
+            try {
+                String protocol;
+                attr = *(*i) + "target_port_protocols";
+                attr >> protocol;
+                m_Protocol = __internal_parse_protocol(protocol);
+            } catch (...) {
+            }
+            try {
+                attr = *(*i) + "maximum_linkrate";
+                attr >> linkrate;
+                m_maxLinkSpeed = __internal_parse_linkrate(linkrate);
+            } catch (...) {
+            }
+            try {
+                attr = *(*i) + "maximum_linkrate_hw";
+                attr >> linkrate;
+                m_maxHWLinkSpeed = __internal_parse_linkrate(linkrate);
+            } catch (...) {
+            }
+            try {
+                attr = *(*i) + "minimum_linkrate";
+                attr >> linkrate;
+                m_minLinkSpeed = __internal_parse_linkrate(linkrate);
+            } catch (...) {
+            }
+            try {
+                attr = *(*i) + "minimum_linkrate_hw";
+                attr >> linkrate;
+                m_minHWLinkSpeed = __internal_parse_linkrate(linkrate);
+            } catch (...) {
+            }
+            try {
+                attr = *(*i) + "negotiated_linkrate";
+                attr >> linkrate;
+                m_negotiatedLinkSpeed = __internal_parse_linkrate(linkrate);
+            } catch (...) {
+            }
+            try {
+                unsigned long long sasAddress;
+                attr = *(*i) + "sas_address";
+                attr >> sasAddress;
+                if (sasAddress) {
+                    SSI_Address address;
+                    address.sasAddressPresent = SSI_TRUE;
+                    address.sasAddress = sasAddress;
+                    m_pParent->setAddress(address);
+                }
+            } catch (...) {
+            }
+        }
     }
 }
 
