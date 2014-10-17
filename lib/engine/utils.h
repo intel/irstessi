@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UTILS_H__INCLUDED__
 #define __UTILS_H__INCLUDED__
 
+#include "string.h"
+
 /* */
 #define min(__a, __b) \
     ({ typeof(__a) a = __a; \

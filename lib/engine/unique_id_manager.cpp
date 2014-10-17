@@ -21,8 +21,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <climits>
+#include <cstdio>
 
 #include <ssi.h>
+#include <log/log.h>
 
 #include "exception.h"
 #include "container.h"
@@ -32,6 +34,92 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "session.h"
 #include "event.h"
+#include "filesystem.h"
+
+/* when not in cache find new Id */
+unsigned int UniqueIdManager::findId() const
+{
+    for(unsigned int id = 1; id <= UINT_MAX; id++) {
+        if (m_cache.find(id) == m_cache.end())
+            return id;
+    }
+    return 0;
+}
+
+/* add id + key (from file) to cache */
+void UniqueIdManager::add(unsigned int id, String key)
+{
+    String cachedKey = m_cache[id];
+
+    if (cachedKey == "") {
+        /* it is not in cache */
+        dlog(String(id) + key + " adding to cache");
+        m_cache[id] = key;
+    } else {
+        /* already in cache */
+        if (cachedKey != key)
+            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + cachedKey);
+    }
+}
+
+/* add object to cache and set Id */
+void UniqueIdManager::add(Object *pObject)
+{
+    if (pObject == NULL)
+        throw E_NULL_POINTER;
+
+    String key = pObject->getKey();
+    unsigned int id = 0;
+    foreach (i, m_cache) {
+        if ((*i).second == key) {
+            id = (*i).first;
+            break;
+        }
+    }
+
+    if (id == 0) {
+        id = findId();
+        /* TODO when out of id's clean the id file:
+         * remove all id:key pairs of the same type that have no objects in cache */
+        if (id == 0)
+            throw E_OUT_OF_RESOURCES;
+
+        m_cache[id] = key;
+
+        if (!(dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject) || key == "")) {
+            AFile keyFile(String(SSI_IDKEY_FILE));
+            try {
+                char s[11];
+                sprintf(s, "0x%x", id);
+                String idkey = String(s) + String(":") + key + String("\n");
+                keyFile << idkey;
+            } catch (...) {
+                dlog("failed to store id:key");
+            }
+        }
+    }
+
+    pObject->setId(id);
+}
+
+/* remove object from cache */
+void UniqueIdManager::remove(Object *pObject)
+{
+    if (pObject == NULL)
+        throw E_NULL_POINTER;
+
+    unsigned int id = pObject->getId();
+
+    if (m_cache.find(id) == m_cache.end())
+        throw E_NOT_FOUND;
+
+    /* session and event Id's can be reused so remove from cache
+     * other object type Id's should remain even when no objects left
+     * for consistency between sessions */
+    if (dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)) {
+        m_cache.erase(id);
+    }
+}
 
 /* reload id:key file */
 void UniqueIdManager::refresh()
@@ -62,124 +150,5 @@ void UniqueIdManager::refresh()
             /* just skip the line */
             dlog(sid + " failed to convert to unsigned int");
         }
-    }
-}
-
-/* when not in cache find new Id */
-unsigned int UniqueIdManager::findId() const {
-    for(unsigned int id = 1; id <= UINT_MAX; id++) {
-        bool inUse = false;
-        foreach (i, m_cache) {
-            if ((*i)->id == id) {
-                inUse = true;
-                break;
-            }
-        }
-        if (inUse == false)
-            return id;
-    }
-    return 0;
-}
-
-/* */
-UniqueIdManager::~UniqueIdManager()
-{
-    foreach (i, m_cache)
-        delete *i;
-}
-
-/* add object to cache and set Id */
-void UniqueIdManager::add(Object *pObject)
-{
-    if (pObject == NULL) {
-        throw E_NULL_POINTER;
-    }
-
-    Id *pId = NULL;
-    foreach (i, m_cache) {
-        if ((*i)->key == pObject->getKey()) {
-            pId = *i;
-            break;
-        }
-    }
-
-    if (pId == NULL) {
-        unsigned int id = findId();
-        /* TODO when out of id's clean the id file:
-         * remove all id:key pairs of the same type that have no objects in cache */
-        if (id == 0) {
-            throw E_OUT_OF_RESOURCES;
-        }
-        pId = new Id(id, pObject->getKey());
-        m_cache.push_back(pId);
-        if (!(dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)))
-            store(pId);
-    }
-
-    pObject->setId(pId->id);
-}
-
-void UniqueIdManager::store(const Id *pId) const
-{
-    if(pId->key == "")
-        return;
-
-    AFile keyFile(String(SSI_IDKEY_FILE));
-    try {
-        char s[11];
-        sprintf(s, "0x%x", pId->id);
-        String idkey = String(s) + String(":") + pId->key + String("\n");
-        keyFile << idkey;
-    } catch (...) {
-        dlog("failed to store id:key");
-    }
-}
-
-/* add id + key (from file) to cache */
-void UniqueIdManager::add(unsigned int id, String key)
-{
-    Id *pId = NULL;
-    foreach (i, m_cache) {
-        if ((*i)->id == id) {
-            pId = *i;
-            break;
-        }
-    }
-
-    if (pId == NULL) {
-        /* it is not in cache */
-        dlog(String(id) + key + " adding to cache");
-        Id *pId = new Id(id, key);
-        m_cache.push_back(pId);
-    } else {
-        /* already in cache */
-        if (pId->key != key)
-            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + pId->key);
-    }
-}
-
-/* remove object from cache */
-void UniqueIdManager::remove(Object *pObject) {
-    if (pObject == NULL) {
-        throw E_NULL_POINTER;
-    }
-
-    Id *pId = NULL;
-    foreach (i, m_cache) {
-        if ((*i)->id == pObject->getId()) {
-            pId = *i;
-            break;
-        }
-    }
-
-    if (pId == NULL)
-        throw E_NOT_FOUND;
-
-    /* session and event Id's can be reused so remove from cache
-     * other object type Id's should remain even when no objects left
-     * for consistency between sessions */
-    if (dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)) {
-        delete pId;
-        m_cache.remove(pId);
     }
 }

@@ -24,6 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cstdlib>
 #include <list>
+#include "utils.h"
 
 /* */
 template <typename T>
@@ -41,8 +42,9 @@ public:
             *bufferSize = m_list.size();
             status = SSI_StatusBufferTooSmall;
         } else {
-            for (typename std::list<T *>::iterator i = m_list.begin(); i != m_list.end(); ++i, ++pBuffer) {
+            foreach (i, m_list) {
                 *pBuffer = (*i)->getId();
+                pBuffer++;
             }
         }
         *bufferSize = m_list.size();
@@ -59,14 +61,11 @@ public:
     }
 
     T * find(unsigned int id) const {
-        typename std::list<T *>::const_iterator i;
-        for (i = m_list.begin(); i != m_list.end() && (*i)->getId() != id; ++i) {
+        foreach (i, m_list) {
+            if ((*i)->getId() == id)
+                return *i;
         }
-
-        if (i == m_list.end())
-            return NULL;
-
-        return *i;
+        return NULL;
     }
 
     void add(T * const &data) {

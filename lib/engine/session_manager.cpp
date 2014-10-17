@@ -42,7 +42,8 @@ SessionManager::SessionManager()
 /* */
 SessionManager::~SessionManager()
 {
-    delete m_pNullSession;
+    if (m_pNullSession)
+        delete m_pNullSession;
 
     foreach (i, m_Sessions)
         pContextMgr->remove(*i);
@@ -51,15 +52,14 @@ SessionManager::~SessionManager()
 /* */
 Session * SessionManager::getSession(unsigned int id)
 {
-    Session *pSession;
     if (id == 0) {
-        pSession = new Session();
-        delete m_pNullSession;
-        m_pNullSession = pSession;
+        if (m_pNullSession)
+            delete m_pNullSession;
+        m_pNullSession = new Session();
+        return m_pNullSession;
     } else {
-        pSession = m_Sessions.find(id);
+        return m_Sessions.find(id);
     }
-    return pSession;
 }
 
 /* */

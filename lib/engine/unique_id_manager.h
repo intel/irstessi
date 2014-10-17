@@ -22,32 +22,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UNIQUE_ID_MANAGER_H__INCLUDED__
 #define __UNIQUE_ID_MANAGER_H__INCLUDED__
 
-#include <cstdio>
-#include "filesystem.h"
-#include <log/log.h>
+#include <map>
 
 #define SSI_IDKEY_FILE "/var/run/ssi.keys"
 
 /* */
 class UniqueIdManager {
-    struct Id {
-        Id(unsigned int id, String key)
-            : id(id), key(key) {
-        }
-
-        unsigned int id;
-        String key;
-    };
-
-public:
-    ~UniqueIdManager();
-
 private:
-    std::list<Id *> m_cache;
+    std::map<unsigned int, String> m_cache;
 
     unsigned int findId() const;
     void add(unsigned int id, String key);
-    void store(const Id *pId) const;
 
 public:
     void add(Object *);
