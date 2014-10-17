@@ -50,7 +50,6 @@ public:
     unsigned int getId() const {
         return m_Id;
     }
-    virtual bool operator ==(const Object &object) const = 0;
 
     void setId(unsigned int id) {
         m_Id = id;
@@ -59,6 +58,8 @@ public:
     virtual String getKey() const {
         return "";
     }
+
+    virtual bool operator ==(const Object &object) const = 0;
 
 protected:
     unsigned int m_Id;

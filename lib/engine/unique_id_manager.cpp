@@ -20,15 +20,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <features.h>
-#include <cstdio>
+#include <climits>
 
 #include <ssi.h>
-#include <log/log.h>
 
 #include "exception.h"
 #include "container.h"
 #include "string.h"
-#include "filesystem.h"
 #include "object.h"
 #include "unique_id_manager.h"
 #include "utils.h"
@@ -67,59 +65,20 @@ void UniqueIdManager::refresh()
     }
 }
 
-/* */
-bool UniqueIdManager::Id::operator == (const Object *pObject) const
-{
-    if (pObject == NULL)
-        return false;
-
-    if (m_Objects.empty()) {
-        String key = pObject->getKey();
-        if (key == m_Key)
-            return true;
-        return false;
-    }
-
-    return *m_Objects.front() == *pObject;
-}
-
-bool UniqueIdManager::Id::operator != (const Object *pObject) const
-{
-    return !this->operator ==(pObject);
-}
-
-/* save id:key to key file */
-void UniqueIdManager::Id::store()
-{
-    if(m_Key == "")
-        return;
-
-    AFile keyFile(String(SSI_IDKEY_FILE));
-    try {
-        char s[11];
-        sprintf(s, "0x%x", m_Id);
-        String idkey = String(s) + String(":") + m_Key + String("\n");
-        keyFile << idkey;
-    } catch (...) {
-        dlog("failed to store id:key");
-    }
-}
-
 /* when not in cache find new Id */
-unsigned int UniqueIdManager::__findId() const {
-    unsigned int id;
-    for(id = 1; id <= 0x0fffffff; id++) {
-        Id *pId = NULL;
+unsigned int UniqueIdManager::findId() const {
+    for(unsigned int id = 1; id <= UINT_MAX; id++) {
+        bool inUse = false;
         foreach (i, m_cache) {
-            if (((*i)->getId() & 0x0fffffff) == id) {
-                pId = *i;
+            if ((*i)->id == id) {
+                inUse = true;
                 break;
             }
         }
-        if (pId == NULL)
-            break;
+        if (inUse == false)
+            return id;
     }
-    return (id & 0x0fffffff);
+    return 0;
 }
 
 /* */
@@ -138,14 +97,14 @@ void UniqueIdManager::add(Object *pObject)
 
     Id *pId = NULL;
     foreach (i, m_cache) {
-        if (**i == pObject) {
+        if ((*i)->key == pObject->getKey()) {
             pId = *i;
             break;
         }
     }
 
     if (pId == NULL) {
-        unsigned int id = __findId();
+        unsigned int id = findId();
         /* TODO when out of id's clean the id file:
          * remove all id:key pairs of the same type that have no objects in cache */
         if (id == 0) {
@@ -154,11 +113,26 @@ void UniqueIdManager::add(Object *pObject)
         pId = new Id(id, pObject->getKey());
         m_cache.push_back(pId);
         if (!(dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)))
-            pId->store();
+            store(pId);
     }
 
-    pId->add(pObject);
-    pObject->setId(pId->getId());
+    pObject->setId(pId->id);
+}
+
+void UniqueIdManager::store(const Id *pId) const
+{
+    if(pId->key == "")
+        return;
+
+    AFile keyFile(String(SSI_IDKEY_FILE));
+    try {
+        char s[11];
+        sprintf(s, "0x%x", pId->id);
+        String idkey = String(s) + String(":") + pId->key + String("\n");
+        keyFile << idkey;
+    } catch (...) {
+        dlog("failed to store id:key");
+    }
 }
 
 /* add id + key (from file) to cache */
@@ -166,7 +140,7 @@ void UniqueIdManager::add(unsigned int id, String key)
 {
     Id *pId = NULL;
     foreach (i, m_cache) {
-        if ((*i)->getId() == id) {
+        if ((*i)->id == id) {
             pId = *i;
             break;
         }
@@ -179,8 +153,8 @@ void UniqueIdManager::add(unsigned int id, String key)
         m_cache.push_back(pId);
     } else {
         /* already in cache */
-        if (pId->getKey() != key)
-            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + pId->getKey());
+        if (pId->key != key)
+            dlog(String("id - key conflict between cache and file: ") + String(id) + " : " + key + " \nkey in cache:" + pId->key);
     }
 }
 
@@ -192,7 +166,7 @@ void UniqueIdManager::remove(Object *pObject) {
 
     Id *pId = NULL;
     foreach (i, m_cache) {
-        if ((*i)->getId() == pObject->getId()) {
+        if ((*i)->id == pObject->getId()) {
             pId = *i;
             break;
         }
@@ -201,12 +175,10 @@ void UniqueIdManager::remove(Object *pObject) {
     if (pId == NULL)
         throw E_NOT_FOUND;
 
-    pId->remove(pObject);
-
     /* session and event Id's can be reused so remove from cache
      * other object type Id's should remain even when no objects left
      * for consistency between sessions */
-    if ((dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)) && pId->count() == 0) {
+    if (dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)) {
         delete pId;
         m_cache.remove(pId);
     }

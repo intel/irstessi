@@ -22,49 +22,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UNIQUE_ID_MANAGER_H__INCLUDED__
 #define __UNIQUE_ID_MANAGER_H__INCLUDED__
 
+#include <cstdio>
+#include "filesystem.h"
+#include <log/log.h>
+
 #define SSI_IDKEY_FILE "/var/run/ssi.keys"
 
 /* */
 class UniqueIdManager {
-    class Id {
-    public:
+    struct Id {
         Id(unsigned int id, String key)
-            : m_Id(id), m_Key(key) {
-        }
-        unsigned int getId() const {
-            return m_Id;
-        }
-        void add(Object * pObject) {
-            if (pObject == NULL) {
-                throw E_NULL_POINTER;
-            }
-            m_Objects.push_back(pObject);
-        }
-        void remove(Object *pObject) {
-            if (pObject == NULL) {
-                throw E_NULL_POINTER;
-            }
-            m_Objects.remove(pObject);
-        }
-        unsigned int count() const {
-            return m_Objects.size();
-        }
-        String getKey() {
-            return m_Key;
-        }
-        void setKey(String key) {
-            m_Key = key;
+            : id(id), key(key) {
         }
 
-    public:
-        bool operator == (const Object *pObject) const;
-        bool operator != (const Object *pObject) const;
-        void store();
-
-    private:
-        unsigned int m_Id;
-        std::list<Object *> m_Objects;
-        String m_Key;
+        unsigned int id;
+        String key;
     };
 
 public:
@@ -73,8 +45,9 @@ public:
 private:
     std::list<Id *> m_cache;
 
-    unsigned int __findId() const;
+    unsigned int findId() const;
     void add(unsigned int id, String key);
+    void store(const Id *pId) const;
 
 public:
     void add(Object *);
