@@ -43,9 +43,6 @@ public:
 public:
     bool operator ==(const Object &object) const;
 
-    ObjectType getType() const {
-        return ObjectType_Controller;
-    }
     String getKey() const {
         return m_Path;
     }

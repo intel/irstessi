@@ -34,9 +34,6 @@ public:
     // Object
 
 public:
-    ObjectType getType() const {
-        return ObjectType_Phy;
-    }
     bool operator ==(const Object &object) const;
     String getKey() const;
 

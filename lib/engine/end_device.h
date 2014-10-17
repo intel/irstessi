@@ -42,9 +42,6 @@ public:
 public:
     bool operator ==(const Object &object) const;
     String getKey() const;
-    ObjectType getType() const {
-        return ObjectType_EndDevice;
-    }
 
     // ScopeObject
 

@@ -30,13 +30,6 @@ public:
     Volume(const String &path, unsigned int orginal);
     ~Volume();
 
-    // Object
-
-public:
-    ObjectType getType() const {
-        return ObjectType_Volume;
-    }
-
     // ScopeObject
 
 public:

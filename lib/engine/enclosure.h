@@ -47,9 +47,6 @@ public:
     unsigned int getSlotNumber(unsigned long long sasAddress) const;
     void getSlotAddress(SSI_Address &address, unsigned int number);
 
-    ObjectType getType() const {
-        return ObjectType_Enclosure;
-    }
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeEnclosure;
     }

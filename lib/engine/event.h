@@ -32,9 +32,6 @@ public:
     bool operator ==(const Object &object) const {
         return &object == this;
     }
-    ObjectType getType() const {
-        return ObjectType_Event;
-    }
     String getKey() const {
         return (unsigned long long)(this);
     }

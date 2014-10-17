@@ -36,9 +36,6 @@ public:
     // Object
 
 public:
-    ObjectType getType() const {
-        return ObjectType_Port;
-    }
     bool operator ==(const Object &object) const;
     String getKey() const;
 

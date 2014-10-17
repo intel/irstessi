@@ -55,6 +55,7 @@ protected:
     Container<Port> m_Ports;
     Container<RoutingDevice> m_RoutingDevices;
     Container<Controller> m_Controllers;
+    Container<StorageObject> m_Objects;
 
 public:
     void getEndDevices(Container<EndDevice> &container, bool) const {
@@ -108,9 +109,6 @@ public:
 public:
     bool operator ==(const Object &object) const;
     String getKey() const;
-    ObjectType getType() const {
-        return ObjectType_Session;
-    }
 
     void addEndDevice(EndDevice *pEndDevice);
     void addArray(Array *pArray);

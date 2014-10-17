@@ -32,6 +32,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "object.h"
 #include "unique_id_manager.h"
 #include "utils.h"
+#include "session.h"
+#include "event.h"
 
 /* reload id:key file */
 void UniqueIdManager::refresh()
@@ -89,9 +91,6 @@ bool UniqueIdManager::Id::operator != (const Object *pObject) const
 /* save id:key to key file */
 void UniqueIdManager::Id::store()
 {
-    if ((m_Id >> 28) == ObjectType_Session ||
-        (m_Id >> 28) == ObjectType_Event)
-        return;
     if(m_Key == "")
         return;
 
@@ -152,9 +151,10 @@ void UniqueIdManager::add(Object *pObject)
         if (id == 0) {
             throw E_OUT_OF_RESOURCES;
         }
-        pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
+        pId = new Id(id, pObject->getKey());
         m_cache.push_back(pId);
-        pId->store();
+        if (!(dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)))
+            pId->store();
     }
 
     pId->add(pObject);
@@ -164,10 +164,6 @@ void UniqueIdManager::add(Object *pObject)
 /* add id + key (from file) to cache */
 void UniqueIdManager::add(unsigned int id, String key)
 {
-    if ((id >> 28) == ObjectType_Session ||
-        (id >> 28) == ObjectType_Event)
-        return;
-
     Id *pId = NULL;
     foreach (i, m_cache) {
         if ((*i)->getId() == id) {
@@ -210,8 +206,7 @@ void UniqueIdManager::remove(Object *pObject) {
     /* session and event Id's can be reused so remove from cache
      * other object type Id's should remain even when no objects left
      * for consistency between sessions */
-    unsigned int type = pId->getId() >> 28;
-    if ((type == ObjectType_Session || type == ObjectType_Event) && pId->count() == 0) {
+    if ((dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject)) && pId->count() == 0) {
         delete pId;
         m_cache.remove(pId);
     }

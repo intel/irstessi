@@ -144,156 +144,117 @@ String Session::getKey() const
 /* */
 ScopeObject * Session::getObject(unsigned int id)
 {
-    if (id == 0) {
+    if (id == 0)
         return this;
-    }
-    Object *pObject = NULL;
+
+    ScopeObject *pObject;
     try {
-        switch (getTypeOfId(id)) {
-        case ObjectType_EndDevice:
-            pObject = m_EndDevices.find(id);
-            break;
-        case ObjectType_Array:
-            pObject = m_Arrays.find(id);
-            break;
-        case ObjectType_Enclosure:
-            pObject = m_Enclosures.find(id);
-            break;
-        case ObjectType_Phy:
-            pObject = m_Phys.find(id);
-            break;
-        case ObjectType_Volume:
-            pObject = m_Volumes.find(id);
-            break;
-        case ObjectType_Port:
-            pObject = m_Ports.find(id);
-            break;
-        case ObjectType_RoutingDevice:
-            pObject = m_RoutingDevices.find(id);
-            break;
-        case ObjectType_RaidInfo:
-            pObject = m_RaidInfo.find(id);
-            break;
-        case ObjectType_Controller:
-            pObject = m_Controllers.find(id);
-            break;
-        default:
-            pObject = NULL;
-        }
+        pObject = m_EndDevices.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_Arrays.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_Enclosures.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_Phys.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_Volumes.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_Ports.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_RoutingDevices.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_RaidInfo.find(id);
+        if (pObject)
+            return pObject;
+        pObject = m_Controllers.find(id);
+        if (pObject)
+            return pObject;
     } catch (...) {
         pObject = NULL;
     }
-    return dynamic_cast<ScopeObject *>(pObject);
+
+    return pObject;
 }
 
 /* */
 RaidInfo * Session::getRaidInfo(unsigned int id) const
 {
-    RaidInfo *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_RaidInfo) {
-        pResult = dynamic_cast<RaidInfo *>(m_RaidInfo.find(id));
-    }
-    return pResult;
+    return m_RaidInfo.find(id);
 }
 
 /* */
 Array * Session::getArray(unsigned int id) const
 {
-    Array *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_Array) {
-        pResult = dynamic_cast<Array *>(m_Arrays.find(id));
-    }
-    return pResult;
+    return m_Arrays.find(id);
 }
 
 /* */
 Controller * Session::getController(unsigned int id) const
 {
-    Controller *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_Controller) {
-        pResult = dynamic_cast<Controller *>(m_Controllers.find(id));
-    }
-    return pResult;
+    return m_Controllers.find(id);
 }
 
 /* */
 StorageDevice * Session::getDevice(unsigned int id) const
 {
-    StorageDevice *pResult = NULL;
-    switch (getTypeOfId(id)) {
-    case ObjectType_Array:
-        pResult = dynamic_cast<StorageDevice *>(m_Arrays.find(id));
-        break;
-    case ObjectType_EndDevice:
-        pResult = dynamic_cast<StorageDevice *>(m_EndDevices.find(id));
-        break;
-    case ObjectType_Volume:
-        pResult = dynamic_cast<StorageDevice *>(m_Volumes.find(id));
-        break;
-    default:
-        pResult = NULL;
-    }
+    StorageDevice *pResult;
+
+    pResult = m_Arrays.find(id);
+    if (pResult)
+        return pResult;
+
+    pResult = m_EndDevices.find(id);
+    if (pResult)
+        return pResult;
+
+    pResult = m_Volumes.find(id);
+    if (pResult)
+        return pResult;
+
     return pResult;
 }
 
 /* */
 Phy * Session::getPhy(unsigned int id) const
 {
-    Phy *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_Phy) {
-        pResult = dynamic_cast<Phy *>(m_Phys.find(id));
-    }
-    return pResult;
+    return m_Phys.find(id);
 }
 
 /* */
 Port * Session::getPort(unsigned int id) const
 {
-    Port *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_Port) {
-        pResult = dynamic_cast<Port *>(m_Ports.find(id));
-    }
-    return pResult;
+    return m_Ports.find(id);
 }
 
 /* */
 RoutingDevice * Session::getRoutingDevice(unsigned int id) const
 {
-    RoutingDevice *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_RoutingDevice) {
-        pResult = dynamic_cast<RoutingDevice *>(m_RoutingDevices.find(id));
-    }
-    return pResult;
+    return m_RoutingDevices.find(id);
 }
 
 /* */
 Volume * Session::getVolume(unsigned int id) const
 {
-    Volume *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_Volume) {
-        pResult = dynamic_cast<Volume *>(m_Volumes.find(id));
-    }
-    return pResult;
+    return m_Volumes.find(id);
 }
 
 /* */
 Enclosure * Session::getEnclosure(unsigned int id) const
 {
-    Enclosure *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_Enclosure) {
-        pResult = dynamic_cast<Enclosure *>(m_Enclosures.find(id));
-    }
-    return pResult;
+    return m_Enclosures.find(id);
 }
 
 /* */
 EndDevice * Session::getEndDevice(unsigned int id) const
 {
-    EndDevice *pResult = NULL;
-    if (getTypeOfId(id) == ObjectType_EndDevice) {
-        pResult = dynamic_cast<EndDevice *>(m_EndDevices.find(id));
-    }
-    return pResult;
+    return m_EndDevices.find(id);
 }
 
 /* */

@@ -22,29 +22,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __OBJECT_H__INCLUDED__
 #define __OBJECT_H__INCLUDED__
 
-/* */
-enum ObjectType {
-    ObjectType_First = 0,
-    ObjectType_Session = ObjectType_First,
-    ObjectType_Event,
-    ObjectType_EndDevice,
-    ObjectType_Array,
-    ObjectType_Enclosure,
-    ObjectType_Phy,
-    ObjectType_Volume,
-    ObjectType_Port,
-    ObjectType_RoutingDevice,
-    ObjectType_RaidInfo,
-    ObjectType_Controller,
-    ObjectType_Last,
-    ObjectType_Unknown = -1
-};
-
-/* */
-inline ObjectType getTypeOfId(unsigned int id) {
-    return static_cast<ObjectType>(id >> 28);
-}
-
 // Forward declaration
 class Session;
 class RoutingDevice;
@@ -70,9 +47,6 @@ public:
     }
 
 public:
-    virtual ObjectType getType() const {
-        return ObjectType_Unknown;
-    }
     unsigned int getId() const {
         return m_Id;
     }

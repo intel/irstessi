@@ -42,9 +42,6 @@ class RoutingDevice : public StorageObject {
     virtual String getKey() const {
         return m_Path;
     }
-    ObjectType getType() const {
-        return ObjectType_RoutingDevice;
-    }
 
     // ScopeObject
 
