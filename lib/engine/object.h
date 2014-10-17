@@ -76,22 +76,12 @@ public:
     unsigned int getId() const {
         return m_Id;
     }
-    bool operator == (const Object *pObject) const {
-        try {
-            return equal(pObject);
-        } catch (...) {
-            return false;
-        }
-    }
-    Object & operator = (unsigned int id) {
-        setId(id); return *this;
-    }
+    virtual bool operator ==(const Object &object) const = 0;
+
     void setId(unsigned int id) {
         m_Id = id;
     }
-    virtual bool equal(const Object *pObject) const {
-        return pObject && getType() == pObject->getType();
-    }
+
     virtual String getKey() const {
         return "";
     }
@@ -99,20 +89,6 @@ public:
 protected:
     unsigned int m_Id;
 };
-
-/* */
-inline bool operator == (const Object &object, unsigned int id) {
-    return object.getId() == id;
-}
-inline bool operator == (unsigned int id, const Object &object) {
-    return id == object.getId();
-}
-inline bool operator != (const Object &object, unsigned int id) {
-    return object.getId() != id;
-}
-inline bool operator != (unsigned int id, const Object &object) {
-    return id != object.getId();
-}
 
 /* */
 class ScopeObject : public Object {

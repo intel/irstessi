@@ -37,7 +37,7 @@ public:
     ObjectType getType() const {
         return ObjectType_Phy;
     }
-    bool equal(const Object *pObject) const;
+    bool operator ==(const Object &object) const;
     String getKey() const;
 
     // ScopeObject

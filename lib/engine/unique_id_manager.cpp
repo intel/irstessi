@@ -175,7 +175,7 @@ bool Id::operator == (const Object *pObject) const
         return false;
     }
 
-    return *m_Objects.front() == pObject;
+    return *m_Objects.front() == *pObject;
 }
 
 bool Id::operator != (const Object *pObject) const

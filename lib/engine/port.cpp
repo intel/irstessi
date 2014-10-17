@@ -83,11 +83,11 @@ void Port::getPhys(Container<Phy> &container) const
 }
 
 /* */
-bool Port::equal(const Object *pObject) const
+bool Port::operator ==(const Object &object) const
 {
-    const Port *pPort = dynamic_cast<const Port *>(pObject);
-    return Object::equal(pPort) &&
-        m_pParent->equal(pPort->m_pParent) && m_Path == pPort->m_Path;
+    const Port *pPort = dynamic_cast<const Port *>(&object);
+    return pPort != NULL &&
+        *m_pParent == *pPort->m_pParent && m_Path == pPort->m_Path;
 }
 
 /* */

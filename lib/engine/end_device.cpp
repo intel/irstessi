@@ -30,6 +30,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <linux/fs.h>
 #include <climits>
 #include <memory.h>
+#include <typeinfo>
 
 #include <scsi/sg_lib.h>
 #include <scsi/sg_cmds_basic.h>
@@ -390,10 +391,10 @@ void EndDevice::acquireId(Session *pSession)
 }
 
 /* */
-bool EndDevice::equal(const Object *pObject) const
+bool EndDevice::operator ==(const Object &object) const
 {
-    return Object::equal(pObject) &&
-        dynamic_cast<const EndDevice *>(pObject)->getSerialNum() == m_SerialNum;
+    return typeid(*this) == typeid(object) &&
+        static_cast<const EndDevice *>(&object)->getSerialNum() == m_SerialNum;
 }
 
 /* */

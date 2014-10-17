@@ -22,6 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 #include <asm/types.h>
 #include <cstddef>
+#include <typeinfo>
 
 #include <ssi.h>
 #include <orom/orom.h>
@@ -284,10 +285,10 @@ SSI_Status Controller::readPatrolSetState(bool enable)
 }
 
 /* */
-bool Controller::equal(const Object *pObject) const
+bool Controller::operator ==(const Object &object) const
 {
-    return Object::equal(pObject) &&
-        dynamic_cast<const Controller *>(pObject)->m_Path == m_Path;
+    return typeid(*this) == typeid(object) &&
+        static_cast<const Controller *>(&object)->m_Path == m_Path;
 }
 
 /* */
@@ -345,7 +346,7 @@ void Controller::attachArray(Array *pArray)
 void Controller::attachEnclosure(Enclosure *pEnclosure)
 {
     foreach (i, m_Enclosures_Direct)
-        if (pEnclosure->equal(*i)) {
+        if (*pEnclosure == **i) {
             RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(pEnclosure->getParent());
             (*i)->attachRoutingDevice(pRoutingDevice);
             pRoutingDevice->setEnclosure(*i);

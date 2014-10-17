@@ -264,11 +264,11 @@ void Phy::acquireId(Session *pSession)
 }
 
 /* */
-bool Phy::equal(const Object *pObject) const
+bool Phy::operator ==(const Object &object) const
 {
-    const Phy *pPhy = dynamic_cast<const Phy *>(pObject);
-    return Object::equal(pObject) &&
-        m_pParent->equal(pPhy->m_pParent) && m_Number == pPhy->m_Number;
+    const Phy *pPhy = dynamic_cast<const Phy *>(&object);
+    return pPhy != NULL &&
+        *m_pParent == *pPhy->m_pParent && m_Number == pPhy->m_Number;
 }
 
 /* */

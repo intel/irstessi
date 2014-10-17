@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 #include <asm/types.h>
 #include <cstddef>
+#include <typeinfo>
 
 #include <ssi.h>
 #include <orom/orom.h>
@@ -42,8 +43,8 @@ ISCI_RaidInfo::ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo)
 }
 
 /* */
-bool ISCI_RaidInfo::equal(const Object *pObject) const
+bool ISCI_RaidInfo::operator ==(const Object &object) const
 {
-    return Object::equal(pObject) &&
-        dynamic_cast<const RaidInfo *>(pObject)->getControllerType() == SSI_ControllerTypeSCU;
+    return typeid(*this) == typeid(object) &&
+        static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeSCU;
 }

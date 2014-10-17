@@ -130,9 +130,9 @@ Session::~Session()
         pContextMgr->releaseId(*i);
 }
 /* */
-bool Session::equal(const Object *pObject) const
+bool Session::operator ==(const Object &object) const
 {
-    return pObject == this;
+    return &object == this;
 }
 
 /* */

@@ -36,7 +36,7 @@ class RoutingDevice : public StorageObject {
 
  public:
 
-    virtual bool equal(const Object *pObject) const {
+    bool operator ==(const Object &object) const {
         return false;
     }
     virtual String getKey() const {

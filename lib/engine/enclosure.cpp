@@ -21,6 +21,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <features.h>
 #include <cstddef>
+#include <typeinfo>
 
 #include <ssi.h>
 
@@ -135,10 +136,10 @@ String Enclosure::getLogicalId() const
 }
 
 /* */
-bool Enclosure::equal(const Object *pObject) const
+bool Enclosure::operator ==(const Object &object) const
 {
-    return Object::equal(pObject) &&
-           m_LogicalId == dynamic_cast<const Enclosure*>(pObject)->getLogicalId();
+    return typeid(*this) == typeid(object) &&
+           m_LogicalId == static_cast<const Enclosure *>(&object)->getLogicalId();
 }
 
 /* */

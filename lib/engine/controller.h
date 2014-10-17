@@ -41,7 +41,7 @@ public:
     // Object
 
 public:
-    bool equal(const Object *pObject) const;
+    bool operator ==(const Object &object) const;
 
     ObjectType getType() const {
         return ObjectType_Controller;

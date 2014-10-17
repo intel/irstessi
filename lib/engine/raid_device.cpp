@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sys/types.h>
 #include <cerrno>
 #include <unistd.h>
+#include <typeinfo>
 
 #include <ssi.h>
 #include <log/log.h>
@@ -154,10 +155,10 @@ void RaidDevice::__internal_update(String &map)
 }
 
 /* */
-bool RaidDevice::equal(const Object *pObject) const
+bool RaidDevice::operator ==(const Object &object) const
 {
-    return Object::equal(pObject) &&
-        dynamic_cast<const RaidDevice *>(pObject)->m_Uuid == m_Uuid;
+    return typeid(*this) == typeid(object) &&
+        static_cast<const RaidDevice *>(&object)->m_Uuid == m_Uuid;
 }
 
 /* */

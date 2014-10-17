@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __ISCI_EXPANDER_H__INCLUDED__
 #define __ISCI_EXPANDER_H__INCLUDED__
 
+#include <typeinfo>
+
 /* */
 class ISCI_Expander : public RoutingDevice {
 public:
@@ -29,10 +31,10 @@ public:
 
     // Object
 public:
-    bool equal(const Object *pObject) const {
-        return Object::equal(pObject) &&
-               dynamic_cast<const RoutingDevice *>(pObject)->getRoutingDeviceType() == getRoutingDeviceType() &&
-               dynamic_cast<const ISCI_Expander *>(pObject)->getSasAddress() == m_SASAddress;
+    bool operator ==(const Object &object) const {
+        return typeid(*this) == typeid(object) &&
+               static_cast<const RoutingDevice *>(&object)->getRoutingDeviceType() == getRoutingDeviceType() &&
+               static_cast<const ISCI_Expander *>(&object)->getSasAddress() == m_SASAddress;
     }
     String getKey() const {
         return m_SASAddress;

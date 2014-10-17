@@ -39,7 +39,7 @@ public:
     void getEndDevices(Container<EndDevice> &, bool all) const;
     void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
     String getLogicalId() const;
-    bool equal(const Object *pObject) const;
+    bool operator ==(const Object &object) const;
     String getKey() const;
     void attachEndDevice(EndDevice *);
     void attachEndDevices(Container<EndDevice> &EndDevices);

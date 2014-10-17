@@ -38,7 +38,7 @@ public:
     // Object
 
 public:
-    bool equal(const Object *pObject) const;
+    bool operator ==(const Object &object) const;
     virtual String getKey() const {
         return m_Uuid;
     }

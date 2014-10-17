@@ -39,7 +39,7 @@ public:
     ObjectType getType() const {
         return ObjectType_Port;
     }
-    bool equal(const Object *pObject) const;
+    bool operator ==(const Object &object) const;
     String getKey() const;
 
     // ScopeObject

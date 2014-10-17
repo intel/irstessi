@@ -30,7 +30,7 @@ public:
     // Object
 
 public:
-    bool equal(const Object *pObject) const;
+    bool operator ==(const Object &object) const;
 
     // RaidInfo
 
