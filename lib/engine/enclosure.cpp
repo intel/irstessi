@@ -170,7 +170,7 @@ void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 }
 
 /* */
-void Enclosure::acquireId(Session *pSession)
+void Enclosure::addToSession(Session *pSession)
 {
     Container<EndDevice> container;
     foreach (i, m_RoutingDevices) {

@@ -413,9 +413,9 @@ void Volume::getEndDevices(Container<EndDevice> &container, bool __attribute__((
 }
 
 /* */
-void Volume::acquireId(Session *pSession)
+void Volume::addToSession(Session *pSession)
 {
-    RaidDevice::acquireId(pSession);
+    RaidDevice::addToSession(pSession);
     pSession->addVolume(this);
     if (m_RaidLevel == 0) {
         m_State = SSI_VolumeStateNormal;

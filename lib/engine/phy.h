@@ -50,7 +50,7 @@ public:
     // StorageObject
 
 public:
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
 
     void attachPhy(Phy *pPhy);
     void attachPort(Port *pPort);

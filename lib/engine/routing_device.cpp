@@ -50,17 +50,17 @@ RoutingDevice::~RoutingDevice()
 }
 
 /* */
-void RoutingDevice::acquireId(Session *pSession)
+void RoutingDevice::addToSession(Session *pSession)
 {
     pSession->addRoutingDevice(this);
     foreach (i, m_EndDevices_Direct)
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     foreach (i, m_Phys)
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     foreach (i, m_Ports)
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     foreach (i, m_RoutingDevices_Direct)
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     pSession->addPort(m_pSubtractivePort);
 }
 

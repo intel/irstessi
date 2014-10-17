@@ -25,83 +25,60 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define SSI_IDKEY_FILE "/var/run/ssi.keys"
 
 /* */
-class Id {
-public:
-    Id(unsigned int id, String key)
-        : m_Id(id), m_Key(key) {
-    }
-    unsigned int getId() const {
-        return m_Id;
-    }
-    void add(Object * pObject) {
-        if (pObject == NULL) {
-            throw E_NULL_POINTER;
-        }
-        m_Objects.push_back(pObject);
-    }
-    void remove(Object *pObject) {
-        if (pObject == NULL) {
-            throw E_NULL_POINTER;
-        }
-        m_Objects.remove(pObject);
-    }
-    unsigned int count() const {
-        return m_Objects.size();
-    }
-    String getKey() {
-        return m_Key;
-    }
-    void setKey(String key) {
-        m_Key = key;
-    }
-
-public:
-    bool operator == (const Object *pObject) const;
-    bool operator != (const Object *pObject) const;
-    void store();
-
-private:
-    unsigned int m_Id;
-    std::list<Object *> m_Objects;
-    String m_Key;
-
-    friend class UniqueIdManager;
-};
-
-/* */
-class IdCache {
-public:
-    ~IdCache();
-
-    void remove(Object *pObject);
-    void add(Object *pObject);
-    void add(unsigned int id, String key);
-
-private:
-    unsigned int __findId() const;
-    std::list<Id *> m_list;
-};
-
-/* */
 class UniqueIdManager {
-private:
-    IdCache m_Sessions;
-    IdCache m_Events;
-    IdCache m_EndDevices;
-    IdCache m_Arrays;
-    IdCache m_Enclosures;
-    IdCache m_Phys;
-    IdCache m_Volumes;
-    IdCache m_Ports;
-    IdCache m_RoutingDevices;
-    IdCache m_RaidInfo;
-    IdCache m_Controllers;
-    IdCache * getContainer(Object *pObject);
+    class Id {
+    public:
+        Id(unsigned int id, String key)
+            : m_Id(id), m_Key(key) {
+        }
+        unsigned int getId() const {
+            return m_Id;
+        }
+        void add(Object * pObject) {
+            if (pObject == NULL) {
+                throw E_NULL_POINTER;
+            }
+            m_Objects.push_back(pObject);
+        }
+        void remove(Object *pObject) {
+            if (pObject == NULL) {
+                throw E_NULL_POINTER;
+            }
+            m_Objects.remove(pObject);
+        }
+        unsigned int count() const {
+            return m_Objects.size();
+        }
+        String getKey() {
+            return m_Key;
+        }
+        void setKey(String key) {
+            m_Key = key;
+        }
+
+    public:
+        bool operator == (const Object *pObject) const;
+        bool operator != (const Object *pObject) const;
+        void store();
+
+    private:
+        unsigned int m_Id;
+        std::list<Object *> m_Objects;
+        String m_Key;
+    };
 
 public:
-    unsigned int acquireId(Object *);
+    ~UniqueIdManager();
+
+private:
+    std::list<Id *> m_cache;
+
+    unsigned int __findId() const;
     void add(unsigned int id, String key);
-    void releaseId(Object *);
+
+public:
+    void add(Object *);
+    void remove(Object *);
     void refresh();
 };
 

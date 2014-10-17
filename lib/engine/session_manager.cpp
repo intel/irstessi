@@ -45,7 +45,7 @@ SessionManager::~SessionManager()
     delete m_pNullSession;
 
     foreach (i, m_Sessions)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
 }
 
 /* */
@@ -72,7 +72,7 @@ unsigned int SessionManager::openSession()
         return 0; /* Out of memory, no more sessions allowed. */
     }
     try {
-        pContextMgr->acquireId(pSession);
+        pContextMgr->add(pSession);
         m_Sessions.add(pSession);
         return pSession->getId();
     } catch (...) {
@@ -90,7 +90,7 @@ SSI_Status SessionManager::closeSession(unsigned int id)
     Session *pSession;
     try {
         pSession = m_Sessions.remove(id);
-        pContextMgr->releaseId(pSession);
+        pContextMgr->remove(pSession);
     } catch (...) {
         return SSI_StatusInvalidParameter;
     }

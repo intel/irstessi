@@ -302,12 +302,12 @@ SSI_Status Array::writeStorageArea(void *pBuffer, unsigned int bufferSize)
 }
 
 /* */
-void Array::acquireId(Session *pSession)
+void Array::addToSession(Session *pSession)
 {
-    RaidDevice::acquireId(pSession);
+    RaidDevice::addToSession(pSession);
     pSession->addArray(this);
     foreach (i, m_Volumes) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
     foreach (i, m_Volumes) {
         if ((*i)->getState() != SSI_VolumeStateNormal) {

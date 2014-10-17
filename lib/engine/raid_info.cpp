@@ -41,7 +41,7 @@ void RaidInfo::getControllers(Container<Controller> &container) const
 }
 
 /* */
-void RaidInfo::acquireId(Session *pSession)
+void RaidInfo::addToSession(Session *pSession)
 {
     pSession->addRaidInfo(this);
 }

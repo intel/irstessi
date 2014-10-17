@@ -366,27 +366,27 @@ void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosur
 }
 
 /* */
-void Controller::acquireId(Session *pSession)
+void Controller::addToSession(Session *pSession)
 {
     pSession->addController(this);
 
     foreach (i, m_EndDevices_Direct) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
     foreach (i, m_RoutingDevices_Direct) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
     foreach (i, m_Ports) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
     foreach (i, m_Phys) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
     foreach (i, m_Arrays) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
     foreach (i, m_Enclosures_Direct) {
-        (*i)->acquireId(pSession);
+        (*i)->addToSession(pSession);
     }
 }
 

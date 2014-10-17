@@ -47,7 +47,7 @@ public:
         return SSI_RoutingDeviceTypeMultiplier;
     }
 
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
 
     // AHCI_Multiplier
 

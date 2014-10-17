@@ -147,7 +147,7 @@ void Port::attachPort(Port *pPort)
 }
 
 /* */
-void Port::acquireId(Session *pSession)
+void Port::addToSession(Session *pSession)
 {
     pSession->addPort(this);
 }

@@ -79,7 +79,7 @@ Session::Session()
             }
             AHCI *pAHCI = new AHCI(CanonicalPath(*(*i)));
             pAHCI->discover();
-            pAHCI->acquireId(this);
+            pAHCI->addToSession(this);
         }
     }
     dir = "/sys/bus/pci/drivers/isci";
@@ -89,13 +89,13 @@ Session::Session()
         if (path == dir) {
             ISCI *pISCI = new ISCI(CanonicalPath(*(*i)));
             pISCI->discover();
-            pISCI->acquireId(this);
+            pISCI->addToSession(this);
         }
     }
     foreach (i, m_Controllers) {
         RaidInfo *pRaidInfo = (*i)->findRaidInfo(m_RaidInfo);
         if (pRaidInfo)
-            pRaidInfo->acquireId(this);
+            pRaidInfo->addToSession(this);
     }
     if (m_EndDevices.size() > 0) {
         dir = "/sys/devices/virtual/block";
@@ -111,23 +111,23 @@ Session::Session()
 Session::~Session()
 {
     foreach (i, m_EndDevices)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_Arrays)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_Enclosures)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_RaidInfo)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_Phys)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_Volumes)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_Ports)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_RoutingDevices)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     foreach (i, m_Controllers)
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
 }
 /* */
 bool Session::operator ==(const Object &object) const
@@ -302,7 +302,7 @@ void Session::addEndDevice(EndDevice *pEndDevice)
     if (pEndDevice == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pEndDevice);
+    pContextMgr->add(pEndDevice);
     m_EndDevices.add(pEndDevice);
 }
 
@@ -312,7 +312,7 @@ void Session::addArray(Array *pArray)
     if (pArray == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pArray);
+    pContextMgr->add(pArray);
     m_Arrays.add(pArray);
 }
 
@@ -322,7 +322,7 @@ void Session::addRoutingDevice(RoutingDevice *pRoutingDevice)
     if (pRoutingDevice == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pRoutingDevice);
+    pContextMgr->add(pRoutingDevice);
     m_RoutingDevices.add(pRoutingDevice);
 }
 
@@ -332,7 +332,7 @@ void Session::addEnclosure(Enclosure *pEnclosure)
     if (pEnclosure == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pEnclosure);
+    pContextMgr->add(pEnclosure);
     m_Enclosures.add(pEnclosure);
 }
 
@@ -342,7 +342,7 @@ void Session::addPhy(Phy *pPhy)
     if (pPhy == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pPhy);
+    pContextMgr->add(pPhy);
     m_Phys.add(pPhy);
 }
 
@@ -352,7 +352,7 @@ void Session::addVolume(Volume *pVolume)
     if (pVolume == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pVolume);
+    pContextMgr->add(pVolume);
     m_Volumes.add(pVolume);
 }
 
@@ -362,7 +362,7 @@ void Session::addPort(Port *pPort)
     if (pPort == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pPort);
+    pContextMgr->add(pPort);
     m_Ports.add(pPort);
 }
 
@@ -372,7 +372,7 @@ void Session::addController(Controller *pController)
     if (pController == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pController);
+    pContextMgr->add(pController);
     m_Controllers.add(pController);
 }
 
@@ -382,7 +382,7 @@ void Session::addRaidInfo(RaidInfo *pRaidInfo)
     if (pRaidInfo == NULL) {
         throw E_NULL_POINTER;
     }
-    pContextMgr->acquireId(pRaidInfo);
+    pContextMgr->add(pRaidInfo);
     m_RaidInfo.add(pRaidInfo);
 }
 
@@ -409,7 +409,7 @@ void Session::__internal_attach_imsm_array(const String &path)
     Array *pArray;
     try {
         pArray = new Array(path);
-        pArray->acquireId(this);
+        pArray->addToSession(this);
     } catch (Exception ex) {
         if (ex == E_INVALID_OBJECT) {
             delete pArray;

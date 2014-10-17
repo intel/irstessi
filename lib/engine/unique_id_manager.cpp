@@ -33,103 +33,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "unique_id_manager.h"
 #include "utils.h"
 
-#include "event.h"
-#include "session.h"
-#include "raid_info.h"
-#include "controller.h"
-#include "enclosure.h"
-#include "phy.h"
-#include "port.h"
-#include "routing_device.h"
-#include "end_device.h"
-#include "array.h"
-#include "volume.h"
-
-
-IdCache * UniqueIdManager::getContainer(Object *pObject)
-{
-    if (pObject == NULL)
-        throw E_NULL_POINTER;
-
-    if (dynamic_cast<Session *>(pObject))
-        return &m_Sessions;
-    else if (dynamic_cast<Event *>(pObject))
-        return &m_Events;
-    else if (dynamic_cast<EndDevice *>(pObject))
-        return &m_EndDevices;
-    else if (dynamic_cast<Array *>(pObject))
-        return &m_Arrays;
-    else if (dynamic_cast<Enclosure *>(pObject))
-        return &m_Enclosures;
-    else if (dynamic_cast<Phy *>(pObject))
-        return &m_Phys;
-    else if (dynamic_cast<Volume *>(pObject))
-        return &m_Volumes;
-    else if (dynamic_cast<Port *>(pObject))
-        return &m_Ports;
-    else if (dynamic_cast<RoutingDevice *>(pObject))
-        return &m_RoutingDevices;
-    else if (dynamic_cast<RaidInfo *>(pObject))
-        return &m_RaidInfo;
-    else if (dynamic_cast<Controller *>(pObject))
-        return &m_Controllers;
-    else
-        throw E_INVALID_OBJECT;
-}
-
-/* */
-unsigned int UniqueIdManager::acquireId(Object *pObject)
-{
-    getContainer(pObject)->add(pObject);
-    return pObject->getId();
-}
-/* */
-void UniqueIdManager::add(unsigned int id, String key)
-{
-    switch (id >> 28) {
-    case ObjectType_Session:
-        /* nothing to do here */
-        break;
-    case ObjectType_Event:
-        break;
-    case ObjectType_EndDevice:
-        m_EndDevices.add(id, key);
-        break;
-    case ObjectType_Array:
-        m_Arrays.add(id, key);
-        break;
-    case ObjectType_Enclosure:
-        m_Enclosures.add(id, key);
-        break;
-    case ObjectType_Phy:
-        m_Phys.add(id, key);
-        break;
-    case ObjectType_Volume:
-        m_Volumes.add(id, key);
-        break;
-    case ObjectType_Port:
-        m_Ports.add(id, key);
-        break;
-    case ObjectType_RoutingDevice:
-        m_RoutingDevices.add(id, key);
-        break;
-    case ObjectType_RaidInfo:
-        m_RaidInfo.add(id, key);
-        break;
-    case ObjectType_Controller:
-        m_Controllers.add(id, key);
-        break;
-    default:
-        break;
-    }
-}
-
-/* */
-void UniqueIdManager::releaseId(Object *pObject)
-{
-    getContainer(pObject)->remove(pObject);
-}
-
 /* reload id:key file */
 void UniqueIdManager::refresh()
 {
@@ -142,7 +45,7 @@ void UniqueIdManager::refresh()
         dlog("ssi.keys file missing")
         /* no file? that's ok */
     }
-    /* process the list to update IdCaches */
+    /* process the list to update cache */
     while (keyList) {
         unsigned int id;
         String sid = keyList.left(":");
@@ -163,7 +66,7 @@ void UniqueIdManager::refresh()
 }
 
 /* */
-bool Id::operator == (const Object *pObject) const
+bool UniqueIdManager::Id::operator == (const Object *pObject) const
 {
     if (pObject == NULL)
         return false;
@@ -178,13 +81,13 @@ bool Id::operator == (const Object *pObject) const
     return *m_Objects.front() == *pObject;
 }
 
-bool Id::operator != (const Object *pObject) const
+bool UniqueIdManager::Id::operator != (const Object *pObject) const
 {
     return !this->operator ==(pObject);
 }
 
 /* save id:key to key file */
-void Id::store()
+void UniqueIdManager::Id::store()
 {
     if ((m_Id >> 28) == ObjectType_Session ||
         (m_Id >> 28) == ObjectType_Event)
@@ -204,11 +107,11 @@ void Id::store()
 }
 
 /* when not in cache find new Id */
-unsigned int IdCache::__findId() const {
+unsigned int UniqueIdManager::__findId() const {
     unsigned int id;
     for(id = 1; id <= 0x0fffffff; id++) {
         Id *pId = NULL;
-        foreach (i, m_list) {
+        foreach (i, m_cache) {
             if (((*i)->getId() & 0x0fffffff) == id) {
                 pId = *i;
                 break;
@@ -221,21 +124,21 @@ unsigned int IdCache::__findId() const {
 }
 
 /* */
-IdCache::~IdCache()
+UniqueIdManager::~UniqueIdManager()
 {
-    foreach (i, m_list)
+    foreach (i, m_cache)
         delete *i;
 }
 
 /* add object to cache and set Id */
-void IdCache::add(Object *pObject)
+void UniqueIdManager::add(Object *pObject)
 {
     if (pObject == NULL) {
         throw E_NULL_POINTER;
     }
 
     Id *pId = NULL;
-    foreach (i, m_list) {
+    foreach (i, m_cache) {
         if (**i == pObject) {
             pId = *i;
             break;
@@ -250,7 +153,7 @@ void IdCache::add(Object *pObject)
             throw E_OUT_OF_RESOURCES;
         }
         pId = new Id(id |= pObject->getType() << 28, pObject->getKey());
-        m_list.push_back(pId);
+        m_cache.push_back(pId);
         pId->store();
     }
 
@@ -259,10 +162,14 @@ void IdCache::add(Object *pObject)
 }
 
 /* add id + key (from file) to cache */
-void IdCache::add(unsigned int id, String key)
+void UniqueIdManager::add(unsigned int id, String key)
 {
+    if ((id >> 28) == ObjectType_Session ||
+        (id >> 28) == ObjectType_Event)
+        return;
+
     Id *pId = NULL;
-    foreach (i, m_list) {
+    foreach (i, m_cache) {
         if ((*i)->getId() == id) {
             pId = *i;
             break;
@@ -273,7 +180,7 @@ void IdCache::add(unsigned int id, String key)
         /* it is not in cache */
         dlog(String(id) + key + " adding to cache");
         Id *pId = new Id(id, key);
-        m_list.push_back(pId);
+        m_cache.push_back(pId);
     } else {
         /* already in cache */
         if (pId->getKey() != key)
@@ -282,13 +189,13 @@ void IdCache::add(unsigned int id, String key)
 }
 
 /* remove object from cache */
-void IdCache::remove(Object *pObject) {
+void UniqueIdManager::remove(Object *pObject) {
     if (pObject == NULL) {
         throw E_NULL_POINTER;
     }
 
     Id *pId = NULL;
-    foreach (i, m_list) {
+    foreach (i, m_cache) {
         if ((*i)->getId() == pObject->getId()) {
             pId = *i;
             break;
@@ -306,6 +213,6 @@ void IdCache::remove(Object *pObject) {
     unsigned int type = pId->getId() >> 28;
     if ((type == ObjectType_Session || type == ObjectType_Event) && pId->count() == 0) {
         delete pId;
-        m_list.remove(pId);
+        m_cache.remove(pId);
     }
 }

@@ -45,7 +45,7 @@ EventManager::EventManager()
 EventManager::~EventManager()
 {
     foreach (i, m_Events) {
-        pContextMgr->releaseId(*i);
+        pContextMgr->remove(*i);
     }
 }
 
@@ -82,7 +82,7 @@ unsigned int EventManager::registerEvent()
         return SSI_NULL_HANDLE; /* Out of memory */
     }
     try {
-        pContextMgr->acquireId(pEvent);
+        pContextMgr->add(pEvent);
         m_Events.add(pEvent);
     } catch (...) {
         delete pEvent;
@@ -111,7 +111,7 @@ SSI_Status EventManager::unregisterEvent(unsigned int id)
     Event *pEvent;
     try {
         pEvent = m_Events.remove(id);
-        pContextMgr->releaseId(pEvent);
+        pContextMgr->remove(pEvent);
     } catch (...) {
         return SSI_StatusInvalidHandle;
     }

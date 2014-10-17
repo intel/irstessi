@@ -77,7 +77,7 @@ public:
     void attachArray(Array *pArray);
     void attachEnclosure(Enclosure *pEnclosure);
 
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
 
     // Controller
 

@@ -258,7 +258,7 @@ SSI_PhySpeed Phy::__internal_parse_linkrate(const String &linkrate)
 }
 
 /* */
-void Phy::acquireId(Session *pSession)
+void Phy::addToSession(Session *pSession)
 {
     pSession->addPhy(this);
 }

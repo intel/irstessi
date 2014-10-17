@@ -62,7 +62,7 @@ public:
     virtual void attachEndDevice(EndDevice *pEndDevice);
     void attachPhy(Phy *pPhy);
 
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
 
     // Port
 

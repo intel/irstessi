@@ -70,7 +70,7 @@ public:
     void attachPort(Port *pPort);
     void attachArray(Array *pArray);
 
-    virtual void acquireId(Session *pSession);
+    virtual void addToSession(Session *pSession);
 
     // RoutingDevice
 

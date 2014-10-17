@@ -162,7 +162,7 @@ bool RaidDevice::operator ==(const Object &object) const
 }
 
 /* */
-void RaidDevice::acquireId(Session *pSession)
+void RaidDevice::addToSession(Session *pSession)
 {
     if (pSession == NULL) {
         throw E_NULL_POINTER;

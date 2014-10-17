@@ -97,10 +97,10 @@ bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned in
 }
 
 /* */
-void AHCI_Multiplier::acquireId(Session *pSession)
+void AHCI_Multiplier::addToSession(Session *pSession)
 {
     pSession->addPhy(m_pPhy);
-    RoutingDevice::acquireId(pSession);
+    RoutingDevice::addToSession(pSession);
 }
 
 /* */

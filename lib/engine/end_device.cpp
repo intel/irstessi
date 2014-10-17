@@ -383,7 +383,7 @@ SSI_Status EndDevice::passthroughCmd(void *pInfo, void *pData, unsigned int data
 }
 
 /* */
-void EndDevice::acquireId(Session *pSession)
+void EndDevice::addToSession(Session *pSession)
 {
     pSession->addEndDevice(this);
     pSession->addPhy(m_pPhy);

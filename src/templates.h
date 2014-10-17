@@ -42,7 +42,7 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     if (pScopeObject == NULL) {
         return SSI_StatusInvalidScope;
     }
-    if (*pScopeObject != scopeType) {
+    if (!pScopeObject->scopeTypeMatches(scopeType)) {
         return SSI_StatusInvalidScope;
     }
     Container<T> container;

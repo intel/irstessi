@@ -34,7 +34,7 @@ public:
     ~Enclosure();
 
 public:
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
     SSI_Status getInfo(SSI_EnclosureInfo *pInfo) const;
     void getEndDevices(Container<EndDevice> &, bool all) const;
     void getRoutingDevices(Container<RoutingDevice> &, bool all) const;

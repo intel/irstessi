@@ -110,13 +110,13 @@ SSI_Status ContextManager::unregisterEvent(unsigned int id)
 }
 
 /* */
-unsigned int ContextManager::acquireId(Object *pObject) {
-    return m_pUniqueIdMgr->acquireId(pObject);
+void ContextManager::add(Object *pObject) {
+    m_pUniqueIdMgr->add(pObject);
 }
 
 /* */
-void ContextManager::releaseId(Object *pObject) {
-    m_pUniqueIdMgr->releaseId(pObject);
+void ContextManager::remove(Object *pObject) {
+    m_pUniqueIdMgr->remove(pObject);
 }
 
 /* */

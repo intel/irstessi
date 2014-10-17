@@ -61,7 +61,7 @@ public:
 public:
     void attachVolume(Volume *pVolume);
     void attachEndDevice(EndDevice *pEndDevice);
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
 
     // StorageDevice
 

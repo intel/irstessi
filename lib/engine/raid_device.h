@@ -45,7 +45,7 @@ public:
     // StorageObject
 
 public:
-    virtual void acquireId(Session *pSession);
+    virtual void addToSession(Session *pSession);
 
     // RaidDevice
 

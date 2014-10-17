@@ -47,8 +47,8 @@ public:
     unsigned int registerEvent();
     Event * getEvent(unsigned int id) const;
 
-    unsigned int acquireId(Object *pObejct);
-    void releaseId(Object *pObject);
+    void add(Object *pObejct);
+    void remove(Object *pObject);
     void refresh();
 
     SSI_Status getSystemInfo(SSI_SystemInfo *) const;

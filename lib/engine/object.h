@@ -93,15 +93,6 @@ protected:
 /* */
 class ScopeObject : public Object {
 public:
-    ScopeObject(const ScopeObject &scopeObject)
-        : Object(scopeObject) {
-    }
-    ScopeObject() {
-    }
-    virtual ~ScopeObject() {
-    }
-
-public:
     virtual void getEndDevices(Container<EndDevice> &, bool) const {
         throw E_INVALID_SCOPE;
     }
@@ -130,26 +121,6 @@ public:
         return false;
     }
 };
-
-/* */
-inline bool operator != (const ScopeObject &object, SSI_ScopeType scopeType) {
-    return object.scopeTypeMatches(scopeType) == false;
-}
-
-/* */
-inline bool operator != (SSI_ScopeType scopeType, const ScopeObject &object) {
-    return object.scopeTypeMatches(scopeType);
-}
-
-/* */
-inline bool operator == (const ScopeObject &object, SSI_ScopeType scopeType) {
-    return object.scopeTypeMatches(scopeType);
-}
-
-/* */
-inline bool operator == (SSI_ScopeType scopeType, const ScopeObject &object) {
-    return object.scopeTypeMatches(scopeType);
-}
 
 /**
  */
@@ -233,7 +204,7 @@ public:
     virtual void discover() {
         throw E_INVALID_OPERATION;
     }
-    virtual void acquireId(Session *pSession) = 0;
+    virtual void addToSession(Session *pSession) = 0;
 };
 
 #endif /* __OBJECT_H__INCLUDED__ */

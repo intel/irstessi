@@ -62,7 +62,7 @@ public:
     void attachController(Controller *pController) {
         m_Controllers.add(pController);
     }
-    void acquireId(Session *pSession);
+    void addToSession(Session *pSession);
 
     virtual SSI_ControllerType getControllerType() const = 0;
     SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const;
