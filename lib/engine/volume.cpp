@@ -78,8 +78,9 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_pSourceDisk(NULL)
 {
     String temp;
+    File attr;
     try {
-        SysfsAttr attr = m_Path + "/md/level";
+        attr = m_Path + "/md/level";
         attr >> temp;
         if (temp == "raid0") {
             m_RaidLevel = 0;
@@ -103,7 +104,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     }
     if (m_State == SSI_VolumeStateUnknown) {
         try {
-            SysfsAttr attr = m_Path + "/md/array_state";
+            attr = m_Path + "/md/array_state";
             attr >> temp;
             if (temp == "readonly") {
                 m_State = SSI_VolumeStateLocked;
@@ -114,7 +115,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     }
     if (m_State == SSI_VolumeStateUnknown) {
         try {
-            SysfsAttr attr = m_Path + "/md/sync_action";
+            attr = m_Path + "/md/sync_action";
             attr >> temp;
             if (temp == "resync") {
                 m_State = SSI_VolumeStateInitializing;
@@ -141,7 +142,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     if (m_State == SSI_VolumeStateUnknown || m_State == SSI_VolumeStateNormal) {
     try {
         int degraded = 0;
-        SysfsAttr attr = m_Path + "/md/degraded";
+        attr = m_Path + "/md/degraded";
         attr >> degraded;
         if (degraded > 0) {
             switch (m_RaidLevel) {
@@ -171,25 +172,25 @@ Volume::Volume(const String &path, unsigned int ordinal)
     }
 
     try {
-        SysfsAttr attr = m_Path + "/md/array_size";
+        attr = m_Path + "/md/array_size";
         attr >> m_TotalSize;
     } catch (...) {
         // Intentionaly left blank
     }
     try {
-        SysfsAttr attr = m_Path + "/md/chunk_size";
+        attr = m_Path + "/md/chunk_size";
         attr >> m_StripSize;
     } catch (...) {
         // Intentionaly left blank
     }
     try {
-        SysfsAttr attr = m_Path + "/md/mismatch_cnt";
+        attr = m_Path + "/md/mismatch_cnt";
         attr >> m_MismatchCount;
     } catch (...) {
         // Intentionaly left blank
     }
     try {
-        SysfsAttr attr = m_Path + "/md/component_size";
+        attr = m_Path + "/md/component_size";
         attr >> m_ComponentSize;
     } catch (...) {
         // Intentionaly left blank
@@ -290,7 +291,7 @@ SSI_Status Volume::markAsNormal()
 /* */
 SSI_Status Volume::verify(bool repair)
 {
-    SysfsAttr attr = m_Path + "/md/sync_action";
+    File attr = m_Path + "/md/sync_action";
     try {
         if (repair) {
             attr << "repair";
@@ -306,7 +307,7 @@ SSI_Status Volume::verify(bool repair)
 /* */
 SSI_Status Volume::cancelVerify()
 {
-    SysfsAttr attr = m_Path + "/md/sync_action";
+    File attr = m_Path + "/md/sync_action";
     try {
         attr << "idle";
     } catch (...) {

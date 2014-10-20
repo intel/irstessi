@@ -43,7 +43,7 @@ ISCI_Disk::ISCI_Disk(const String &path)
     Path end_path = path.reverse_left("/");
     end_path = end_path.reverse_left("/");
     Directory dir(end_path + "/sas_device");
-    SysfsAttr attr;
+    File attr;
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
         try {

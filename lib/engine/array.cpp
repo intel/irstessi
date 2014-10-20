@@ -53,7 +53,7 @@ Array::Array(const String &path)
     Directory dir("/sys/devices/virtual/block");
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
-        SysfsAttr attr = *(*i) + "md/metadata_version";
+        File attr = *(*i) + "md/metadata_version";
         try {
             attr >> metadata;
         } catch (...) {

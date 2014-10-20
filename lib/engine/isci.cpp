@@ -56,7 +56,7 @@ ISCI::ISCI(const String &path)
 void ISCI::discover()
 {
     Directory dir(m_Path, "host");
-    SysfsAttr attr;
+    File attr;
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
         unsigned int number = 0;

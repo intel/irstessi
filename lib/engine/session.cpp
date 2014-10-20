@@ -66,7 +66,7 @@ Session::Session()
     foreach (i, dirs) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            SysfsAttr attr;
+            File attr;
             String vendor;
             attr = *(*i) + "vendor";
             try {
@@ -354,7 +354,7 @@ void Session::__internal_attach_imsm_device(const String &path)
     if (temp) {
         String metadata;
         try {
-            SysfsAttr attr = temp;
+            File attr = temp;
             attr >> metadata;
         } catch (...) {
         }

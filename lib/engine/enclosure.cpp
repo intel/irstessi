@@ -44,21 +44,22 @@ Enclosure::Enclosure(const String &path)
       m_LogicalId("")
 {
     CanonicalPath temp;
+    File attr;
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
 
     try {
-        SysfsAttr attr = m_Path + "/vendor";
+        attr = m_Path + "/vendor";
         attr >> m_VendorId;
     } catch (...) {
     }
     try {
-        SysfsAttr attr = m_Path + "/model";
+        attr = m_Path + "/model";
         attr >> m_ProductId;
     } catch (...) {
     }
     try {
-        SysfsAttr attr = m_Path + "/rev";
+        attr = m_Path + "/rev";
         attr >> m_Rev;
     } catch (...) {
     }
@@ -66,7 +67,7 @@ Enclosure::Enclosure(const String &path)
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
         try {
-            SysfsAttr attr =  *(*i) + "components";
+            attr =  *(*i) + "components";
             attr >> m_SlotCount;
         } catch (...) {
         }

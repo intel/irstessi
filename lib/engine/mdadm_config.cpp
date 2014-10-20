@@ -44,7 +44,7 @@ static bool correct_config(String &config) {
 
 static int write_config(String file, String &config)
 {
-    SysfsAttr attr = file;
+    File attr = file;
     try {
         attr << config;
     } catch (...) {
@@ -61,7 +61,7 @@ static void backup_config(String &config)
 
 static int restart_monitor()
 {
-    SysfsAttr attr = String("/var/run/mdadm/autorebuild.pid");
+    File attr = String("/var/run/mdadm/autorebuild.pid");
     String pid, s = "ssimsg";
     try {
         attr >> pid;
@@ -81,7 +81,7 @@ static int restart_monitor()
 
 static bool monitor_running()
 {
-    SysfsAttr attr = String("/var/run/mdadm/autorebuild.pid");
+    File attr = String("/var/run/mdadm/autorebuild.pid");
     String pid, buffer;
     try {
         attr >> pid;
@@ -107,7 +107,7 @@ static bool monitor_running()
 /* */
 void check_configuration()
 {
-    SysfsAttr attr = String(MDADM_CONFIG_PATH);
+    File attr = String(MDADM_CONFIG_PATH);
     String config;
     bool configOk = false;
     bool backup = true;

@@ -115,14 +115,15 @@ EndDevice::EndDevice(const String &path)
     }
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
+    File attr;
 
     try {
-        SysfsAttr attr = m_Path + "/vendor";
+        attr = m_Path + "/vendor";
         attr >> m_Model;
     } catch (...) {
     }
     try {
-        SysfsAttr attr = m_Path + "/model";
+        attr = m_Path + "/model";
         String tmp;
         attr >> tmp;
         if (m_Model == "ATA")
@@ -133,7 +134,7 @@ EndDevice::EndDevice(const String &path)
     }
 
     try {
-        SysfsAttr attr = m_Path + "/rev";
+        attr = m_Path + "/rev";
         attr >> m_Firmware;
     } catch (...) {
     }

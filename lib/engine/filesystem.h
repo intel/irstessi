@@ -83,6 +83,9 @@ private:
 /* */
 class File : public Path {
 public:
+    File()
+        : Path(""), m_pContent(NULL), m_ContentCapacity(0), m_ContentSize(0) {
+    }
     File(const String &path)
         : Path(path), m_pContent(NULL), m_ContentCapacity(0), m_ContentSize(0) {
     }
@@ -223,14 +226,6 @@ inline File & operator >> (File &file, unsigned short &value) {
 inline File & operator >> (File &file, short &value) {
     file.read(value); return file;
 }
-
-/* */
-class SysfsAttr : public File {
-public:
-    SysfsAttr(const String &path = "")
-        : File(path) {
-    }
-};
 
 /* like File but writing appends to file */
 class AFile : public File {

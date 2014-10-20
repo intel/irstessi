@@ -87,7 +87,7 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
     if (var_path  == "")
         return NULL;
     try {
-        SysfsAttr attr = var_path + "size";
+        File attr = var_path + "size";
         attr >> size;
     } catch (...) {
     }
@@ -95,7 +95,7 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
         return NULL;
     data = new struct orom_info;
     try {
-        SysfsAttr attr = var_path + "data";
+        File attr = var_path + "data";
         attr.read(data, size);
     } catch (...) {
         delete data;

@@ -142,7 +142,7 @@ void Phy::setProperties()
         dirs = dir.dirs();
         foreach (i, dirs) {
             try {
-                SysfsAttr attr;
+                File attr;
                 String protocol;
                 attr = *(*i) + "target_port_protocols";
                 attr >> protocol;
@@ -155,7 +155,7 @@ void Phy::setProperties()
         dir = m_Path + "/sas_phy";
         dirs = dir.dirs();
         foreach (i, dirs) {
-            SysfsAttr attr;
+            File attr;
             String linkrate;
             try {
                 String protocol;

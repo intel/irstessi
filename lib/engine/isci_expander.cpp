@@ -53,7 +53,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
       m_SASAddress(0)
 {
     Directory dir(m_Path + "/sas_device");
-    SysfsAttr attr;
+    File attr;
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
         try {

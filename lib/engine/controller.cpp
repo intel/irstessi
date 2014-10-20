@@ -66,7 +66,7 @@ Controller::Controller(const String &path)
       m_DiskUnlock(false),
       m_PatrolReadSupport(false)
 {
-    SysfsAttr attr;
+    File attr;
     struct PCIHeader pciInfo;
 
     try {

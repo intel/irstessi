@@ -64,7 +64,7 @@ AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, StorageObject *pPare
 {
     m_Protocol = SSI_PhyProtocolSATA;
     try {
-        SysfsAttr attr = m_PhyPath + "/unique_id";
+        File attr = m_PhyPath + "/unique_id";
         String id;
         attr >> id;
         dlog(id);
