@@ -324,16 +324,6 @@ protected:
     String m_Filter;
 };
 
-/* */
-class Tokenizer : public File {
-public:
-    Tokenizer(const String &path);
-    ~Tokenizer();
-
-private:
-    std::list<String *> m_Tokens;
-};
-
 #endif /* __FILESYSTEM_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
