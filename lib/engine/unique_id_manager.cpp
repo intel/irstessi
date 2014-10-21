@@ -87,12 +87,12 @@ void UniqueIdManager::add(Object *pObject)
         m_cache[id] = key;
 
         if (!(dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject) || key == "")) {
-            AFile keyFile(String(SSI_IDKEY_FILE));
+            File keyFile(String(SSI_IDKEY_FILE));
             try {
                 char s[11];
                 sprintf(s, "0x%x", id);
                 String idkey = String(s) + String(":") + key + String("\n");
-                keyFile << idkey;
+                keyFile.write(idkey, true);
             } catch (...) {
                 dlog("failed to store id:key");
             }

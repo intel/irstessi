@@ -135,11 +135,11 @@ public:
         value = static_cast<unsigned short>(__internal_to_ulonglong());
     }
 
-    virtual void write(const String &s) {
-        __internal_write(const_cast<char *>(s.get()), s.size());
+    virtual void write(const String &s, bool append = false) {
+        __internal_write(const_cast<char *>(s.get()), s.size(), append);
     }
-    virtual void write(void *buffer, unsigned int size) {
-        __internal_write(reinterpret_cast<char *>(buffer), size);
+    virtual void write(void *buffer, unsigned int size, bool append = false) {
+        __internal_write(reinterpret_cast<char *>(buffer), size, append);
     }
     virtual void write(long long value) {
         write(String(value));
@@ -172,7 +172,7 @@ private:
     void __internal_read_from_physical_fs(int fd, unsigned long long size);
     void __internal_realloc_content(unsigned long long size, bool copy = true);
     void __internal_read_from_virtual_fs(int fd);
-    virtual void __internal_write(char *buffer, unsigned long long size);
+    virtual void __internal_write(char *buffer, unsigned long long size, bool append);
     bool __internal_exists();
 
 protected:
@@ -224,16 +224,6 @@ inline File & operator >> (File &file, unsigned short &value) {
 inline File & operator >> (File &file, short &value) {
     file.read(value); return file;
 }
-
-/* like File but writing appends to file */
-class AFile : public File {
-public:
-	AFile(const String &path = "")
-        : File(path) {
-    }
-private:
-	void __internal_write(char *buffer, unsigned long long size);
-};
 
 /* */
 class Directory : public Path {

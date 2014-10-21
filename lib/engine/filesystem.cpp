@@ -236,9 +236,15 @@ long long File::__internal_to_longlong()
 }
 
 /* */
-void File::__internal_write(char *buffer, unsigned long long size)
+void File::__internal_write(char *buffer, unsigned long long size, bool append)
 {
-    int fd = open(get(), O_WRONLY | O_TRUNC | O_NONBLOCK | O_CREAT);
+    int write_flags = 0;
+    if (append) {
+        write_flags = (O_WRONLY | O_APPEND | O_CREAT);
+    } else {
+        write_flags =  (O_WRONLY | O_TRUNC | O_NONBLOCK | O_CREAT);
+    }
+    int fd = open(get(), write_flags);
     if (fd < 0) {
         throw errno_to_exception_code(errno);
     }
@@ -254,20 +260,6 @@ bool File::__internal_exists()
 {
     struct stat buf;
     return stat(get(), &buf) == 0;
-}
-
-/* */
-void AFile::__internal_write(char *buffer, unsigned long long size)
-{
-    int fd = open(get(), O_WRONLY | O_APPEND | O_CREAT);
-    if (fd < 0) {
-        throw errno_to_exception_code(errno);
-    }
-    unsigned long long bytes;
-    do {
-        bytes = ::write(fd, buffer, size);
-    } while (bytes == -1ULL && errno == EAGAIN);
-    close(fd);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
