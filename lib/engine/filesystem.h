@@ -179,8 +179,6 @@ protected:
     unsigned char *m_pContent;
     unsigned long long m_ContentCapacity;
     unsigned long long m_ContentSize;
-
-    friend class SysfsAttr;
 };
 
 inline File & operator << (File &file, const String &s) {
