@@ -16,9 +16,9 @@ AM_INIT_AUTOMAKE(ssi, ${VERSION})
 AM_CONFIG_HEADER(config.h)
 
 dnl Set the language we use
-CPPFLAGS="-g3 -gdwarf-2 -Wall -Werror -D_GNU_SOURCE"
+CPPFLAGS="-g3 -gdwarf-2 -Wall -Werror -fvisibility=hidden -D_GNU_SOURCE"
 CFLAGS="-std=gnu99"
-CXXFLAGS="-std=gnu++98"
+CXXFLAGS="-std=gnu++98 -fvisibility-inlines-hidden"
 
 dnl Automake 1.11 - silent build rules
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])

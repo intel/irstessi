@@ -36,6 +36,7 @@ extern "C" {
 
 #else
 #define SSI_API
+#pragma GCC visibility push(default)
 #endif
 
 /**
@@ -1935,6 +1936,9 @@ SSI_API SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle, SSI_StorageArea 
 **/
 SSI_API SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable);
 
+#ifndef _MSC_VER
+#pragma GCC visibility pop
+#endif
 
 #ifdef __cplusplus
 }
