@@ -362,7 +362,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));
     pInfo->raidLevel = ui2raidlevel(m_RaidLevel);
     pInfo->state = m_State;
-    pInfo->totalSize = (m_ComponentSize << 10) * m_BlockDevices.size();
+    pInfo->totalSize = m_TotalSize << 10;
     pInfo->stripSize = ui2stripsize(m_StripSize);
     pInfo->numDisks = m_BlockDevices.size();
     pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
