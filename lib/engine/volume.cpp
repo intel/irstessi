@@ -68,6 +68,8 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_TotalSize(0),
       m_RaidLevel(-1U),
       m_MigrationProgress(0),
+      m_LogicalSectorSize(0),
+      m_PhysicalSectorSize(0),
       m_WriteThrough(false),
       m_CachingEnabled(false),
       m_SystemVolume(false),
@@ -203,6 +205,18 @@ Volume::Volume(const String &path, unsigned int ordinal)
         } catch (...) {
             // Intentionaly left blank
         }
+    }
+    try {
+        SysfsAttr attr = m_Path + "/queue/logical_block_size";
+        attr >> m_LogicalSectorSize;
+    } catch (...) {
+        // Intentionaly left blank
+    }
+    try {
+        SysfsAttr attr = m_Path + "/queue/physical_block_size";
+        attr >> m_PhysicalSectorSize;
+    } catch (...) {
+        // Intentionaly left blank
     }
 }
 
@@ -374,10 +388,10 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     }
     pInfo->systemVolume = m_SystemVolume ? SSI_TRUE : SSI_FALSE;
     pInfo->initialized = m_State != SSI_VolumeStateInitializing ? SSI_TRUE : SSI_FALSE;
-    pInfo->logicalSectorSize = 0;
+    pInfo->logicalSectorSize = m_LogicalSectorSize;
     pInfo->verifyErrors = m_MismatchCount;
     pInfo->verifyBadBlocks = 0;
-    pInfo->physicalSectorSize = 0;
+    pInfo->physicalSectorSize = m_PhysicalSectorSize;
 
     return SSI_StatusOk;
 }

@@ -60,6 +60,8 @@ protected:
     unsigned long long m_TotalSize;
     unsigned int m_RaidLevel;
     unsigned int m_MigrationProgress;
+    unsigned int m_LogicalSectorSize;
+    unsigned int m_PhysicalSectorSize;
     bool m_WriteThrough;
     bool m_CachingEnabled;
     bool m_SystemVolume;
