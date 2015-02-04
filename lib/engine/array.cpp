@@ -399,8 +399,8 @@ void Array::attachVolume(Volume *pVolume)
 /* */
 void Array::__internal_determine_total_and_free_size()
 {
-    unsigned int totalSectors = -1U;
-    foreach (i, m_BlockDevices) {
+    unsigned long long int totalSectors = -1ULL;
+    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
         totalSectors = min(totalSectors, (*i)->getSectors());
     }
     m_TotalSize = ((totalSectors * m_BlockDevices.size()) * 512);
