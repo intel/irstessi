@@ -399,19 +399,30 @@ void Array::attachVolume(Volume *pVolume)
 /* */
 void Array::__internal_determine_total_and_free_size()
 {
-    unsigned long long int totalSectors = -1ULL;
+    unsigned long long int totalSize = -1ULL;
     for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
-        totalSectors = min(totalSectors, (*i)->getSectors());
+        totalSize = min(totalSize, (*i)->getTotalSize());
     }
-    m_TotalSize = ((totalSectors * m_BlockDevices.size()) * 512);
-    unsigned long long occupiedSectors = 0;
-    foreach (i, m_Volumes) {
-        occupiedSectors += (*i)->getComponentSize();
+    m_TotalSize = (totalSize * m_BlockDevices);
+    unsigned long long occupiedSize = 0;
+    unsigned int stripSize = 0;
+    int volumeCount = 0;
+    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+        occupiedSize += (unsigned long long) (*i)->getComponentSize() << 10;
+        occupiedSize += IMSM_RESERVED_SECTORS * RAID_SECTOR_SIZE;
+        stripSize = (*i)->getStripSize();
+        volumeCount++;
+
     }
-    if (occupiedSectors > 0) {
-        occupiedSectors = ((occupiedSectors * 1000) / 512) * m_BlockDevices.size();
+    if (occupiedSize > 0) {
+        occupiedSize += MPB_SECTOR_CNT * RAID_SECTOR_SIZE;
+        occupiedSize = occupiedSize * m_BlockDevices;
     }
-    m_FreeSize = (m_TotalSize - (occupiedSectors * 512));
+    m_FreeSize = m_TotalSize - occupiedSize;
+
+    if ((m_FreeSize < stripSize) || (volumeCount > 1)) {
+        m_FreeSize = 0;
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -18,7 +18,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #if __GNUC_PREREQ(3, 4)
 #pragma once
 #endif /* __GNUC_PREREQ */
-
+#include "end_device.h"
+#include "block_device.h"
 // Forward declarations
 class Array;
 class EndDevice;
@@ -54,14 +55,10 @@ public:
     void create();
 
     // Volume
-
 protected:
     unsigned int m_Ordinal;
-    unsigned long long m_TotalSize;
     unsigned int m_RaidLevel;
     unsigned int m_MigrationProgress;
-    unsigned int m_LogicalSectorSize;
-    unsigned int m_PhysicalSectorSize;
     bool m_WriteThrough;
     bool m_CachingEnabled;
     bool m_SystemVolume;
@@ -69,6 +66,7 @@ protected:
     unsigned int m_StripSize;
     unsigned long long m_ComponentSize;
     SSI_VolumeState m_State;
+    BlockDevice blk;
     BlockDevice *m_pSourceDisk;
 
 public:
@@ -94,6 +92,9 @@ public:
 
     SSI_VolumeState getState() const {
         return m_State;
+    }
+    unsigned int getStripSize() const {
+        return m_StripSize;
     }
     unsigned long long getComponentSize() const {
         return m_ComponentSize;

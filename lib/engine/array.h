@@ -22,6 +22,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __ARRAY_H__INCLUDED__
 #define __ARRAY_H__INCLUDED__
 
+#define MPB_SECTOR_CNT 2210
+#define IMSM_RESERVED_SECTORS 4096
+#define RAID_SECTOR_SIZE 512
+
+
 // forward declaration
 class Volume;
 class BlockDevice;

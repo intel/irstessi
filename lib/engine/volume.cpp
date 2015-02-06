@@ -47,7 +47,6 @@ unsigned int stripsize2ui(SSI_StripSize chunk);
 /* */
 Volume::Volume() : RaidDevice(),
       m_Ordinal(-1U),
-      m_TotalSize(0),
       m_RaidLevel(-1U),
       m_MigrationProgress(0),
       m_WriteThrough(false),
@@ -57,7 +56,8 @@ Volume::Volume() : RaidDevice(),
       m_StripSize(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
-      m_pSourceDisk(NULL)
+      blk(0),
+      m_pSourceDisk(0)
 {
 }
 
@@ -65,11 +65,8 @@ Volume::Volume() : RaidDevice(),
 Volume::Volume(const String &path, unsigned int ordinal)
     : RaidDevice(path),
       m_Ordinal(ordinal),
-      m_TotalSize(0),
       m_RaidLevel(-1U),
       m_MigrationProgress(0),
-      m_LogicalSectorSize(0),
-      m_PhysicalSectorSize(0),
       m_WriteThrough(false),
       m_CachingEnabled(false),
       m_SystemVolume(false),
@@ -77,7 +74,8 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_StripSize(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
-      m_pSourceDisk(NULL)
+      blk(path),
+      m_pSourceDisk(0)
 {
     String temp;
     File attr;
@@ -174,13 +172,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     }
 
     try {
-        attr = m_Path + "/md/array_size";
-        attr >> m_TotalSize;
-    } catch (...) {
-        // Intentionaly left blank
-    }
-    try {
-        attr = m_Path + "/md/chunk_size";
+        SysfsAttr attr = m_Path + "/md/chunk_size";
         attr >> m_StripSize;
     } catch (...) {
         // Intentionaly left blank
@@ -205,18 +197,6 @@ Volume::Volume(const String &path, unsigned int ordinal)
         } catch (...) {
             // Intentionaly left blank
         }
-    }
-    try {
-        SysfsAttr attr = m_Path + "/queue/logical_block_size";
-        attr >> m_LogicalSectorSize;
-    } catch (...) {
-        // Intentionaly left blank
-    }
-    try {
-        SysfsAttr attr = m_Path + "/queue/physical_block_size";
-        attr >> m_PhysicalSectorSize;
-    } catch (...) {
-        // Intentionaly left blank
     }
 }
 
@@ -376,7 +356,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));
     pInfo->raidLevel = ui2raidlevel(m_RaidLevel);
     pInfo->state = m_State;
-    pInfo->totalSize = m_TotalSize << 10;
+    pInfo->totalSize = blk.getTotalSize();
     pInfo->stripSize = ui2stripsize(m_StripSize);
     pInfo->numDisks = m_BlockDevices.size();
     pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
@@ -388,10 +368,10 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     }
     pInfo->systemVolume = m_SystemVolume ? SSI_TRUE : SSI_FALSE;
     pInfo->initialized = m_State != SSI_VolumeStateInitializing ? SSI_TRUE : SSI_FALSE;
-    pInfo->logicalSectorSize = m_LogicalSectorSize;
+    pInfo->logicalSectorSize = blk.getLogicalSectorSize();
     pInfo->verifyErrors = m_MismatchCount;
     pInfo->verifyBadBlocks = 0;
-    pInfo->physicalSectorSize = m_PhysicalSectorSize;
+    pInfo->physicalSectorSize = blk.getPhysicalSectorSize();
 
     return SSI_StatusOk;
 }

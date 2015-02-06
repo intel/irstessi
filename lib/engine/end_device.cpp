@@ -85,6 +85,8 @@ EndDevice::EndDevice(const String &path)
       m_TotalSize(0),
       m_BlockSize(0),
       m_BlocksFree(0),
+      m_LogicalSectorSize(0),
+      m_PhysicalSectorSize(0),
       m_SASAddress(0),
       m_WriteCachePolicy(SSI_WriteCachePolicyOff)
 {
@@ -113,6 +115,10 @@ EndDevice::EndDevice(const String &path)
             break;
         }
     }
+    if (!m_DevName) {
+        m_DevName = m_Path.reverse_after("/");
+    }
+
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
     File attr;
@@ -139,13 +145,32 @@ EndDevice::EndDevice(const String &path)
     } catch (...) {
     }
 
+    try {
+        SysfsAttr attr = "/sys/class/block/" + m_DevName + "/queue/logical_block_size";
+        attr >> m_LogicalSectorSize;
+    } catch (...) {
+    }
+
+    try {
+        SysfsAttr attr = "/sys/class/block/" + m_DevName + "/queue/physical_block_size";
+        attr >> m_PhysicalSectorSize;
+    } catch (...) {
+    }
+
+    try {
+        SysfsAttr attr =  "/sys/class/block/" + m_DevName + "/size";
+        attr >> m_BlockSize;
+        m_TotalSize = (unsigned long long) m_BlockSize * m_LogicalSectorSize;
+    } catch (...) {
+    }
+
     getAtaDiskInfo("/dev/"+ m_DevName, m_Model, m_SerialNum, m_Firmware);
     m_SerialNum.trim();
     m_Model.trim();
     m_Firmware.trim();
 
     unsigned char buffer[4096];
-    bool hdioNotSupported = true, totalSizeNotSupported = false;
+    bool hdioNotSupported = true;
 
     int fd = open("/dev/" + m_DevName, O_RDONLY | O_NONBLOCK);
     if (fd >= 0) {
@@ -155,24 +180,11 @@ EndDevice::EndDevice(const String &path)
         m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
         m_SerialNum.trim();
         }
-            m_BlockSize = id.lba_capacity_2;
             if ((id.command_set_1 & id.cfs_enable_1) != 0) {
                 m_WriteCachePolicy = SSI_WriteCachePolicyOn;
             }
             hdioNotSupported = false;
         }
-#ifdef BLKGETSIZE64
-        if (ioctl(fd, BLKGETSIZE64, &m_TotalSize) < 0) {
-#endif /* BLKGETSIZE64 */
-            unsigned int totalSize;
-            if (ioctl(fd, BLKGETSIZE, &totalSize) < 0) {
-                totalSizeNotSupported = true;
-            } else {
-                m_TotalSize = totalSize; m_TotalSize *= 512;
-            }
-#ifdef BLKGETSIZE64
-        }
-#endif /* BLKGETSIZE64 */
         close(fd);
     }
     fd = sg_cmds_open_device("/dev/" + m_SgName, 0, 0);
@@ -187,15 +199,6 @@ EndDevice::EndDevice(const String &path)
                 if ((*(buffer + SCSI_SENSE_DISK_CACHE_OFFSET) & SCSI_SENSE_DISK_CACHE_MASK) != 0) {
                     m_WriteCachePolicy = SSI_WriteCachePolicyOn;
                 }
-            }
-        }
-        if (totalSizeNotSupported) {
-            if (sg_ll_readcap_10(fd, 0, 0, buffer, sizeof(buffer), 1, 0) == 0) {
-                m_BlockSize = sg_make_int(buffer);
-                if (m_BlockSize == UINT_MAX) {
-                    m_BlockSize = sg_make_int(buffer + 4);
-                }
-                m_BlockSize++;
             }
         }
         sg_cmds_close_device(fd);

@@ -75,6 +75,8 @@ protected:
     unsigned long long m_TotalSize;
     unsigned int m_BlockSize;
     unsigned int m_BlocksFree;
+    unsigned int m_LogicalSectorSize;
+    unsigned int m_PhysicalSectorSize;
     unsigned long long m_SASAddress;
     SSI_ScsiAddress m_SCSIAddress;
     SSI_WriteCachePolicy m_WriteCachePolicy;
@@ -88,6 +90,18 @@ public:
         return m_pParent ? m_pParent->getController() : NULL;
     }
     SSI_Status locate(bool mode);
+
+    unsigned long long getTotalSize(){
+        return m_TotalSize;
+    }
+
+    unsigned int getLogicalSectorSize(){
+        return m_LogicalSectorSize;
+    }
+
+    unsigned int getPhysicalSectorSize(){
+        return m_PhysicalSectorSize;
+    }
 
     String getSerialNum() const {
         return m_SerialNum;
