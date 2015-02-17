@@ -82,10 +82,7 @@ public:
     SSI_Status modify(SSI_StripSize chunkSize, SSI_RaidLevel raidLevel,
         unsigned long long newSize, const Container<EndDevice> &disks);
 
-    void setComponentSize(unsigned long long size) {
-        m_ComponentSize = size;
-    }
-
+    void setComponentSize(unsigned long long size, unsigned long long diskCount, SSI_RaidLevel level);
     void setStripSize(SSI_StripSize stripSize);
     void setSourceDisk(EndDevice *pEndDevice);
     void setRaidLevel(SSI_RaidLevel raidLevel);

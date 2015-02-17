@@ -463,6 +463,32 @@ void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
     }
 }
 
+/* Convert total Volume size to component size and set it */
+void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long diskCount, SSI_RaidLevel level)
+{
+    unsigned long long divider = 1;
+    switch (level) {
+    case SSI_Raid0:
+        divider = diskCount;
+        break;
+    case SSI_Raid1:
+        divider = 1;
+        break;
+    case SSI_Raid10:
+        divider = 2;
+        break;
+    case SSI_Raid5:
+        divider = diskCount - 1;
+        break;
+    case SSI_Raid6:
+        divider = diskCount - 2;
+        break;
+    default:
+        throw E_INVALID_RAID_LEVEL;
+    }
+    m_ComponentSize = volumeSize / divider;
+}
+
 /* */
 void Volume::setStripSize(SSI_StripSize stripSize)
 {
