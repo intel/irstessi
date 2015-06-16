@@ -517,6 +517,8 @@ typedef enum _SSI_ControllerType
     SSI_ControllerTypeAHCI    = 1,
     /** SCU (SAS) controller */
     SSI_ControllerTypeSCU     = 2,
+    /** NVMe controller **/
+    SSI_ControllerTypeNVME    = 3
 } SSI_ControllerType;
 
 /**
@@ -627,7 +629,9 @@ typedef enum _SSI_PhyProtocol
     /** Serial tunneling protocol */
     SSI_PhyProtocolSTP     = 3,
     /** Serial SCSI protocol */
-    SSI_PhyProtocolSSP     = 4
+    SSI_PhyProtocolSSP     = 4,
+    /** NVMe protocol */
+    SSI_PhyProtocolNVME = 5
 } SSI_PhyProtocol;
 
 /**
@@ -792,7 +796,9 @@ typedef enum _SSI_DiskType
     /** SATA disk */
     SSI_DiskTypeSATA    = 1,
     /** SAS disk */
-    SSI_DiskTypeSAS     = 2
+    SSI_DiskTypeSAS     = 2,
+    /** NVMe disk */
+    SSI_DiskTypeNVME    = 3
 } SSI_DiskType;
 
 /**

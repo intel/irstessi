@@ -48,6 +48,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session_manager.h"
 #include "ahci.h"
 #include "isci.h"
+#include "nvme.h"
 #include "context_manager.h"
 #include "array.h"
 #include "volume.h"
@@ -90,6 +91,27 @@ Session::Session()
             ISCI *pISCI = new ISCI(CanonicalPath(*(*i)));
             pISCI->discover();
             pISCI->addToSession(this);
+        }
+    }
+    dir = "/sys/bus/pci/drivers/nvme";
+    dirs = dir.dirs();
+    foreach (i, dirs) {
+        CanonicalPath path = *(*i) + "driver";
+        if (path == dir) {
+            File attr;
+            String vendor;
+            attr = *(*i) + "vendor";
+            try {
+                attr >> vendor;
+                if (vendor != "0x8086")
+                    continue;
+            } catch (...) {
+                /* TODO log that vendor cannot be read from filesystem */
+                continue;
+            }
+            NVME *pNVME = new NVME(CanonicalPath(*(*i)));
+            pNVME->discover();
+            pNVME->addToSession(this);
         }
     }
     foreach (i, m_Controllers) {

@@ -76,6 +76,14 @@ libengine_la_SOURCES =          \
         mdadm_config.h          \
         multimedia_device.h     \
         nondisk_device.h        \
+        nvme_disk.cpp           \
+        nvme_disk.h             \
+        nvme_phy.cpp            \
+        nvme_phy.h              \
+        nvme_port.cpp           \
+        nvme_port.h             \
+        nvme.cpp                \
+        nvme.h                  \
         object.cpp              \
         object.h                \
         pci_header.h            \
