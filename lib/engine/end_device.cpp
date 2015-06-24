@@ -115,10 +115,10 @@ EndDevice::EndDevice(const String &path)
             break;
         }
     }
+
     if (!m_DevName) {
         m_DevName = m_Path.reverse_after("/");
     }
-
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
     File attr;
