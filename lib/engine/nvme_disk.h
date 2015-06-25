@@ -28,24 +28,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define NVME_ADMIN_IDENTIFY_OPT_CODE 0x06
 #define NVME_IOCTL_ADMIN_CMD	_IOWR('N', 0x41, struct nvme_admin_cmd)
 
-struct nvme_id_power_state {
-	__le16			max_power;	/* centiwatts */
-	__u8			rsvd2;
-	__u8			flags;
-	__le32			entry_lat;	/* microseconds */
-	__le32			exit_lat;	/* microseconds */
-	__u8			read_tput;
-	__u8			read_lat;
-	__u8			write_tput;
-	__u8			write_lat;
-	__le16			idle_power;
-	__u8			idle_scale;
-	__u8			rsvd19;
-	__le16			active_power;
-	__u8			active_work_scale;
-	__u8			rsvd23[9];
-};
-
 struct nvme_admin_cmd {
 	__u8	opcode;
 	__u8	flags;
@@ -68,57 +50,11 @@ struct nvme_admin_cmd {
 };
 
 struct nvme_id_ctrl {
-	__le16			vid;
-	__le16			ssvid;
+	__u8			rsvd1[4];
 	char			sn[20];
 	char			mn[40];
 	char			fr[8];
-	__u8			rab;
-	__u8			ieee[3];
-	__u8			cmic;
-	__u8			mdts;
-	__u16			cntlid;
-	__le32			ver;
-	__le32			rtd3r;
-	__le32			rtd3e;
-	__le32			oaes;
-	__u8			rsvd96[160];
-	__le16			oacs;
-	__u8			acl;
-	__u8			aerl;
-	__u8			frmw;
-	__u8			lpa;
-	__u8			elpe;
-	__u8			npss;
-	__u8			avscc;
-	__u8			apsta;
-	__le16			wctemp;
-	__le16			cctemp;
-	__le16			mtfa;
-	__le32			hmpre;
-	__le32			hmmin;
-	__u8			tnvmcap[16];
-	__u8			unvmcap[16];
-	__le32			rpmbs;
-	__u8			rsvd316[196];
-	__u8			sqes;
-	__u8			cqes;
-	__u8			rsvd514[2];
-	__le32			nn;
-	__le16			oncs;
-	__le16			fuses;
-	__u8			fna;
-	__u8			vwc;
-	__le16			awun;
-	__le16			awupf;
-	__u8			nvscc;
-	__u8			rsvd531;
-	__le16			acwu;
-	__u8			rsvd534[2];
-	__le32			sgls;
-	__u8			rsvd540[1508];
-	struct nvme_id_power_state	psd[32];
-	__u8			vs[1024];
+	__u8			rsvd2[4024];
 };
 
 /* */
