@@ -88,7 +88,10 @@ EndDevice::EndDevice(const String &path)
       m_LogicalSectorSize(0),
       m_PhysicalSectorSize(0),
       m_SASAddress(0),
-      m_WriteCachePolicy(SSI_WriteCachePolicyOff)
+      m_WriteCachePolicy(SSI_WriteCachePolicyOff),
+      m_ledState(0),
+      m_systemIoBusNumer(0),
+      m_PCISlotNumber(0)
 {
     m_pPhy = new Phy(path, 0, this);
     m_pPort = new RemotePort(path);
@@ -332,6 +335,9 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->slotNumber = getSlotNumber();
     pInfo->locateLEDSupport = SSI_FALSE;
     pInfo->isPreBootVisible = pEnclosure?SSI_FALSE:SSI_TRUE;
+    pInfo->ledState = m_ledState;
+    pInfo->systemIoBusNumber = m_systemIoBusNumer;
+    pInfo->PCISlotNumber = m_PCISlotNumber;
 
     return SSI_StatusOk;
 }

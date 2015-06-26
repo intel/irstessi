@@ -80,6 +80,9 @@ protected:
     unsigned long long m_SASAddress;
     SSI_ScsiAddress m_SCSIAddress;
     SSI_WriteCachePolicy m_WriteCachePolicy;
+    unsigned int m_ledState;
+    unsigned long long m_systemIoBusNumer;
+    unsigned long long m_PCISlotNumber;
 
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
     void copy2le(char *dest, const char *src, size_t n);

@@ -302,6 +302,9 @@ int main(int argc, char *argv[])
                         cout << "\twriteCachePolicy: " << edInfo.writeCachePolicy << endl;
                         cout << "\tlocateLEDSupport: " << edInfo.locateLEDSupport << endl;
                         cout << "\tisPreBootVisible: " << edInfo.isPreBootVisible << endl;
+                        cout << "\tledState: " << edInfo.ledState << endl;
+                        cout << "\tsystemIoBusNumber: " << edInfo.systemIoBusNumber << endl;
+                        cout << "\tPCISlotNumber: " << edInfo.PCISlotNumber << endl;
                     } else {
                         cout << "E: unable to get end device info (status=" << statusStr[status] << ")" << endl;
                     }

@@ -905,6 +905,12 @@ typedef struct _SSI_EndDeviceInfo
     SSI_Bool locateLEDSupport;
     /** If true, disk is visible to PreBoot OROM or EFI */
     SSI_Bool isPreBootVisible;
+    /*  Led state */
+    SSI_Uint32 ledState;
+    /** PCI Bus number */
+    SSI_Uint64 systemIoBusNumber;
+    /** PCI Slot number */
+    SSI_Uint64 PCISlotNumber;
 } SSI_EndDeviceInfo;
 
 /**
