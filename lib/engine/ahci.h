@@ -39,7 +39,7 @@ protected:
     SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeAHCI;
     }
-    RaidInfo *findRaidInfo();
+    RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
 };
 
 #endif /* __AHCI_H__INCLUDED__ */

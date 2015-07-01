@@ -15,43 +15,32 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-#if defined(HAVE_CONFIG_H)
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#if __GNUC_PREREQ(3, 4)
+#pragma once
+#endif /* __GNUC_PREREQ */
 
-#include <features.h>
-#include <asm/types.h>
-#include <cstddef>
-#include <typeinfo>
-
-#include <ssi.h>
-#include <orom/orom.h>
-
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "controller.h"
-#include "ahci.h"
-#include "raid_info.h"
-#include "ahci_raid_info.h"
-#include "utils.h"
-
+#ifndef __NVME_RAID_INFO_H__INCLUDED__
+#define __NVME_RAID_INFO_H__INCLUDED__
 
 /* */
-AHCI_RaidInfo::AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo, unsigned int orom_dev_id)
-    : RaidInfo(pInfo)
-{
-    attachController(pAHCI);
-    m_OromDevId = orom_dev_id;
-}
+class NVME_RaidInfo : public RaidInfo {
+public:
+    NVME_RaidInfo(NVME *pNVME);
 
-/* */
-bool AHCI_RaidInfo::operator ==(const Object &object) const {
-    return typeid(*this) == typeid(object) &&
-            static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeAHCI &&
-            object.getKey() == this->getKey();
-}
+    // Object
+public:
+    bool operator ==(const Object &object) const;
 
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+    // RaidInfo
+
+public:
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeNVME;
+    }
+private:
+    struct orom_info orom_nvme;
+};
+
+#endif /* __NVME_RAID_INFO_H__INCLUDED__ */
+
+/* ex: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

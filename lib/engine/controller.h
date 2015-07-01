@@ -117,8 +117,7 @@ protected:
     }
 
 public:
-    RaidInfo *findRaidInfo(Container<RaidInfo> &container);
-    virtual RaidInfo *findRaidInfo();
+    virtual RaidInfo *findRaidInfo(Container <RaidInfo> &container);
     SSI_Status readPatrolSetState(bool enable);
     SSI_Status getInfo(SSI_ControllerInfo *pInfo) const;
 

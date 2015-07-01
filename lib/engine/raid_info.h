@@ -31,6 +31,7 @@ public:
     virtual ~RaidInfo() {
     }
     RaidInfo(struct orom_info *pInfo) {
+        m_OromDevId = 0;
         m_pInfo = pInfo;
     }
 
@@ -38,7 +39,7 @@ public:
 
 public:
 	String getKey() const {
-		return getControllerType();
+        return m_OromDevId;
 	}
     // ScopeObject
 
@@ -51,11 +52,10 @@ public:
 
     // RaidInfo
 
-protected:
-    Container<Controller> m_Controllers;
-    struct orom_info * m_pInfo;
-
 public:
+    Container<Controller> m_Controllers;
+    unsigned int m_OromDevId;
+    struct orom_info * m_pInfo;
     void attachController(Controller *pController) {
         m_Controllers.add(pController);
     }

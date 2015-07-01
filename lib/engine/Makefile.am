@@ -82,6 +82,8 @@ libengine_la_SOURCES =          \
         nvme_phy.h              \
         nvme_port.cpp           \
         nvme_port.h             \
+        nvme_raid_info.h        \
+        nvme_raid_info.cpp      \
         nvme.cpp                \
         nvme.h                  \
         object.cpp              \

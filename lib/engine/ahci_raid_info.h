@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class AHCI_RaidInfo : public RaidInfo {
 public:
-    AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo);
+    AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo, unsigned int orom_dev_id);
 
     // Object
 

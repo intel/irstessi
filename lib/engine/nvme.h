@@ -39,11 +39,10 @@ protected:
     SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeNVME;
     }
-    /* TO BE ADDED
-	RaidInfo *findRaidInfo();
-	*/
+
+	RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
 };
 
-#endif /* __AHCI_H__INCLUDED__ */
+#endif /* __NVME_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

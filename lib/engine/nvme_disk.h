@@ -70,6 +70,6 @@ protected:
 
 };
 
-#endif /* __AHCI_DISK_H__INCLUDED__ */
+#endif /* __NVME_DISK_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

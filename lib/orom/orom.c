@@ -58,6 +58,7 @@ struct bios_hdr {
 /* */
 struct node {
     struct orom_info data;
+    unsigned int orom_dev_id;
     struct node *next;
     unsigned int device_id;
 };
@@ -69,13 +70,14 @@ static struct node *cache = NULL;
 static _Bool bus_error = false;
 
 /* */
-static void * __orom_add_info(unsigned int device_id, void *data)
+static void * __orom_add_info(unsigned int device_id, void *data, unsigned int orom_dev_id)
 {
     struct node *elem;
 
     elem = malloc(sizeof(struct node));
     if (elem) {
         elem->device_id = device_id;
+        elem->orom_dev_id = orom_dev_id;
         bus_error = false;
         memcpy(elem, data, sizeof(struct orom_info));
         if (!bus_error) {
@@ -106,29 +108,36 @@ static __u8 __orom_checksum(void *start, size_t length)
 }
 
 /* */
-static _Bool __orom_check_for_device(void *start, size_t length, unsigned int device_id)
+static __u16 __orom_check_for_device(void *start, size_t length, unsigned int device_id)
 {
     __u32 *end = (__u32 *)((__u8 *)start + (length * OROM_CHUNK_SIZE));
-    __u32 temp;
+    __u16 vendor_id, devlist_offset, orom_dev_id;
+    __u16 *devid;
 
     for (__u32 *p = start; p < end; p++) {
         bus_error = false;
         if (*p != OROM_PCIR_SIGNATURE || bus_error == true) {
             continue;
         }
-        temp = *(p + 1);
+        vendor_id = *(p + 1);
+        orom_dev_id = *(p + 1) >> 16;
+        devlist_offset = *(p + 2);
+
         if (bus_error == true) {
             continue;
         }
-        if (temp == ((device_id << 16) | INTEL_PCI_VENDOR_ID)) {
-            return true;
+        if (vendor_id == INTEL_PCI_VENDOR_ID) {
+            for (devid = (void *)p + devlist_offset; *devid; devid++) {
+                if (*devid == device_id && orom_dev_id != 0)
+                    return orom_dev_id;
+            }
         }
     }
-    return false;
+    return 0;
 }
 
 /* */
-static void * __orom_check_for_data(void *start, size_t length, unsigned int device_id)
+static void * __orom_check_for_data(void *start, size_t length, unsigned int device_id, unsigned int orom_dev_id)
 {
     __u32 *end = (__u32 *)((__u8 *)start + (length * OROM_CHUNK_SIZE));
     void *result = NULL;
@@ -136,7 +145,7 @@ static void * __orom_check_for_data(void *start, size_t length, unsigned int dev
     for (__u32 *p = start; p < end; p++) {
         bus_error = false;
         if (*p == OROM_SVER_SIGNATURE && bus_error == false) {
-            result = __orom_add_info(device_id, p);
+            result = __orom_add_info(device_id, p, orom_dev_id);
             break;
         }
     }
@@ -152,10 +161,11 @@ static void * __orom_check_block(struct bios_hdr *hdr, unsigned int device_id)
     if (__orom_checksum(hdr, hdr->length)) {
         return NULL;
     }
-    if (__orom_check_for_device(hdr, hdr->length, device_id) == false) {
+    unsigned int orom_dev_id =  __orom_check_for_device(hdr, hdr->length, device_id);
+    if (orom_dev_id == 0) {
         return NULL;
     }
-    return __orom_check_for_data(hdr, hdr->length, device_id);
+    return __orom_check_for_data(hdr, hdr->length, device_id, orom_dev_id);
 }
 
 /* */
@@ -246,7 +256,7 @@ void orom_fini(void)
 }
 
 /* */
-struct orom_info * orom_get(unsigned int device_id)
+struct orom_info_ext * orom_get(unsigned int device_id)
 {
     void *result = __orom_get(device_id);
     if (result == NULL) {

@@ -113,15 +113,28 @@ void ISCI::setAddress(SSI_Address &address)
     m_Address.sasAddress = address.sasAddress;
 }
 
-RaidInfo *ISCI::findRaidInfo()
+RaidInfo *ISCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
     struct orom_info *pInfo = efi_get(getControllerType());
-    if (pInfo == NULL)
-        pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != NULL) {
-        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo);
+    struct orom_info_ext *pInfo_ext = orom_get(m_PciDeviceId);
+    if (pInfo == NULL) {
+        pInfo = &pInfo_ext->data;
+    }
+
+    if (pInfo_ext != NULL) {
+        foreach (i,RaidInfos) {
+            if ((*i)->getControllerType() == SSI_ControllerTypeSCU &&
+               (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
+                m_pRaidInfo = (*i);
+                (*i)->attachController(this);
+                return NULL;
+            }
+
+        }
+        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
         return m_pRaidInfo;
     }
+
     return NULL;
 }
 

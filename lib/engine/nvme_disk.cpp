@@ -41,35 +41,35 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 void NVME_Disk::identify()
 {
-	struct nvme_admin_cmd cmd;
-	struct nvme_id_ctrl ptr;
+    struct nvme_admin_cmd cmd;
+    struct nvme_id_ctrl ptr;
 
-	int fd=0;
-	memset(&cmd, 0, sizeof(cmd));
-	cmd.opcode = NVME_ADMIN_IDENTIFY_OPT_CODE;
-	cmd.nsid = 0;
-	cmd.addr = (unsigned long)&ptr;
-	cmd.data_len = 4096;
-	cmd.cdw10 = 1;
-	fd = open("/dev/" + m_DevName, O_RDONLY);
+    int fd=0;
+    memset(&cmd, 0, sizeof(cmd));
+    cmd.opcode = NVME_ADMIN_IDENTIFY_OPT_CODE;
+    cmd.nsid = 0;
+    cmd.addr = (unsigned long)&ptr;
+    cmd.data_len = 4096;
+    cmd.cdw10 = 1;
+    fd = open("/dev/" + m_DevName, O_RDONLY);
 
-	if (fd && !ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd)){
-	char sn[sizeof(ptr.sn) + 1];
-	char mn[sizeof(ptr.mn) + 1];
-	char fr[sizeof(ptr.fr) + 1];
+    if (fd && !ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd)){
+        char sn[sizeof(ptr.sn) + 1];
+        char mn[sizeof(ptr.mn) + 1];
+        char fr[sizeof(ptr.fr) + 1];
 
-	memcpy(sn, ptr.sn, sizeof(ptr.sn));
-	memcpy(mn, ptr.mn, sizeof(ptr.mn));
-	memcpy(fr, ptr.fr, sizeof(ptr.fr));
+        memcpy(sn, ptr.sn, sizeof(ptr.sn));
+        memcpy(mn, ptr.mn, sizeof(ptr.mn));
+        memcpy(fr, ptr.fr, sizeof(ptr.fr));
 
-	sn[sizeof(ptr.sn)] = '\0';
-	mn[sizeof(ptr.mn)] = '\0';
-	fr[sizeof(ptr.fr)] = '\0';
+        sn[sizeof(ptr.sn)] = '\0';
+        mn[sizeof(ptr.mn)] = '\0';
+        fr[sizeof(ptr.fr)] = '\0';
 
-	m_SerialNum = sn;
-	m_Model = mn;
-	m_Firmware = fr;
-	}
+        m_SerialNum = sn;
+        m_Model = mn;
+        m_Firmware = fr;
+    }
 }
 
 /* */
@@ -82,6 +82,7 @@ NVME_Disk::NVME_Disk(const String &path)
     foreach (i, dirs) {
         temp = *(*i) + "device";
         if (temp == m_Path) {
+            //FIXME: search for other NVMe namespaces
             m_DevName = (*i)->reverse_after("/") + "n1";
             break;
         }

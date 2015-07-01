@@ -130,6 +130,11 @@ struct orom_info {
     };
 } __attribute__((packed));
 
+struct orom_info_ext {
+    struct orom_info data;
+    unsigned int orom_dev_id;
+};
+
 /* */
 void orom_init(void);
 
@@ -137,7 +142,7 @@ void orom_init(void);
 void orom_fini(void);
 
 /* */
-struct orom_info * orom_get(unsigned int device_id);
+struct orom_info_ext * orom_get(unsigned int device_id);
 
 #if defined(__cplusplus)
 }

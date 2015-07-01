@@ -43,7 +43,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "nvme.h"
 #include "pci_header.h"
 #include "nvme_phy.h"
-//#include "nvme_raid_info.h" //to_be_added
+#include "nvme_raid_info.h"
 #include "utils.h"
 
 /* */
@@ -74,16 +74,16 @@ void NVME::getAddress(SSI_Address &address) const
     address.sasAddress = 0ULL;
 }
 
-/* RAID INFO -> TO BE ADDED
-RaidInfo *NVME::findRaidInfo()
+RaidInfo *NVME::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
-    struct orom_info *pInfo = efi_get(getControllerType());
-    if (pInfo == NULL)
-        pInfo = orom_get(m_PciDeviceId);
-    if (pInfo != NULL) {
-        m_pRaidInfo = new NVME_RaidInfo(this,pInfo);
-        return m_pRaidInfo;
-    }
-    return NULL;
-} */
+	foreach(i,RaidInfos){
+		if ((*i)->getControllerType() == SSI_ControllerTypeNVME) {
+			m_pRaidInfo = (*i);
+			(*i)->attachController(this);
+			return NULL;
+		}
+	}
+    m_pRaidInfo = new NVME_RaidInfo(this);
+    return m_pRaidInfo;
+}
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ISCI_RaidInfo : public RaidInfo {
 public:
-    ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo);
+    ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo, unsigned int orom_dev_id);
 
     // Object
 

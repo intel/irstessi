@@ -89,7 +89,8 @@ Controller::Controller(const String &path)
     } catch (...) {
         /* TODO: log that PCI header cannot be read from sysfs. */
     }
-    struct orom_info *pInfo = orom_get(m_PciDeviceId);
+    struct orom_info_ext *pInfo_ext = orom_get(m_PciDeviceId);
+    struct orom_info *pInfo = &pInfo_ext->data;
     if (pInfo != NULL) {
         m_PrebootMgrVersion =
             String(pInfo->prod_ver.major) + String(".") +
@@ -113,21 +114,9 @@ Controller::~Controller()
 }
 
 /* */
-RaidInfo * Controller::findRaidInfo()
-{
-    return NULL;
-}
-
-/* */
 RaidInfo * Controller::findRaidInfo(Container<RaidInfo> &container)
 {
-    foreach (i, container)
-        if ((*i)->getControllerType() == getControllerType()) {
-            m_pRaidInfo = *i;
-            m_pRaidInfo->attachController(this);
-            return NULL;
-        }
-    return findRaidInfo();
+    return NULL;
 }
 
 /* */
