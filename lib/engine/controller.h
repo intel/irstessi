@@ -100,6 +100,8 @@ protected:
     unsigned char m_HardwareRevisionId;
     unsigned char m_SubClassCode;
     unsigned short m_SubVendorId;
+    unsigned char m_prgIface;
+    unsigned char m_ClassId;
 
     RaidInfo *m_pRaidInfo;
 

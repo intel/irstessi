@@ -28,6 +28,7 @@ extern "C" {
 
 /* */
 #define INTEL_PCI_VENDOR_ID             0x8086
+#define PCI_CLASS_RAID_CNTRL            0x010400
 
 /* */
 struct orom_info {

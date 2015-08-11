@@ -56,6 +56,8 @@ Controller::Controller(const String &path)
       m_HardwareRevisionId(0),
       m_SubClassCode(0),
       m_SubVendorId(0),
+      m_prgIface(0),
+      m_ClassId(0),
       m_pRaidInfo(0),
       m_twoTbVolumePrebootSupported(false),
       m_twoTbDiskPrebootSupported(false),
@@ -86,6 +88,9 @@ Controller::Controller(const String &path)
         m_HardwareRevisionId = pciInfo.revisionId;
         m_SubClassCode = pciInfo.subClassId;
         m_SubVendorId = pciInfo.subSystemVendorId;
+        m_prgIface = pciInfo.prgIface;
+        m_ClassId = pciInfo.classId;
+
     } catch (...) {
         /* TODO: log that PCI header cannot be read from sysfs. */
     }

@@ -115,26 +115,26 @@ void ISCI::setAddress(SSI_Address &address)
 
 RaidInfo *ISCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
-    struct orom_info *pInfo = efi_get(getControllerType());
-    struct orom_info_ext *pInfo_ext = orom_get(m_PciDeviceId);
-    if (pInfo == NULL) {
-        pInfo = &pInfo_ext->data;
+	/* first try EFI, if its failed - try legacy OROM */
+
+    struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
+    if (pInfo_ext == NULL) {
+        pInfo_ext = orom_get(m_PciDeviceId);
     }
 
-    if (pInfo_ext != NULL) {
-        foreach (i,RaidInfos) {
-            if ((*i)->getControllerType() == SSI_ControllerTypeSCU &&
-               (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
-                m_pRaidInfo = (*i);
-                (*i)->attachController(this);
-                return NULL;
-            }
-
-        }
-        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
-        return m_pRaidInfo;
-    }
-
+	if (pInfo_ext != NULL) {
+		orom_info *pInfo = &pInfo_ext->data;
+		foreach(i,RaidInfos){
+			if ((*i)->getControllerType() == SSI_ControllerTypeSCU &&
+			   (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
+				m_pRaidInfo = (*i);
+				(*i)->attachController(this);
+				return NULL;
+			}
+		}
+		m_pRaidInfo = new ISCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
+		return m_pRaidInfo;
+	}
     return NULL;
 }
 

@@ -36,44 +36,52 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 struct node {
-    struct orom_info *data;
+    struct orom_info_ext *orom_ext;
     struct node *next;
-    SSI_ControllerType controllerType;
+    unsigned int device_id;
+
 };
 
 /* */
 static struct node *efi_cache = NULL;
 
 /* */
-static struct orom_info *__efi_add_info(SSI_ControllerType controllerType, struct orom_info *data)
+static struct orom_info_ext *__efi_add_info(struct orom_info *data, unsigned int orom_dev_id, unsigned int device_id)
 {
     struct node *elem;
+    struct orom_info_ext *orom_ext;
 
     elem = new struct node;
-    if (elem) {
-        elem->controllerType = controllerType;
-        elem->data = data;
+    orom_ext = new struct orom_info_ext;
+    if (elem && orom_ext) {
+        orom_ext->orom_dev_id = orom_dev_id;
+        orom_ext->data = *data;
+        elem->device_id = device_id;
         elem->next = efi_cache;
+        elem->orom_ext = orom_ext;
         efi_cache = elem;
     } else {
         delete data;
         data = NULL;
+        return NULL;
     }
-    return data;
+    return elem->orom_ext;
 }
 
 /* */
-struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
+struct orom_info *__read_efi_variable(String var_name)
 {
     unsigned int size = 0;
     struct orom_info *data = NULL;
     unsigned int var_size = sizeof(struct orom_info);
     Directory dir(EFI_VAR_DIR);
+    String Filter = var_name;
     Path var_path = "";
     char buf[GUID_STR_MAX];
 
     guid2str(buf, VENDOR_GUID);
-    dir.setFilter((controllerType == SSI_ControllerTypeAHCI)?AHCI_VAR:SCU_VAR);
+    dir.setFilter(Filter);
+
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
         try {
@@ -105,25 +113,48 @@ struct orom_info *__read_efi_variable(SSI_ControllerType controllerType)
 }
 
 /* */
-static struct orom_info * __efi_init(SSI_ControllerType controllerType)
+static struct orom_info_ext * __efi_init(SSI_ControllerType controllerType, unsigned int device_id)
 {
-    struct orom_info *result = __read_efi_variable(controllerType);
-    if (result != NULL)
-        result = __efi_add_info(controllerType, result);
-    return result;
+    struct orom_info *orom_data = NULL;
+    unsigned int orom_dev_id;
+    if (controllerType == SSI_ControllerTypeSCU) {
+        orom_data = __read_efi_variable(SCU_VAR);
+        orom_dev_id = device_id;
+    } else if (controllerType == SSI_ControllerTypeAHCI) {
+        switch (device_id) {
+        case SATA_DEV_ID:
+            orom_data = __read_efi_variable(SATA_VAR);
+            orom_dev_id = SATA_DEV_ID;
+            break;
+        case SSATA_DEV_ID:
+            orom_data = __read_efi_variable(SSATA_VAR);
+            orom_dev_id = SSATA_DEV_ID;
+            break;
+        }
+        if (orom_data == NULL) {
+            orom_data = __read_efi_variable(CSATA_VAR);
+            orom_dev_id = SATA_DEV_ID;
+        }
+    }
+
+    if (orom_data != NULL) {
+        struct orom_info_ext *result = __efi_add_info(orom_data, orom_dev_id, device_id);
+        return result;
+    }
+    return NULL;
 }
 
 /* */
-static struct orom_info * __efi_get(SSI_ControllerType controllerType)
+static struct orom_info_ext * __efi_get(unsigned int device_id)
 {
     struct node *elem = efi_cache;
     while (elem) {
-        if (elem->controllerType == controllerType) {
+        if (elem->device_id == device_id) {
             break;
         }
         elem = elem->next;
     }
-    return elem ? elem->data : NULL;
+    return elem?elem->orom_ext:NULL;
 }
 
 /* */
@@ -132,7 +163,7 @@ static void __efi_fini(void)
     struct node *elem;
     while (efi_cache) {
         elem = efi_cache->next;
-        delete efi_cache->data;
+        delete &efi_cache->orom_ext->data;
         delete efi_cache;
         efi_cache = elem;
     }
@@ -145,11 +176,11 @@ void efi_fini(void)
 }
 
 /* */
-struct orom_info * efi_get(SSI_ControllerType controllerType)
+struct orom_info_ext * efi_get(SSI_ControllerType controllerType, unsigned int device_id)
 {
-    struct orom_info *result = __efi_get(controllerType);
+    struct orom_info_ext *result = __efi_get(device_id);
     if (result == NULL) {
-        result = __efi_init(controllerType);
+        result = __efi_init(controllerType, device_id);
     }
     return result;
 }

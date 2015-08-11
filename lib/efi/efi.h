@@ -37,8 +37,14 @@ extern "C" {
 (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
 
 #define EFI_VAR_DIR "/sys/firmware/efi/vars"
+#define EFIVARS_DIR "/sys/firmware/efivars"
 #define SCU_VAR "RstScuV"
-#define AHCI_VAR "RstSataV"
+#define SATA_VAR "RstSataV"
+#define SSATA_VAR "RstsSatV"
+#define CSATA_VAR "RstcSatV"
+
+#define SATA_DEV_ID 0x2826
+#define SSATA_DEV_ID 0x2827
 
 #define VENDOR_GUID \
     EFI_GUID(0x193dfefa, 0xa445, 0x4302, 0x99, 0xd8, 0xef, 0x3a, 0xad, 0x1a, 0x04, 0xc6)
@@ -48,8 +54,9 @@ struct efi_guid {
 };
 
 char *guid2str(char *buffer, struct efi_guid guid);
-struct orom_info * efi_get(SSI_ControllerType controllerType);
+struct orom_info_ext * efi_get(SSI_ControllerType controllerType, unsigned int device_id);
 void efi_fini(void);
+
 
 #if defined(__cplusplus)
 }
