@@ -23,6 +23,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <asm/types.h>
 #include <cstdio>
+#include <fcntl.h>
+#include <stdio.h>
+#include <unistd.h>
 
 #include "include/ssi.h"
 #include "lib/engine/exception.h"
@@ -68,6 +71,43 @@ static struct orom_info_ext *__efi_add_info(struct orom_info *data, unsigned int
     return elem->orom_ext;
 }
 
+struct orom_info *__read_efi_var(String var_name)
+{
+    struct orom_info *data = NULL;
+    int var_size = sizeof(struct orom_info);
+    Directory dir(EFIVARS_DIR);
+    String Filter = var_name;
+    char var_path[PATH_MAX] = "";
+    char buf[GUID_STR_MAX];
+    int fd, n;
+
+    guid2str(buf, VENDOR_GUID);
+
+	snprintf(var_path, PATH_MAX, "%s/%s-%s", EFIVARS_DIR, (const char*) var_name, guid2str(buf, VENDOR_GUID));
+
+	fd = open(var_path, O_RDONLY);
+	if (fd < 0)
+		return NULL;
+
+	/* read the variable attributes and ignore it */
+	n = read(fd, buf, sizeof(__u32));
+	if (n < 0) {
+		close(fd);
+		return NULL;
+	}
+
+	/* read the variable data */
+    data = new struct orom_info;
+	n = read(fd, data, var_size);
+	close(fd);
+	if (n < var_size) {
+		delete data;
+		return NULL;
+	}
+
+	return data;
+}
+
 /* */
 struct orom_info *__read_efi_variable(String var_name)
 {
@@ -78,6 +118,11 @@ struct orom_info *__read_efi_variable(String var_name)
     String Filter = var_name;
     Path var_path = "";
     char buf[GUID_STR_MAX];
+
+    /* First try read efivars (old interface), if fails - try efi/variables/ */
+    data = __read_efi_var(var_name);
+    if (data)
+        return data;
 
     guid2str(buf, VENDOR_GUID);
     dir.setFilter(Filter);

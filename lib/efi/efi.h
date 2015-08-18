@@ -37,7 +37,7 @@ extern "C" {
 (d0), (d1), (d2), (d3), (d4), (d5), (d6), (d7) }})
 
 #define EFI_VAR_DIR "/sys/firmware/efi/vars"
-#define EFIVARS_DIR "/sys/firmware/efivars"
+#define EFIVARS_DIR "/sys/firmware/efi/efivars"
 #define SCU_VAR "RstScuV"
 #define SATA_VAR "RstSataV"
 #define SSATA_VAR "RstsSatV"
@@ -48,6 +48,8 @@ extern "C" {
 
 #define VENDOR_GUID \
     EFI_GUID(0x193dfefa, 0xa445, 0x4302, 0x99, 0xd8, 0xef, 0x3a, 0xad, 0x1a, 0x04, 0xc6)
+
+#define PATH_MAX 4096
 
 struct efi_guid {
     __u8 b[16];
