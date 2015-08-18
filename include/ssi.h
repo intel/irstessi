@@ -1865,6 +1865,18 @@ SSI_API SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle, SSI_Bool c
 SSI_API SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode);
 
 /**
+ * @fn  SSI_API SSI_Status SsiPortLocate(SSI_Handle portHandle)
+ *
+ * @brief   Triggers hardware-specific illumination to locate a given port.
+ *
+ * @param   portHandle   Handle of the port.
+ * @param   mode        If SSI_True, illumination is asserted, else de-asserted.
+ *
+ * @return  #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusNotSupported, #SSI_StatusFailed.
+**/
+SSI_API SSI_Status SsiPortLocate(SSI_Handle portHandle, SSI_Bool mode);
+
+/**
  * @fn  SSI_API SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize cacheSize)
  *
  * @brief   Changes the ammount of memory used for volume cache

@@ -47,6 +47,7 @@ public:
 
 public:
     void getPhys(Container<Phy> &container) const;
+    void getPorts(Container<Port> &container) const;
 
     bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeEndDevice;

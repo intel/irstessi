@@ -382,6 +382,13 @@ void EndDevice::getPhys(Container<Phy> &container) const
 }
 
 /* */
+void EndDevice::getPorts(Container<Port> &container) const
+{
+    container.clear();
+    container.add(m_pPort);
+}
+
+/* */
 SSI_Status EndDevice::passthroughCmd(void *pInfo, void *pData, unsigned int dataSize,
     SSI_DataDirection dir)
 {

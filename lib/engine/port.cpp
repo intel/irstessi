@@ -76,6 +76,11 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
     return SSI_StatusOk;
 }
 
+SSI_Status Port::locate(bool mode) const
+{
+    return m_pParent->locate(mode);
+}
+
 /* */
 void Port::getPhys(Container<Phy> &container) const
 {

@@ -57,4 +57,14 @@ SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
     return SsiGetInfo(session, portHandle, portInfo, getItem);
 }
 
+/* */
+SSI_Status SsiPortLocate(SSI_Handle portHandle, SSI_Bool mode)
+{
+    Port *pPort = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, portHandle, &pPort, getItem))
+        return status;
+
+    return pPort->locate(mode == SSI_TRUE);
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
