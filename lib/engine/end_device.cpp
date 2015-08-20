@@ -54,6 +54,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "enclosure.h"
 #include "utils.h"
+#include "controller.h"
 
 /* */
 #define HD_SERIALNO_LENGTH              20
@@ -286,6 +287,12 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     getAddress(pInfo->endDeviceAddress);
     pInfo->deviceType = getDeviceType();
 
+    Controller *pController = getController();
+    if (pController != NULL) {
+        pInfo->controllerHandle = pController->getId();
+    } else {
+        pInfo->controllerHandle = SSI_NULL_HANDLE;
+    }
     RaidInfo *pRaidInfo = getRaidInfo();
     if (pRaidInfo != NULL) {
         pInfo->raidInfoHandle = pRaidInfo->getId();

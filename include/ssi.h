@@ -868,6 +868,8 @@ typedef struct _SSI_EndDeviceInfo
 
     /** Handle to the associated array */
     SSI_Handle arrayHandle;
+    /** Handle to the associated controller */
+    SSI_Handle controllerHandle;
     /** Handle to the associated enclosure */
     SSI_Handle enclosureHandle;
     /** Address of enclosure slot that the device is plugged into */

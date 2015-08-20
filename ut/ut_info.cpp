@@ -270,6 +270,7 @@ int main(int argc, char *argv[])
                     status = SsiGetEndDeviceInfo(session, handles[i], &edInfo);
                     if (status == SSI_StatusOk) {
                         /*cout << "\t: " << edInfo. << endl;*/
+                        cout << "\tcontrollerHandle: 0x" << hex << edInfo.controllerHandle << dec << endl;
                         cout << "\tserialNo: " << edInfo.serialNo << endl;
                         cout << "\tmodel: " << edInfo.model << endl;
                         cout << "\tfirmware: " << edInfo.firmware << endl;

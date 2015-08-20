@@ -28,6 +28,7 @@ class Enclosure;
 class Phy;
 class RaidInfo;
 class Port;
+class Controller;
 
 #include "storage_device.h"
 
