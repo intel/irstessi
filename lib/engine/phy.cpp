@@ -56,7 +56,7 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->phyHandle = getId();
+    pInfo->phyHandle = pInfo->uniqueId = getId();
     m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
     pInfo->protocol = m_Protocol;

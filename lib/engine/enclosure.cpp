@@ -104,7 +104,7 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->enclosureHandle = getId();
+    pInfo->enclosureHandle = pInfo->uniqueId = getId();
     pInfo->enclosureKey = (getId() & 0x0fffffff);
     foreach (i, m_RoutingDevices) {
         StorageObject *parent = (*i)->getParent();

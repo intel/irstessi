@@ -83,6 +83,7 @@ int main(int argc, char *argv[])
                     cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetRaidInfo(session, handles[i], &raidInfo);
                     if (status == SSI_StatusOk) {
+                        cout << "\t\tUnique Id: " << hex << raidInfo.uniqueId << dec << endl;
                         cout << "\t\tmaxDisksPerArray: " << (int)raidInfo.maxDisksPerArray << endl;
                         cout << "\t\tmaxRaidDisksSupported: " << (int)raidInfo.maxRaidDisksSupported << endl;
                         cout << "\t\tmaxVolumesPerArray: " << (int)raidInfo.maxVolumesPerArray << endl;
@@ -133,6 +134,7 @@ int main(int argc, char *argv[])
                     cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetControllerInfo(session, handles[i], &controllerInfo);
                     if (status == SSI_StatusOk) {
+                        cout << "\tUnique Id: " << hex << controllerInfo.uniqueId << dec << endl;
                         cout << "\tcontrollerName: " << (const char *)controllerInfo.controllerName << endl;
                         cout << "\tSCSI Address: " << (unsigned) controllerInfo.controllerAddress.scsiAddress.host
                              << ":"<< (unsigned) controllerInfo.controllerAddress.scsiAddress.bus
@@ -183,6 +185,7 @@ int main(int argc, char *argv[])
                     cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetVolumeInfo(session, handles[i], &volumeInfo);
                     if (status == SSI_StatusOk) {
+                        cout << "\tUnique Id: " << hex << volumeInfo.uniqueId << dec << endl;
                         cout << "\tarrayHandle = 0x" << hex << volumeInfo.arrayHandle << dec << endl;
                         cout << "\tarrayOrdinal: " << volumeInfo.arrayOrdinal << endl;
                         cout << "\tvolumeName: " << volumeInfo.volumeName << endl;
@@ -231,6 +234,7 @@ int main(int argc, char *argv[])
                     cout << "handle=0x" << hex << handles[i] << dec << endl;
                     status = SsiGetPhyInfo(session, handles[i], &phyInfo);
                     if (status == SSI_StatusOk) {
+                        cout << "\tUnique Id: " << hex << phyInfo.uniqueId << dec << endl;
                         cout << "\tphyAddress: " << (unsigned) phyInfo.phyAddress.scsiAddress.host
                              << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.bus
                              << ":"<< (unsigned) phyInfo.phyAddress.scsiAddress.target
@@ -271,6 +275,7 @@ int main(int argc, char *argv[])
                     if (status == SSI_StatusOk) {
                         /*cout << "\t: " << edInfo. << endl;*/
                         cout << "\tcontrollerHandle: 0x" << hex << edInfo.controllerHandle << dec << endl;
+                        cout << "\tUnique Id: " << hex << edInfo.uniqueId << dec << endl;
                         cout << "\tserialNo: " << edInfo.serialNo << endl;
                         cout << "\tmodel: " << edInfo.model << endl;
                         cout << "\tfirmware: " << edInfo.firmware << endl;
@@ -325,6 +330,7 @@ int main(int argc, char *argv[])
                 cout << "handle=0x" << hex << handles[i] << dec << endl;
                 status = SsiGetEnclosureInfo(session, handles[i], &enclosureInfo);
                 if (status == SSI_StatusOk) {
+                    cout << "\tUnique Id: " << hex << enclosureInfo.uniqueId << dec << endl;
                     cout << "\tenclosureKey: 0x" << hex <<enclosureInfo.enclosureKey << dec << endl;
                     cout << "\tvendorInfo: " << enclosureInfo.vendorInfo << endl;
                     cout << "\tproductId: " << enclosureInfo.productId << endl;
@@ -353,6 +359,7 @@ int main(int argc, char *argv[])
                 cout << "handle=0x" << hex << handles[i] << dec << endl;
                 status = SsiGetRoutingDeviceInfo(session, handles[i], &rdInfo);
                 if (status == SSI_StatusOk) {
+                    cout << "\tUnique Id: " << hex << rdInfo.uniqueId << dec << endl;
                     cout << "\tAddress (scsi): " << (unsigned) rdInfo.routingDeviceAddress.scsiAddress.host
                          << ":"<< (unsigned) rdInfo.routingDeviceAddress.scsiAddress.bus
                          << ":"<< (unsigned) rdInfo.routingDeviceAddress.scsiAddress.target

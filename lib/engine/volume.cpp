@@ -350,7 +350,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->volumeHandle = getId();
+    pInfo->volumeHandle = pInfo->uniqueId = getId();
     pInfo->arrayHandle = m_pParent->getId();
     pInfo->arrayOrdinal = m_Ordinal;
     m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));

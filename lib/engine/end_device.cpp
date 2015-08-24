@@ -283,7 +283,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->endDeviceHandle = getId();
+    pInfo->endDeviceHandle = pInfo->uniqueId = getId();
     getAddress(pInfo->endDeviceAddress);
     pInfo->deviceType = getDeviceType();
 

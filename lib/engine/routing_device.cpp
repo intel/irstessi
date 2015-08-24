@@ -115,7 +115,7 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->routingDeviceHandle = getId();
+    pInfo->routingDeviceHandle = pInfo->uniqueId = getId();
     pInfo->routingDeviceType = getRoutingDeviceType();
     getAddress(pInfo->routingDeviceAddress);
 

@@ -159,7 +159,7 @@ SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->arrayHandle = getId();
+    pInfo->arrayHandle = pInfo->uniqueId = getId();
     m_Name.get(pInfo->name, sizeof(pInfo->name));
     if (m_Busy) {
         pInfo->state = SSI_ArrayStateBusy;

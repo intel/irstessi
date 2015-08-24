@@ -52,7 +52,7 @@ SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->raidHandle = getId();
+    pInfo->raidHandle = pInfo->uniqueId = getId();
     pInfo->maxDisksPerArray = m_pInfo->dpa;
     pInfo->maxRaidDisksSupported = m_pInfo->tds;
     pInfo->maxVolumesPerHba = m_pInfo->vphba;

@@ -484,6 +484,8 @@ typedef struct _SSI_RaidInfo
 {
     /** Handle to the Raid Information structure represented by this table */
     SSI_Handle raidHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Maximum disks allowed per array */
     SSI_Uint32 maxDisksPerArray;
     /** Maximum disks allowed to be used as array members */
@@ -551,6 +553,8 @@ typedef struct _SSI_ControllerInfo
 {
     /** handle to controller */
     SSI_Handle controllerHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** address of controller */
     SSI_Address controllerAddress;
     /** name of controller */
@@ -660,6 +664,8 @@ typedef struct _SSI_PhyInfo
 {
     /** Handle to phy */
     SSI_Handle phyHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Phy's address */
     SSI_Address phyAddress;
     /** Indicates which phy on the parent device this represents */
@@ -726,6 +732,8 @@ typedef struct _SSI_PortInfo
 {
     /** Port Handle */
     SSI_Handle portHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Port Address */
     SSI_Address portAddress;
     /** Width of the port defined by the number of phys - x1, x2 or x4 */
@@ -747,6 +755,8 @@ typedef struct _SSI_EnclosureInfo
 {
     /** Enclosure Handle */
     SSI_Handle enclosureHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Unique Key for enclosure lookups */
     SSI_Uint32 enclosureKey;
     /** Vendor identification string */
@@ -858,6 +868,8 @@ typedef struct _SSI_EndDeviceInfo
 {
     /** End device handle */
     SSI_Handle endDeviceHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Address of end device */
     SSI_Address endDeviceAddress;
     /** Type of end device */
@@ -954,6 +966,8 @@ typedef struct _SSI_RoutingDeviceInfo
 {
     /** Handle to routing device */
     SSI_Handle routingDeviceHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Address of routing device */
     SSI_Address routingDeviceAddress;
     /** Type of routing device */
@@ -1008,6 +1022,8 @@ typedef struct _SSI_ArrayInfo
 {
     /** Handle to Array */
     SSI_Handle arrayHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Array name */
     SSI_Char name[SSI_ARRAY_NAME_LENGTH];
     /** State of array */
@@ -1064,6 +1080,8 @@ typedef struct _SSI_VolumeInfo
 {
     /** Volume handle */
     SSI_Handle volumeHandle;
+    /** Unique Id for object */
+    SSI_Uint32 uniqueId;
     /** Array handle */
     SSI_Handle arrayHandle;
     /** Ordinal number (index) of volume in array */

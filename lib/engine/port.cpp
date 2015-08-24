@@ -54,7 +54,7 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->portHandle = getId();
+    pInfo->portHandle = pInfo->uniqueId = getId();
     m_pParent->getAddress(pInfo->portAddress);
     pInfo->numPhys = m_Phys.size();
 

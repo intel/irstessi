@@ -130,7 +130,7 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->controllerHandle = getId();
+    pInfo->controllerHandle = pInfo->uniqueId = getId();
     getAddress(pInfo->controllerAddress);
 
     m_Name.get(pInfo->controllerName, sizeof(pInfo->controllerName));
