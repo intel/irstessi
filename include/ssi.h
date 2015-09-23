@@ -519,8 +519,10 @@ typedef enum _SSI_ControllerType
     SSI_ControllerTypeAHCI    = 1,
     /** SCU (SAS) controller */
     SSI_ControllerTypeSCU     = 2,
-    /** NVMe controller **/
-    SSI_ControllerTypeNVME    = 3
+    /** NVMe controller */
+    SSI_ControllerTypeNVME    = 3,
+    /** VMD controller */
+    SSI_ControllerTypeVMD     = 4
 } SSI_ControllerType;
 
 /**
@@ -808,7 +810,9 @@ typedef enum _SSI_DiskType
     /** SAS disk */
     SSI_DiskTypeSAS     = 2,
     /** NVMe disk */
-    SSI_DiskTypeNVME    = 3
+    SSI_DiskTypeNVME    = 3,
+    /** VMD disk  */
+    SSI_DiskTypeVMD     = 4
 } SSI_DiskType;
 
 /**
