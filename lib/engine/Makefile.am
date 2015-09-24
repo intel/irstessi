@@ -86,6 +86,10 @@ libengine_la_SOURCES =          \
         nvme_raid_info.cpp      \
         nvme.cpp                \
         nvme.h                  \
+        vmd_raid_info.cpp       \
+        vmd_raid_info.h         \
+       	vmd.cpp                 \
+        vmd.h                   \
         object.cpp              \
         object.h                \
         pci_header.h            \

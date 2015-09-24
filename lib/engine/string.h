@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __STRING_H__INCLUDED__
 #define __STRING_H__INCLUDED__
 
+#include <algorithm>
+
 /**
  */
 class String {
@@ -457,6 +459,10 @@ inline String operator + (const String &left, const char *right) {
 }
 inline String operator + (const char *left, const String &right) {
     return String(left) += right;
+}
+
+inline bool operator < (const String &left, const String &right) {
+	return left.compare(right) < 0;
 }
 
 #endif /* __STRING_H__INCLUDED__ */

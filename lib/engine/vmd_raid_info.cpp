@@ -38,48 +38,50 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "raid_info.h"
 #include "nvme_raid_info.h"
 #include "utils.h"
+#include "vmd_raid_info.h"
+#include "vmd.h"
 
 
 /* */
-NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
-    : RaidInfo(&orom_nvme)
+VMD_RaidInfo::VMD_RaidInfo(VMD *pVMD)
+    : RaidInfo(&orom_vmd)
 {
-    attachController(pNVME);
+    attachController(pVMD);
 
-	memset(&orom_nvme, 0, sizeof(orom_info));
+	memset(&orom_vmd, 0, sizeof(orom_info));
 
-	m_OromDevId = -2;
+	m_OromDevId = -1;
 
 	//Supported Raid Levels
-	orom_nvme.rlc0 = 1;
-	orom_nvme.rlc1 = 1;
-	orom_nvme.rlc10 = 1;
-	orom_nvme.rlc5 = 1;
+	orom_vmd.rlc0 = 1;
+	orom_vmd.rlc1 = 1;
+	orom_vmd.rlc10 = 1;
+	orom_vmd.rlc5 = 1;
 
 	//Supported Strip Size
-	orom_nvme.chk4k = 1;
-	orom_nvme.chk8k = 1;
-	orom_nvme.chk16k = 1;
-	orom_nvme.chk32k = 1;
-	orom_nvme.chk64k = 1;
-	orom_nvme.chk128k = 1;
+	orom_vmd.chk4k = 1;
+	orom_vmd.chk8k = 1;
+	orom_vmd.chk16k = 1;
+	orom_vmd.chk32k = 1;
+	orom_vmd.chk64k = 1;
+	orom_vmd.chk128k = 1;
 
 	//Supported Amount of disks/volumens
-	orom_nvme.tds = 12;
-	orom_nvme.dpa = 12;
-	orom_nvme.vphba = 4;
-	orom_nvme.vpa = 2;
+	orom_vmd.tds = 12;
+	orom_vmd.dpa = 12;
+	orom_vmd.vphba = 4;
+	orom_vmd.vpa = 2;
 
 	//supported Attr
-	orom_nvme.a_2tb_disk = 1;
-	orom_nvme.a_2tb_vol = 1;
+	orom_vmd.a_2tb_disk = 1;
+	orom_vmd.a_2tb_vol = 1;
 
 	//supported features
 }
 
-bool NVME_RaidInfo::operator ==(const Object &object) const {
+bool VMD_RaidInfo::operator ==(const Object &object) const {
     return typeid(*this) == typeid(object) &&
-            static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeNVME;
+            static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeVMD;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

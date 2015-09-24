@@ -15,71 +15,34 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-#if defined(HAVE_CONFIG_H)
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#if __GNUC_PREREQ(3, 4)
+#pragma once
+#endif /* __GNUC_PREREQ */
 
-#include <features.h>
-#include <asm/types.h>
-#include <cstddef>
-#include <typeinfo>
-#include <string.h>
+#ifndef __VMD_RAID_INFO_H__INCLUDED__
+#define __VMD_RAID_INFO_H__INCLUDED__
 
-#include <ssi.h>
-#include <orom/orom.h>
-
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "controller.h"
-#include "nvme.h"
-#include "raid_info.h"
-#include "nvme_raid_info.h"
-#include "utils.h"
-
+class VMD;
 
 /* */
-NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
-    : RaidInfo(&orom_nvme)
-{
-    attachController(pNVME);
+class VMD_RaidInfo : public RaidInfo {
+public:
+	VMD_RaidInfo(VMD *pVMD);
 
-	memset(&orom_nvme, 0, sizeof(orom_info));
+    // Object
+public:
+    bool operator ==(const Object &object) const;
 
-	m_OromDevId = -2;
+    // RaidInfo
 
-	//Supported Raid Levels
-	orom_nvme.rlc0 = 1;
-	orom_nvme.rlc1 = 1;
-	orom_nvme.rlc10 = 1;
-	orom_nvme.rlc5 = 1;
+public:
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeVMD;
+    }
+private:
+    struct orom_info orom_vmd;
+};
 
-	//Supported Strip Size
-	orom_nvme.chk4k = 1;
-	orom_nvme.chk8k = 1;
-	orom_nvme.chk16k = 1;
-	orom_nvme.chk32k = 1;
-	orom_nvme.chk64k = 1;
-	orom_nvme.chk128k = 1;
+#endif /* __VMD_RAID_INFO_H__INCLUDED__ */
 
-	//Supported Amount of disks/volumens
-	orom_nvme.tds = 12;
-	orom_nvme.dpa = 12;
-	orom_nvme.vphba = 4;
-	orom_nvme.vpa = 2;
-
-	//supported Attr
-	orom_nvme.a_2tb_disk = 1;
-	orom_nvme.a_2tb_vol = 1;
-
-	//supported features
-}
-
-bool NVME_RaidInfo::operator ==(const Object &object) const {
-    return typeid(*this) == typeid(object) &&
-            static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeNVME;
-}
-
-/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
+/* ex: tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

@@ -24,6 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <dirent.h>
 #include <sys/types.h>
 #include <cstdlib>
+#include <set>
 
 #include <ssi.h>
 #include <log/log.h>
@@ -49,11 +50,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci.h"
 #include "isci.h"
 #include "nvme.h"
+#include "vmd.h"
 #include "context_manager.h"
 #include "array.h"
 #include "volume.h"
 #include "utils.h"
 #include "mdadm_config.h"
+
 
 /* */
 Session::Session()
@@ -93,10 +96,33 @@ Session::Session()
             pISCI->addToSession(this);
         }
     }
+
+    dir = "/sys/bus/pci/drivers/vmd";
+    dirs = dir.dirs();
+
+    std::set<CanonicalPath> handledNVMes;
+    foreach (i, dirs) {
+    	CanonicalPath path = *(*i) + "driver";
+        if (path == dir) {
+            VMD *pVMD = new VMD(CanonicalPath(*(*i)));
+            pVMD->discover();
+            pVMD->addToSession(this);
+
+            handledNVMes.insert(pVMD->getHandledNVMEPaths().begin(), pVMD->getHandledNVMEPaths().end());
+        }
+    }
+
     dir = "/sys/bus/pci/drivers/nvme";
     dirs = dir.dirs();
     foreach (i, dirs) {
         CanonicalPath path = *(*i) + "driver";
+        CanonicalPath currentPath = *(*i);
+
+        if(handledNVMes.end() != handledNVMes.find(currentPath))
+        {
+        	continue;
+        }
+
         if (path == dir) {
             File attr;
             String vendor;

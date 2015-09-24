@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2015, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -45,26 +45,46 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "nvme_phy.h"
 #include "nvme_raid_info.h"
 #include "utils.h"
+#include "vmd.h"
+#include "vmd_raid_info.h"
 
 /* */
-NVME::NVME(const String &path)
+VMD::VMD(const String &path)
     : Controller(path)
 {
     /* TODO: read the name of controller from PCI bar */
-    m_Name = "NVME at " + m_Path.reverse_right("0000:");
+    m_Name = "VMD at " + m_Path.reverse_right("0000:");
 }
 
 /* */
-void NVME::discover()
+void VMD::discover()
 {
     unsigned int number = 0;
-    NVME_Phy *pPhy = new NVME_Phy(CanonicalPath(m_Path), number++, this);
-    attachPhy(pPhy);
-    pPhy->discover();
+    CanonicalPath cPath(m_Path);
+
+    Directory dir(cPath + "pci_bus/device/");
+    CanonicalPath temp, subtemp, nvmePath;
+    std::list<Directory *> dirs = dir.dirs();
+    foreach (i, dirs) {
+        temp = *(*i);
+        Directory subdir = (temp);
+        std::list<Directory *> subdirs = subdir.dirs();
+        foreach (j, subdirs) {
+        	subtemp = *(*j);
+        	nvmePath = subtemp + "/driver";
+        	if(nvmePath == "/sys/bus/pci/drivers/nvme"){
+                    NVME_Phy *pPhy = new NVME_Phy(CanonicalPath(subtemp), number++, this);
+                    attachPhy(pPhy);
+                    pPhy->discover();
+
+                    m_HandledNVMEPaths.insert(CanonicalPath(subtemp));
+        	}
+        }
+    }
 }
 
 /* */
-void NVME::getAddress(SSI_Address &address) const
+void VMD::getAddress(SSI_Address &address) const
 {
     address.scsiAddress.host = 0;
     address.scsiAddress.bus = 0;
@@ -74,16 +94,22 @@ void NVME::getAddress(SSI_Address &address) const
     address.sasAddress = 0ULL;
 }
 
-RaidInfo *NVME::findRaidInfo(Container <RaidInfo> &RaidInfos)
+RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
 	foreach(i,RaidInfos){
-		if ((*i)->getControllerType() == SSI_ControllerTypeNVME) {
+		if ((*i)->getControllerType() == SSI_ControllerTypeVMD) {
 			m_pRaidInfo = (*i);
 			(*i)->attachController(this);
 			return NULL;
 		}
 	}
-    m_pRaidInfo = new NVME_RaidInfo(this);
+    m_pRaidInfo = new VMD_RaidInfo(this);
     return m_pRaidInfo;
 }
+
+const std::set<CanonicalPath>& VMD::getHandledNVMEPaths()
+{
+	return m_HandledNVMEPaths;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

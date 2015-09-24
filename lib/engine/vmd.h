@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2015, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -15,71 +15,40 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 
-#if defined(HAVE_CONFIG_H)
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#if __GNUC_PREREQ(3, 4)
+#pragma once
+#endif /* __GNUC_PREREQ */
 
-#include <features.h>
-#include <asm/types.h>
-#include <cstddef>
-#include <typeinfo>
-#include <string.h>
+#ifndef __VMD_H__INCLUDED__
+#define __VMD_H__INCLUDED__
 
-#include <ssi.h>
-#include <orom/orom.h>
-
-#include "exception.h"
-#include "container.h"
-#include "string.h"
+#include <set>
 #include "filesystem.h"
-#include "object.h"
-#include "controller.h"
-#include "nvme.h"
-#include "raid_info.h"
-#include "nvme_raid_info.h"
-#include "utils.h"
-
 
 /* */
-NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
-    : RaidInfo(&orom_nvme)
-{
-    attachController(pNVME);
+class VMD : public Controller {
+public:
+	VMD(const String &path);
 
-	memset(&orom_nvme, 0, sizeof(orom_info));
+    // StorageObject
 
-	m_OromDevId = -2;
+public:
+    void getAddress(SSI_Address &address) const;
+    void discover();
 
-	//Supported Raid Levels
-	orom_nvme.rlc0 = 1;
-	orom_nvme.rlc1 = 1;
-	orom_nvme.rlc10 = 1;
-	orom_nvme.rlc5 = 1;
+    const std::set<CanonicalPath>& getHandledNVMEPaths();
 
-	//Supported Strip Size
-	orom_nvme.chk4k = 1;
-	orom_nvme.chk8k = 1;
-	orom_nvme.chk16k = 1;
-	orom_nvme.chk32k = 1;
-	orom_nvme.chk64k = 1;
-	orom_nvme.chk128k = 1;
+protected:
+    SSI_ControllerType getControllerType() const {
+        return SSI_ControllerTypeVMD;
+    }
 
-	//Supported Amount of disks/volumens
-	orom_nvme.tds = 12;
-	orom_nvme.dpa = 12;
-	orom_nvme.vphba = 4;
-	orom_nvme.vpa = 2;
+	RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
 
-	//supported Attr
-	orom_nvme.a_2tb_disk = 1;
-	orom_nvme.a_2tb_vol = 1;
+private:
+	std::set<CanonicalPath> m_HandledNVMEPaths;
+};
 
-	//supported features
-}
-
-bool NVME_RaidInfo::operator ==(const Object &object) const {
-    return typeid(*this) == typeid(object) &&
-            static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeNVME;
-}
+#endif /* __VMD_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */
