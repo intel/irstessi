@@ -57,7 +57,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "mdadm_config.h"
 
-
 /* */
 Session::Session()
 {
@@ -118,7 +117,7 @@ Session::Session()
         CanonicalPath path = *(*i) + "driver";
         CanonicalPath currentPath = *(*i);
 
-        if(handledNVMes.end() != handledNVMes.find(currentPath))
+        if(handledNVMes.end() != handledNVMes.find(*(*i)))
         {
         	continue;
         }

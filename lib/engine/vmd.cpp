@@ -77,7 +77,7 @@ void VMD::discover()
                     attachPhy(pPhy);
                     pPhy->discover();
 
-                    m_HandledNVMEPaths.insert(CanonicalPath(subtemp));
+                    m_HandledNVMEPaths.push_back(CanonicalPath(subtemp));
         	}
         }
     }
@@ -96,18 +96,18 @@ void VMD::getAddress(SSI_Address &address) const
 
 RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
-	foreach(i,RaidInfos){
-		if ((*i)->getControllerType() == SSI_ControllerTypeVMD) {
-			m_pRaidInfo = (*i);
-			(*i)->attachController(this);
-			return NULL;
-		}
-	}
+    foreach(i,RaidInfos){
+        if ((*i)->getControllerType() == SSI_ControllerTypeVMD) {
+            m_pRaidInfo = (*i);
+            (*i)->attachController(this);
+            return NULL;
+        }
+    }
     m_pRaidInfo = new VMD_RaidInfo(this);
     return m_pRaidInfo;
 }
 
-const std::set<CanonicalPath>& VMD::getHandledNVMEPaths()
+const std::vector<CanonicalPath>& VMD::getHandledNVMEPaths()
 {
 	return m_HandledNVMEPaths;
 }

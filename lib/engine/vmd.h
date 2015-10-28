@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __VMD_H__INCLUDED__
 #define __VMD_H__INCLUDED__
 
-#include <set>
+#include <vector>
 #include "filesystem.h"
 
 /* */
@@ -36,7 +36,7 @@ public:
     void getAddress(SSI_Address &address) const;
     void discover();
 
-    const std::set<CanonicalPath>& getHandledNVMEPaths();
+    const std::vector<CanonicalPath>& getHandledNVMEPaths();
 
 protected:
     SSI_ControllerType getControllerType() const {
@@ -46,7 +46,7 @@ protected:
 	RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
 
 private:
-	std::set<CanonicalPath> m_HandledNVMEPaths;
+	std::vector<CanonicalPath> m_HandledNVMEPaths;
 };
 
 #endif /* __VMD_H__INCLUDED__ */

@@ -22,8 +22,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __STRING_H__INCLUDED__
 #define __STRING_H__INCLUDED__
 
-#include <algorithm>
-
 /**
  */
 class String {
