@@ -110,13 +110,13 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
         if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
             return SSI_StatusInvalidState;
         }
-        endDevices += " /dev/" + pBlockDevice->getDevName();
+        endDevices += " '/dev/" + pBlockDevice->getDevName() + "'";
         count++;
     }
     if (count == 0) {
         return SSI_StatusOk;
     }
-    if (shell("mdadm /dev/" + m_DevName + " -a" + endDevices) == 0) {
+    if (shell("mdadm '/dev/" + m_DevName + "' -a" + endDevices) == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -145,7 +145,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
     this->getEndDevices(tmp,false);
     if (status == SSI_StatusOk) {
         usleep(3000000);
-        if (shell("mdadm --grow /dev/" + m_DevName + " --raid-devices " +
+        if (shell("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " +
                   String(tmp.size() + container.size())) != 0) {
             status = SSI_StatusFailed;
         }
@@ -225,10 +225,10 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
     if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
         return SSI_StatusInvalidState;
     }
-    int result = shell("mdadm /dev/" + m_DevName + " -r /dev/" + pEndDevice->getDevName());
+    int result = shell("mdadm '/dev/" + m_DevName + "' -r '/dev/" + pEndDevice->getDevName() + "'");
     if (result == 0) {
         usleep(3000000);
-        result = shell("mdadm --zero-superblock /dev/" + pEndDevice->getDevName());
+        result = shell("mdadm --zero-superblock '/dev/" + pEndDevice->getDevName() + "'");
     }
     if (result == 0) {
         return SSI_StatusOk;
@@ -243,7 +243,7 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
         return SSI_StatusOk;
     }
     usleep(3000000);
-    if (shell("mdadm --kill-subarray=" + String(ordinal) + " /dev/" + m_DevName) == 0) {
+    if (shell("mdadm --kill-subarray=" + String(ordinal) + " '/dev/" + m_DevName + "'") == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -253,7 +253,7 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
 SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 {
     usleep(3000000);
-    if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N " + newName + " /dev/md/" + m_Name) == 0) {
+    if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N '" + newName + "' '/dev/md/" + m_Name + "'") == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -263,7 +263,7 @@ SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 SSI_Status Array::assemble()
 {
     usleep(3000000);
-    if (shell("mdadm -I /dev/md/" + m_Name) == 0) {
+    if (shell("mdadm -I '/dev/md/" + m_Name + "'") == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -322,10 +322,10 @@ SSI_Status Array::remove()
 {
     int n = 0;
     do {
-        if (shell("mdadm -S /dev/" + m_DevName) == 0) {
+        if (shell("mdadm -S '/dev/" + m_DevName  + "'") == 0) {
             String devices;
             foreach (i, m_BlockDevices) {
-                devices += " /dev/" + (*i)->getDevName();
+                devices += " '/dev/" + (*i)->getDevName() + "'";
             }
             usleep(3000000);
             if (shell("mdadm --zero-superblock" + devices) == 0) {
@@ -357,8 +357,8 @@ void Array::__wait_for_container()
     i = 0;
     do {
         usleep(1000000);
-        found = (shell("ls /dev/md/" + m_Name) == 0);
-        if (!found && link && shell("ln -s /dev/" + m_DevName + " /dev/md/" + m_Name) == 0) {
+        found = (shell("ls '/dev/md/" + m_Name + "'") == 0);
+        if (!found && link && shell("ln -s '/dev/" + m_DevName + "' '/dev/md/" + m_Name + "'") == 0) {
             break;
         }
         i++;
@@ -373,7 +373,7 @@ void Array::create()
     foreach (i, m_BlockDevices) {
         devices += " /dev/" + (*i)->getDevName();
     }
-    if (shell("mdadm -CR " + m_Name + " -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices) != 0) {
+    if (shell("mdadm -CR '" + m_Name + "' -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices) != 0) {
         throw E_ARRAY_CREATE_FAILED;
     }
     __wait_for_container();
