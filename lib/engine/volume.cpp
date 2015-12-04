@@ -232,20 +232,20 @@ SSI_Status Volume::expand(unsigned long long newSize)
     /* calculate size depending on raid level */
     switch(m_RaidLevel) {
     case 0:
-        newSize *= m_BlockDevices.size();
+        newSize /= m_BlockDevices.size();
         break;
     case 1:
         // No change
         break;
     case 10:
-        newSize *= 2;
+        newSize /= 2;
         break;
     case 5:
       if(m_BlockDevices.size() == 1) {
             return SSI_StatusNotSupported;
         }
 
-        newSize *= (m_BlockDevices.size() - 1);
+        newSize /= (m_BlockDevices.size() - 1);
         break;
     default:
         return SSI_StatusNotSupported;
