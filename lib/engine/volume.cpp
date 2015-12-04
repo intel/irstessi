@@ -229,8 +229,30 @@ SSI_Status Volume::expand(unsigned long long newSize)
         return SSI_StatusInvalidState;
     if (newSize && newSize < m_ComponentSize * m_BlockDevices.size())
         return SSI_StatusInvalidSize;
+    /* calculate size depending on raid level */
+    switch(m_RaidLevel) {
+    case 0:
+        newSize *= m_BlockDevices.size();
+        break;
+    case 1:
+        // No change
+        break;
+    case 10:
+        newSize *= 2;
+        break;
+    case 5:
+      if(m_BlockDevices.size() == 1) {
+            return SSI_StatusNotSupported;
+        }
+
+        newSize *= (m_BlockDevices.size() - 1);
+        break;
+    default:
+        return SSI_StatusNotSupported;
+    }
+
     /* convert size for mdadm */
-    String size = (newSize == 0)?"max":String(newSize/m_BlockDevices.size());
+    String size = (newSize == 0)?"max":String(newSize);
     if (shell("mdadm --grow '/dev/" + m_DevName + "' --size=" + size) == 0)
         return SSI_StatusOk;
     return SSI_StatusFailed;
