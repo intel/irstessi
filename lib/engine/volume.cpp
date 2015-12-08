@@ -227,22 +227,34 @@ SSI_Status Volume::expand(unsigned long long newSize)
 {
     if (m_State != SSI_VolumeStateNormal)
         return SSI_StatusInvalidState;
-    if (newSize && newSize < m_ComponentSize * m_BlockDevices.size())
-        return SSI_StatusInvalidSize;
     /* calculate size depending on raid level */
     switch(m_RaidLevel) {
     case 0:
+        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size())
+        {
+            return SSI_StatusInvalidSize;
+        }
+
         newSize /= m_BlockDevices.size();
         break;
     case 1:
         // No change
         break;
     case 10:
+        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2)
+        {
+            return SSI_StatusInvalidSize;
+        }
+
         newSize /= 2;
         break;
     case 5:
-      if(m_BlockDevices.size() == 1) {
+        if(m_BlockDevices.size() == 1) {
             return SSI_StatusNotSupported;
+        }
+        if (newSize && newSize < m_ComponentSize * (m_BlockDevices.size() - 1))
+        {
+            return SSI_StatusInvalidSize;
         }
 
         newSize /= (m_BlockDevices.size() - 1);
