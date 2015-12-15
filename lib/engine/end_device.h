@@ -75,7 +75,7 @@ protected:
     String m_Model;
     String m_Firmware;
     unsigned long long m_TotalSize;
-    unsigned int m_BlockSize;
+    unsigned int m_BlocksTotal;
     unsigned int m_BlocksFree;
     unsigned int m_LogicalSectorSize;
     unsigned int m_PhysicalSectorSize;
@@ -118,7 +118,7 @@ public:
         return m_pPort;
     }
     unsigned int getSectors() const {
-        return m_BlockSize;
+        return m_BlocksTotal;
     }
     virtual unsigned char getStoragePoolId() const {
         return 0xff;

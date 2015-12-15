@@ -105,8 +105,8 @@ NVME_Disk::NVME_Disk(const String &path)
 
     try {
         attr =  "/sys/class/block/" + m_DevName + "/size";
-        attr >> m_BlockSize;
-        m_TotalSize = (unsigned long long) m_BlockSize * m_LogicalSectorSize;
+        attr >> m_BlocksTotal;
+        m_TotalSize = (unsigned long long) m_BlocksTotal * m_LogicalSectorSize;
     } catch (...) {
     }
 }

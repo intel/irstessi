@@ -84,7 +84,7 @@ EndDevice::EndDevice(const String &path)
       m_Model(""),
       m_Firmware(""),
       m_TotalSize(0),
-      m_BlockSize(0),
+      m_BlocksTotal(0),
       m_BlocksFree(0),
       m_LogicalSectorSize(0),
       m_PhysicalSectorSize(0),
@@ -162,9 +162,9 @@ EndDevice::EndDevice(const String &path)
     }
 
     try {
-        SysfsAttr attr =  "/sys/class/block/" + m_DevName + "/size";
-        attr >> m_BlockSize;
-        m_TotalSize = (unsigned long long) m_BlockSize * m_LogicalSectorSize;
+        attr =  "/sys/class/block/" + m_DevName + "/size";
+        attr >> m_BlocksTotal;
+        m_TotalSize = (unsigned long long) m_BlocksTotal * m_LogicalSectorSize;
     } catch (...) {
     }
 
@@ -329,8 +329,8 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->state = getDiskState();
     pInfo->usage = getDiskUsage();
     pInfo->totalSize = m_TotalSize;
-    pInfo->blockSize = m_BlockSize;
-    pInfo->blocksTotal = (m_BlockSize * 512);
+    pInfo->blockSize = m_LogicalSectorSize;
+    pInfo->blocksTotal = m_BlocksTotal;
     pInfo->blocksFree = m_BlocksFree;
 
     pInfo->writeCachePolicy = m_WriteCachePolicy;
