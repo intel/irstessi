@@ -58,7 +58,6 @@ public:
 protected:
     unsigned int m_Ordinal;
     unsigned int m_RaidLevel;
-    unsigned int m_MigrationProgress;
     bool m_WriteThrough;
     bool m_CachingEnabled;
     bool m_SystemVolume;
@@ -86,6 +85,7 @@ public:
     void setStripSize(SSI_StripSize stripSize);
     void setSourceDisk(EndDevice *pEndDevice);
     void setRaidLevel(SSI_RaidLevel raidLevel);
+    unsigned int getMigrationProgress();
 
     SSI_VolumeState getState() const {
         return m_State;

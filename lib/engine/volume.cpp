@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 #include <cstddef>
 #include <unistd.h>
+#include <iostream>
+#include <cstdio>
 
 #include <ssi.h>
 
@@ -48,7 +50,6 @@ unsigned int stripsize2ui(SSI_StripSize chunk);
 Volume::Volume() : RaidDevice(),
       m_Ordinal(-1U),
       m_RaidLevel(-1U),
-      m_MigrationProgress(0),
       m_WriteThrough(false),
       m_CachingEnabled(false),
       m_SystemVolume(false),
@@ -66,7 +67,6 @@ Volume::Volume(const String &path, unsigned int ordinal)
     : RaidDevice(path),
       m_Ordinal(ordinal),
       m_RaidLevel(-1U),
-      m_MigrationProgress(0),
       m_WriteThrough(false),
       m_CachingEnabled(false),
       m_SystemVolume(false),
@@ -394,7 +394,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     pInfo->stripSize = ui2stripsize(m_StripSize);
     pInfo->numDisks = m_BlockDevices.size();
     pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
-    pInfo->migrProgress = m_MigrationProgress;
+    pInfo->migrProgress = getMigrationProgress();
     if (m_CachingEnabled == false) {
         pInfo->cachePolicy = SSI_VolumeCachePolicyOff;
     } else {
@@ -495,6 +495,38 @@ void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
     default:
         throw E_INVALID_RAID_LEVEL;
     }
+}
+
+unsigned int Volume::getMigrationProgress()
+{
+    const std::string fieldName = std::string("Reshape Status");
+    const std::string command = std::string("mdadm -D '/dev/md/") + (const char*)m_Name + "' | grep '" + fieldName + "'";
+    unsigned int res = 0;
+    FILE* pipe = popen(command.c_str(), "r");
+    if (!pipe) return 0;
+    char buffer[128];
+    std::string line = "";
+    while (!feof(pipe)) {
+        if (fgets(buffer, 128, pipe) != NULL)
+            line += buffer;
+    }
+    pclose(pipe);
+    if(line.find(fieldName) != std::string::npos)
+    {
+        try
+        {
+            unsigned int trimStart = line.find(fieldName)+fieldName.length() + 3;
+            unsigned int trimLength = line.find("%") - trimStart;
+            line = line.substr(trimStart, trimLength);
+            res = atoi(line.c_str());
+            res = static_cast<unsigned int>(static_cast<unsigned long long>(res) * 0xFFFFFFFF / 100);
+        }
+        catch(...)
+        {
+            res = 0;
+        }
+    }
+    return res;
 }
 
 /* Convert total Volume size to component size and set it */
