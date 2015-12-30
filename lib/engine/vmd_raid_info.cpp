@@ -43,40 +43,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 
 /* */
-VMD_RaidInfo::VMD_RaidInfo(VMD *pVMD)
-    : RaidInfo(&orom_vmd)
+VMD_RaidInfo::VMD_RaidInfo(VMD *pVMD, struct orom_info *pInfo, unsigned int orom_dev_id)
+    : RaidInfo(pInfo)
 {
     attachController(pVMD);
-
-	memset(&orom_vmd, 0, sizeof(orom_info));
-
-	m_OromDevId = -1;
-
-	//Supported Raid Levels
-	orom_vmd.rlc0 = 1;
-	orom_vmd.rlc1 = 1;
-	orom_vmd.rlc10 = 1;
-	orom_vmd.rlc5 = 1;
-
-	//Supported Strip Size
-	orom_vmd.chk4k = 1;
-	orom_vmd.chk8k = 1;
-	orom_vmd.chk16k = 1;
-	orom_vmd.chk32k = 1;
-	orom_vmd.chk64k = 1;
-	orom_vmd.chk128k = 1;
-
-	//Supported Amount of disks/volumens
-	orom_vmd.tds = 12;
-	orom_vmd.dpa = 12;
-	orom_vmd.vphba = 4;
-	orom_vmd.vpa = 2;
-
-	//supported Attr
-	orom_vmd.a_2tb_disk = 1;
-	orom_vmd.a_2tb_vol = 1;
-
-	//supported features
+    m_OromDevId = orom_dev_id;
 }
 
 bool VMD_RaidInfo::operator ==(const Object &object) const {

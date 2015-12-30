@@ -96,14 +96,22 @@ void VMD::getAddress(SSI_Address &address) const
 
 RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
+    /* try EFI, there's no legacy OROM for VMD */
+    struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
+    if (pInfo_ext == NULL) {
+        return NULL;
+    }
+
+    orom_info *pInfo = &pInfo_ext->data;
     foreach(i,RaidInfos){
-        if ((*i)->getControllerType() == SSI_ControllerTypeVMD) {
+        if ((*i)->getControllerType() == SSI_ControllerTypeVMD &&
+           (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
             m_pRaidInfo = (*i);
             (*i)->attachController(this);
             return NULL;
         }
     }
-    m_pRaidInfo = new VMD_RaidInfo(this);
+    m_pRaidInfo = new VMD_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
     return m_pRaidInfo;
 }
 

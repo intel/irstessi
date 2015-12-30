@@ -27,7 +27,7 @@ class VMD;
 /* */
 class VMD_RaidInfo : public RaidInfo {
 public:
-	VMD_RaidInfo(VMD *pVMD);
+	VMD_RaidInfo(VMD *pVMD, struct orom_info *pInfo, unsigned int orom_dev_id);
 
     // Object
 public:

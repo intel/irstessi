@@ -42,6 +42,7 @@ extern "C" {
 #define SATA_VAR "RstSataV"
 #define SSATA_VAR "RstsSatV"
 #define CSATA_VAR "RstcSatV"
+#define VMD_VAR "RstUefiV"
 
 #define SATA_DEV_ID 0x2826
 #define SSATA_DEV_ID 0x2827

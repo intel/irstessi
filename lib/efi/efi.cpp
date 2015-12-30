@@ -180,6 +180,9 @@ static struct orom_info_ext * __efi_init(SSI_ControllerType controllerType, unsi
             orom_data = __read_efi_variable(CSATA_VAR);
             orom_dev_id = SATA_DEV_ID;
         }
+    } else if (controllerType == SSI_ControllerTypeVMD) {
+            orom_data = __read_efi_variable(VMD_VAR);
+            orom_dev_id = device_id;
     }
 
     if (orom_data != NULL) {
