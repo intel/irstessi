@@ -62,7 +62,7 @@ void VMD::discover()
     unsigned int number = 0;
     CanonicalPath cPath(m_Path);
 
-    Directory dir(cPath + "pci_bus/device/");
+    Directory dir(cPath + "domain/device/");
     CanonicalPath temp, subtemp, nvmePath;
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
