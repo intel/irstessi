@@ -69,7 +69,7 @@ AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, StorageObject *pPare
         attr >> id;
         dlog(id);
         try {
-            attr = path + "/../ata" + id + "/link" + id + "/ata_link/link" + id + "/sata_spd";
+            attr = path + "/../../ata" + id + "/link" + id + "/ata_link/link" + id + "/sata_spd";
             dlog(attr);
             attr >> id;
             dlog(id);
