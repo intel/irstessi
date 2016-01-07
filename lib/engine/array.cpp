@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sys/types.h>
 #include <cerrno>
 #include <unistd.h>
+#include <vector>
 
 #include <ssi.h>
 
@@ -138,8 +139,18 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
 {
     SSI_Status status;
     Container<EndDevice> tmp;
+    std::vector<bool> addedToSpare;
     if (m_Busy) {
         return SSI_StatusInvalidState;
+    }
+    foreach(i, container) {
+        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
+        if(pBlockDevice->getDiskUsage() == SSI_DiskUsageSpare) {
+            addedToSpare.push_back(false);
+        }
+        else {
+            addedToSpare.push_back(true);
+        }
     }
     status = this->addSpare(container);
     this->getEndDevices(tmp,false);
@@ -147,6 +158,16 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
         usleep(3000000);
         if (shell("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " +
                   String(tmp.size() + container.size())) != 0) {
+            unsigned int index = 0;
+            foreach(i, container) {
+                if(addedToSpare[index++]) {
+                    int result = shell("mdadm '/dev/" + m_DevName + "' -r '/dev/" + (*i)->getDevName() + "'");
+                    if (result == 0) {
+                        usleep(3000000);
+                        result = shell("mdadm --zero-superblock '/dev/" + (*i)->getDevName() + "'");
+                    }
+                }
+            }
             status = SSI_StatusFailed;
         }
     }
