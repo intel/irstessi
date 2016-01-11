@@ -22,6 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 #include <cstddef>
 #include <stdio.h>
+#include <unistd.h>
 #include <sys/ioctl.h>
 #include <string.h>
 
@@ -52,8 +53,9 @@ void NVME_Disk::identify()
     cmd.data_len = 4096;
     cmd.cdw10 = 1;
     fd = open("/dev/" + m_DevName, O_RDONLY);
-
-    if (fd && !ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd)){
+    if(fd < 0)
+        return;
+    if (!ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd)){
         char sn[sizeof(ptr.sn) + 1];
         char mn[sizeof(ptr.mn) + 1];
         char fr[sizeof(ptr.fr) + 1];
@@ -70,6 +72,7 @@ void NVME_Disk::identify()
         m_Model = mn;
         m_Firmware = fr;
     }
+    close(fd);
 }
 
 /* */
