@@ -55,6 +55,7 @@ BlockDevice::BlockDevice(const String &path)
     __internal_determine_disk_state();
     __internal_determine_disk_usage();
     __internal_determine_disk_is_system();
+    m_BlocksFree = m_BlocksTotal;
 }
 
 /* */

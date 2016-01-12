@@ -336,6 +336,12 @@ void Array::addToSession(Session *pSession)
         }
     }
     __internal_determine_total_and_free_size();
+
+    Container<EndDevice> endDevices;
+    getEndDevices(endDevices, true);
+    foreach (endDevice, endDevices) {
+        (*endDevice)->determineBlocksFree(this);
+    }
 }
 
 /* */

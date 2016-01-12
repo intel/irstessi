@@ -165,6 +165,8 @@ public:
     virtual SSI_Status makeSpare() {
         return SSI_StatusInvalidState;
     }
+
+    void determineBlocksFree(Array *pArray);
 };
 
 #endif /* __END_DEVICE_H__INCLUDED__ */

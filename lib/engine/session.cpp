@@ -151,6 +151,7 @@ Session::Session()
             __internal_attach_imsm_device(CanonicalPath(*(*i)));
         }
     }
+
     check_configuration();
 }
 

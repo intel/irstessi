@@ -439,4 +439,50 @@ void EndDevice::attachPort(Port *pPort)
     m_pPort = pPort;
 }
 
+void EndDevice::determineBlocksFree(Array *pArray)
+{
+    unsigned long long int totalBlocks = -1ULL;
+    unsigned long long occupiedBlocks = 0;
+    unsigned int stripSize = 0;
+    int volumeCount = 0;
+
+    Container<Volume> volumes;
+    pArray->getVolumes(volumes);
+
+    foreach (volume, volumes) {
+        bool volumeSelected = false;
+        Container<EndDevice> endDevices;
+        (*volume)->getEndDevices(endDevices, true);
+        foreach (endDevice, endDevices) {
+            if((*endDevice)->getSerialNum() == m_SerialNum) {
+                volumeSelected = true;
+            }
+        }
+        if(volumeSelected) {
+            foreach (endDevice, endDevices) {
+                occupiedBlocks += (unsigned long long) (*volume)->getComponentSize();
+                occupiedBlocks += IMSM_RESERVED_SECTORS;
+                stripSize = (*volume)->getStripSize();
+                totalBlocks = min(totalBlocks, (*endDevice)->getTotalSize() / RAID_SECTOR_SIZE);
+                volumeCount++;
+                break;
+            }
+        }
+    }
+
+    if(volumeCount == 0) {
+        m_BlocksFree = m_BlocksTotal;
+    }
+    else {
+        if (occupiedBlocks > 0) {
+            occupiedBlocks += MPB_SECTOR_CNT;
+        }
+        m_BlocksFree = totalBlocks - occupiedBlocks;
+    }
+
+    if ((m_BlocksFree < stripSize / RAID_SECTOR_SIZE) || (volumeCount > 1)) {
+        m_BlocksFree = 0;
+    }
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
