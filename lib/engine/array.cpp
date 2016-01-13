@@ -25,7 +25,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sys/types.h>
 #include <cerrno>
 #include <unistd.h>
-#include <vector>
 
 #include <ssi.h>
 
@@ -139,35 +138,17 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
 {
     SSI_Status status;
     Container<EndDevice> tmp;
-    std::vector<bool> addedToSpare;
     if (m_Busy) {
         return SSI_StatusInvalidState;
     }
-    foreach(i, container) {
-        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if(pBlockDevice->getDiskUsage() == SSI_DiskUsageSpare) {
-            addedToSpare.push_back(false);
-        }
-        else {
-            addedToSpare.push_back(true);
-        }
-    }
+    Container<EndDevice> addedToSpare = getSpareableEndDevices(container);
     status = this->addSpare(container);
     this->getEndDevices(tmp,false);
     if (status == SSI_StatusOk) {
         usleep(3000000);
         if (shell("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " +
                   String(tmp.size() + container.size())) != 0) {
-            unsigned int index = 0;
-            foreach(i, container) {
-                if(addedToSpare[index++]) {
-                    int result = shell("mdadm '/dev/" + m_DevName + "' -r '/dev/" + (*i)->getDevName() + "'");
-                    if (result == 0) {
-                        usleep(3000000);
-                        result = shell("mdadm --zero-superblock '/dev/" + (*i)->getDevName() + "'");
-                    }
-                }
-            }
+            removeSpare(addedToSpare, true);
             status = SSI_StatusFailed;
         }
     }
@@ -230,21 +211,24 @@ void Array::setEndDevices(const Container<EndDevice> &container)
 }
 
 /* */
-SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
+SSI_Status Array::removeSpare(const EndDevice *pEndDevice, bool force)
 {
-    if (pEndDevice->getArray() != this) {
-        return SSI_StatusInvalidState;
-    }
-    const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
-    if (pBlockDevice == NULL) {
-        return SSI_StatusInvalidState;
-    }
-    if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
-        return SSI_StatusInvalidState;
-    }
-    SSI_DiskState state = pBlockDevice->getDiskState();
-    if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
-        return SSI_StatusInvalidState;
+    if(!force)
+    {
+        if (pEndDevice->getArray() != this) {
+            return SSI_StatusInvalidState;
+        }
+        const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
+        if (pBlockDevice == NULL) {
+            return SSI_StatusInvalidState;
+        }
+        if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
+            return SSI_StatusInvalidState;
+        }
+        SSI_DiskState state = pBlockDevice->getDiskState();
+        if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
+            return SSI_StatusInvalidState;
+        }
     }
     int result = shell("mdadm '/dev/" + m_DevName + "' -r '/dev/" + pEndDevice->getDevName() + "'");
     if (result == 0) {
@@ -255,6 +239,19 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice)
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
+}
+
+SSI_Status Array::removeSpare(const Container<EndDevice>& endDevices, bool force)
+{
+    SSI_Status status = SSI_StatusOk;
+    foreach(i, endDevices)
+    {
+        SSI_Status localStatus;
+        if((localStatus = removeSpare(*i, force)) != SSI_StatusOk) {
+            status = localStatus;
+        }
+    }
+    return status;
 }
 
 /* */
@@ -362,6 +359,18 @@ SSI_Status Array::remove()
         usleep(3000000);
     } while (n++ < 3);
     return SSI_StatusFailed;
+}
+
+Container<EndDevice> Array::getSpareableEndDevices(const Container<EndDevice>& endDevices)
+{
+    Container<EndDevice> result;
+    foreach(i, endDevices) {
+        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
+        if(pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
+            result.add(*i);
+        }
+    }
+    return result;
 }
 
 void Array::__wait_for_container()

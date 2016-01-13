@@ -768,17 +768,23 @@ SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSiz
         return SSI_StatusInvalidStripSize;
     if (pArray == NULL)
         return SSI_StatusFailed;
+
+    Container<EndDevice> addedToSpare = Array::getSpareableEndDevices(disks);
+
     status = pArray->addSpare(disks);
     if (status != SSI_StatusOk)
         return status;
     if (shell("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0)
         return SSI_StatusOk;
+
+    pArray->removeSpare(addedToSpare, true);
     return SSI_StatusFailed;
 }
 
 /* */
 SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks)
 {
+    Container<EndDevice> addedToSpare;
     SSI_Status status = SSI_StatusOk;
     Array *pArray = dynamic_cast<Array *>(m_pParent);
     if (pArray == NULL)
@@ -796,11 +802,14 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
             if (disks.size() < 1)
                 /* check if there are any spares */
                 return SSI_StatusNotSupported;
+
+            addedToSpare = Array::getSpareableEndDevices(disks);
             status = pArray->addSpare(disks);
             if (status != SSI_StatusOk)
                 return status;
             if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0)
                 return SSI_StatusOk;
+            pArray->removeSpare(addedToSpare, true);
         case 10:
             if (disks.size() > 0)
                 return SSI_StatusNotSupported;
