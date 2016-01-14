@@ -161,6 +161,10 @@ Volume::Volume(const String &path, unsigned int ordinal)
         m_RaidLevel = getMigrationTargetLevel();
         m_MigrProgress = getMigrationProgress();
     }
+    else if(SSI_VolumeStateVerifying == m_State || SSI_VolumeStateVerifyingAndFix == m_State)
+    {
+        m_MigrProgress = getVerificationProgress();
+    }
 
     try {
         SysfsAttr attr = m_Path + "/md/chunk_size";
@@ -531,10 +535,10 @@ String Volume::getMdadmAttribute(const String &attribute)
     return "";
 }
 
-unsigned int Volume::getMigrationProgress()
+unsigned int Volume::getPercentageStatus(const String &attribute)
 {
     unsigned int res = 0;
-    String progress = getMdadmAttribute("Reshape Status");
+    String progress = getMdadmAttribute(attribute);
     try {
         unsigned int percentPos = progress.find("%");
         progress = progress.mid(0, percentPos);
@@ -548,10 +552,20 @@ unsigned int Volume::getMigrationProgress()
     return res;
 }
 
+unsigned int Volume::getMigrationProgress()
+{
+    return getPercentageStatus("Reshape Status");
+}
+
 unsigned int Volume::getMigrationTargetLevel()
 {
     String newLevel = getMdadmAttribute("New Level");
     return getRaidLevel(newLevel);
+}
+
+unsigned int Volume::getVerificationProgress()
+{
+    return getPercentageStatus("Check Status");
 }
 
 /* Convert total Volume size to component size and set it */

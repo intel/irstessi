@@ -106,8 +106,11 @@ private:
 
     unsigned int getRaidLevel(const String& raidLevel);
     String getMdadmAttribute(const String &attribute);
+    unsigned int getPercentageStatus(const String &attribute);
+
     unsigned int getMigrationProgress();
     unsigned int getMigrationTargetLevel();
+    unsigned int getVerificationProgress();
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
