@@ -63,6 +63,7 @@ protected:
     bool m_SystemVolume;
     unsigned int m_MismatchCount;
     unsigned int m_StripSize;
+    unsigned int m_MigrProgress;
     unsigned long long m_ComponentSize;
     SSI_VolumeState m_State;
     BlockDevice blk;
@@ -85,7 +86,6 @@ public:
     void setStripSize(SSI_StripSize stripSize);
     void setSourceDisk(EndDevice *pEndDevice);
     void setRaidLevel(SSI_RaidLevel raidLevel);
-    unsigned int getMigrationProgress();
 
     SSI_VolumeState getState() const {
         return m_State;
@@ -103,6 +103,11 @@ private:
     SSI_Status __toRaid0(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
     SSI_Status __toRaid10(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
     SSI_Status __toRaid5(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks);
+
+    unsigned int getRaidLevel(const String& raidLevel);
+    String getMdadmAttribute(const String &attribute);
+    unsigned int getMigrationProgress();
+    unsigned int getMigrationTargetLevel();
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

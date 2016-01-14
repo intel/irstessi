@@ -450,21 +450,17 @@ void EndDevice::determineBlocksFree(Array *pArray)
     pArray->getVolumes(volumes);
 
     foreach (volume, volumes) {
-        bool volumeSelected = false;
         Container<EndDevice> endDevices;
         (*volume)->getEndDevices(endDevices, true);
         foreach (endDevice, endDevices) {
             if((*endDevice)->getSerialNum() == m_SerialNum) {
-                volumeSelected = true;
-            }
-        }
-        if(volumeSelected) {
-            foreach (endDevice, endDevices) {
                 occupiedBlocks += (unsigned long long) (*volume)->getComponentSize();
                 occupiedBlocks += IMSM_RESERVED_SECTORS;
                 stripSize = (*volume)->getStripSize();
-                totalBlocks = min(totalBlocks, (*endDevice)->getTotalSize() / RAID_SECTOR_SIZE);
                 volumeCount++;
+                foreach (endDevice2, endDevices) {
+                    totalBlocks = min(totalBlocks, (*endDevice2)->getTotalSize() / RAID_SECTOR_SIZE);
+                }
                 break;
             }
         }

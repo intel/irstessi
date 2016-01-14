@@ -55,6 +55,7 @@ Volume::Volume() : RaidDevice(),
       m_SystemVolume(false),
       m_MismatchCount(0),
       m_StripSize(0),
+      m_MigrProgress(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
       blk(0),
@@ -72,6 +73,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_SystemVolume(false),
       m_MismatchCount(0),
       m_StripSize(0),
+      m_MigrProgress(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
       blk(path),
@@ -82,23 +84,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     try {
         attr = m_Path + "/md/level";
         attr >> temp;
-        if (temp == "raid0") {
-            m_RaidLevel = 0;
-        } else
-        if (temp == "raid1") {
-            m_RaidLevel = 1;
-        } else
-        if (temp == "raid10") {
-            m_RaidLevel = 10;
-        } else
-        if (temp == "raid5") {
-            m_RaidLevel = 5;
-        } else
-        if (temp == "raid6") {
-            m_RaidLevel = 6;
-        } else {
-            m_RaidLevel = -1U;
-        }
+        m_RaidLevel = getRaidLevel(temp);
     } catch (...) {
         // Intentionaly left blank
     }
@@ -136,7 +122,8 @@ Volume::Volume(const String &path, unsigned int ordinal)
                 m_State = SSI_VolumeStateGeneralMigration;
             }
         } catch (...) {
-            // Intentionally left blank
+            // when there's no sync_action, assume that the volume state is normal
+            m_State = SSI_VolumeStateNormal;
         }
     }
     if (m_State == SSI_VolumeStateUnknown || m_State == SSI_VolumeStateNormal) {
@@ -169,6 +156,10 @@ Volume::Volume(const String &path, unsigned int ordinal)
     } catch (...) {
         // Intentionally left blank
     }
+    }
+    else if(SSI_VolumeStateGeneralMigration == m_State) {
+        m_RaidLevel = getMigrationTargetLevel();
+        m_MigrProgress = getMigrationProgress();
     }
 
     try {
@@ -394,7 +385,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     pInfo->stripSize = ui2stripsize(m_StripSize);
     pInfo->numDisks = m_BlockDevices.size();
     pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
-    pInfo->migrProgress = getMigrationProgress();
+    pInfo->migrProgress = m_MigrProgress;
     if (m_CachingEnabled == false) {
         pInfo->cachePolicy = SSI_VolumeCachePolicyOff;
     } else {
@@ -447,7 +438,6 @@ void Volume::addToSession(Session *pSession)
     RaidDevice::addToSession(pSession);
     pSession->addVolume(this);
     if (m_RaidLevel == 0) {
-        m_State = SSI_VolumeStateNormal;
         foreach (i, m_BlockDevices) {
             if ((*i)->getDiskState() != SSI_DiskStateNormal) {
                 m_State = SSI_VolumeStateNonRedundantVolumeFailedDisk;
@@ -497,12 +487,31 @@ void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
     }
 }
 
-unsigned int Volume::getMigrationProgress()
+unsigned int Volume::getRaidLevel(const String& raidLevel)
 {
-    const std::string fieldName = std::string("Reshape Status");
-    const std::string command = std::string("mdadm -D '/dev/md/") + (const char*)m_Name + "' | grep '" + fieldName + "'";
-    unsigned int res = 0;
-    FILE* pipe = popen(command.c_str(), "r");
+    if (raidLevel == "raid0") {
+        return 0;
+    } else
+    if (raidLevel == "raid1") {
+        return 1;
+    } else
+    if (raidLevel == "raid10") {
+        return 10;
+    } else
+    if (raidLevel == "raid5") {
+        return 5;
+    } else
+    if (raidLevel == "raid6") {
+        return 6;
+    } else {
+        return -1U;
+    }
+}
+
+String Volume::getMdadmAttribute(const String &attribute)
+{
+    const String command = String("mdadm -D '/dev/md/") + m_Name + "' | grep '" + attribute + "'";
+    FILE* pipe = popen(static_cast<const char*>(command), "r");
     if (!pipe) return 0;
     char buffer[128];
     std::string line = "";
@@ -511,22 +520,38 @@ unsigned int Volume::getMigrationProgress()
             line += buffer;
     }
     pclose(pipe);
-    if(line.find(fieldName) != std::string::npos)
+    if(line.find(static_cast<const char*>(attribute)) != std::string::npos)
     {
-        try
-        {
-            unsigned int trimStart = line.find(fieldName)+fieldName.length() + 3;
-            unsigned int trimLength = line.find("%") - trimStart;
-            line = line.substr(trimStart, trimLength);
-            res = atoi(line.c_str());
-            res = static_cast<unsigned int>(static_cast<unsigned long long>(res) * 0xFFFFFFFF / 100);
-        }
-        catch(...)
-        {
-            res = 0;
-        }
+        const unsigned int trimStart = line.find(static_cast<const char*>(attribute))+attribute.length() + 3;
+        const unsigned int trimEnd = line.find_last_not_of("\n\t ");
+        const unsigned int trimRange = trimEnd - trimStart + 1;
+        line = line.substr(trimStart, trimRange);
+        return String(line.c_str());
+    }
+    return "";
+}
+
+unsigned int Volume::getMigrationProgress()
+{
+    unsigned int res = 0;
+    String progress = getMdadmAttribute("Reshape Status");
+    try {
+        unsigned int percentPos = progress.find("%");
+        progress = progress.mid(0, percentPos);
+        res = atoi(static_cast<const char*>(progress));
+        res = static_cast<unsigned int>(static_cast<unsigned long long>(res) * 0xFFFFFFFF / 100);
+    }
+    catch(...)
+    {
+        res = 0;
     }
     return res;
+}
+
+unsigned int Volume::getMigrationTargetLevel()
+{
+    String newLevel = getMdadmAttribute("New Level");
+    return getRaidLevel(newLevel);
 }
 
 /* Convert total Volume size to component size and set it */
