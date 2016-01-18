@@ -276,6 +276,8 @@ SSI_Status Volume::rename(const String &newName)
     if (m_State != SSI_VolumeStateNormal)
         return SSI_StatusInvalidState;
 
+    verifyVolumeName(newName);
+
     if (shell("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
             pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
         return pArray->assemble();
@@ -568,6 +570,19 @@ unsigned int Volume::getVerificationProgress()
     return getPercentageStatus("Check Status");
 }
 
+void Volume::verifyVolumeName(const String& name)
+{
+    if (m_Name.isEmpty() || m_Name.length() > 16 || m_Name[0] == ' ') {
+        throw E_INVALID_NAME;
+    }
+    for (unsigned int index = 0; index < m_Name.length(); index++) {
+        const char character = m_Name[index];
+        if(character < 32 || character > 126 || character == '\\') {
+            throw E_INVALID_NAME;
+        }
+    }
+}
+
 /* Convert total Volume size to component size and set it */
 void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long diskCount, SSI_RaidLevel level)
 {
@@ -620,12 +635,12 @@ void Volume::create()
     if (m_Name == "") {
         determineDeviceName("Volume_");
     }
-    if (m_Name.length() > 16) {
-        throw E_INVALID_NAME;
-    }
+    verifyVolumeName(m_Name);
+
     String devices;
-    foreach (i, m_BlockDevices)
+    foreach (i, m_BlockDevices) {
         devices += " '/dev/" + (*i)->getDevName() + "'";
+    }
     String componentSize;
     if (m_ComponentSize == 0) {
         componentSize = "max";
