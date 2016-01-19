@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -100,7 +100,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             pInfo->supported = m_pInfo->rlc10?SSI_TRUE:SSI_FALSE;
             pInfo->minDisks = min(4, m_pInfo->tds);
             pInfo->maxDisks = min(4, m_pInfo->tds);
-            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid5);
+            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0);
             pInfo->migrDiskAdd = SSI_RaidInvalid;
             pInfo->evenDiskCount = SSI_TRUE;
             pInfo->oddDiskCount = SSI_FALSE;
@@ -109,7 +109,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             pInfo->supported = m_pInfo->rlc5?SSI_TRUE:SSI_FALSE;
             pInfo->minDisks = min(3, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
-            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid5);
+            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid5);
             pInfo->migrDiskAdd = SSI_RaidInvalid;
             pInfo->evenDiskCount = SSI_FALSE;
             pInfo->oddDiskCount = SSI_FALSE;
