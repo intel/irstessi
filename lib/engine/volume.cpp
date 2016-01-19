@@ -586,6 +586,32 @@ void Volume::verifyVolumeName(const String& name)
 /* Convert total Volume size to component size and set it */
 void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long diskCount, SSI_RaidLevel level)
 {
+    RaidInfo *pRaidInfo = getRaidInfo();
+    /* get raidinfo for this volume*/
+    SSI_RaidLevelInfo info;
+    /* get raidlevel info for this volume */
+    if (pRaidInfo == 0) {
+        throw E_INVALID_HANDLE;
+    }
+
+    if (pRaidInfo->getRaidLevelInfo(level, &info) != SSI_StatusOk) {
+        throw E_INVALID_HANDLE;
+    }
+
+    if (diskCount < info.minDisks) {
+        throw E_BUFFER_TOO_SMALL;
+    }
+
+    /* For RAID_0, you can create volume from 1 disk but it requires --force parameter
+       and then SSI returns StatusFailure so we throw BufferTooSmall for better information */
+    if (level == SSI_Raid0 && diskCount == 1) {
+        throw E_BUFFER_TOO_SMALL;
+    }
+
+    if (diskCount > info.maxDisks) {
+        throw E_BUFFER_TOO_LARGE;
+    }
+
     unsigned long long divider = 1;
     switch (level) {
     case SSI_Raid0:

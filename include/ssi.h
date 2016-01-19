@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -254,7 +254,9 @@ typedef enum _SSI_Status
     /** User has insufficient privileges to execute function */
     SSI_StatusInsufficientPrivileges = 22,
     /** Driver has returned a busy notification */
-    SSI_StatusDriverBusy             = 23
+    SSI_StatusDriverBusy             = 23,
+    /** Too many items (disks, etc) have been specified */
+    SSI_StatusBufferTooLarge         = 24
 } SSI_Status;
 
 /**

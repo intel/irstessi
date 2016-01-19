@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -147,6 +147,8 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
                 return SSI_StatusInvalidRaidLevel;
             case E_INVALID_USAGE:
                 return SSI_StatusInvalidState;
+            case E_BUFFER_TOO_SMALL:
+                return SSI_StatusBufferTooSmall;
             default:
                 return SSI_StatusFailed;
         }
@@ -163,7 +165,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pVolume->setParent(pArray);
         pVolume->setSourceDisk(pEndDevice);
         pVolume->setEndDevices(container);
-        pVolume->setComponentSize(params.sizeInBytes, container, params.raidLevel);
+        pVolume->setComponentSize(params.sizeInBytes, container.size(), params.raidLevel);
         pVolume->setName(params.volumeName);
         pVolume->setRaidLevel(params.raidLevel);
         if (params.raidLevel != SSI_Raid1)
@@ -184,6 +186,10 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
             return SSI_StatusInvalidString;
         case E_INVALID_RAID_LEVEL:
             return SSI_StatusInvalidRaidLevel;
+        case E_BUFFER_TOO_SMALL:
+            return SSI_StatusBufferTooSmall;
+        case E_BUFFER_TOO_LARGE:
+            return SSI_StatusBufferTooLarge;
         default:
             return SSI_StatusFailed;
         }
@@ -231,6 +237,10 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
             return SSI_StatusInvalidString;
         case E_INVALID_RAID_LEVEL:
             return SSI_StatusInvalidRaidLevel;
+        case E_BUFFER_TOO_SMALL:
+            return SSI_StatusBufferTooSmall;
+        case E_BUFFER_TOO_LARGE:
+            return SSI_StatusBufferTooLarge;
         default:
             return SSI_StatusFailed;
         }

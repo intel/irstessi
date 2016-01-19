@@ -409,6 +409,11 @@ void Array::create()
     foreach (i, m_BlockDevices) {
         devices += " /dev/" + (*i)->getDevName();
     }
+
+    if (m_BlockDevices.size() == 0) {
+        throw E_BUFFER_TOO_SMALL;
+    }
+
     if (shell("mdadm -CR '" + m_Name + "' -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices) != 0) {
         throw E_ARRAY_CREATE_FAILED;
     }
