@@ -102,7 +102,7 @@ SSI_Status BlockDevice::assignPoolId(unsigned char poolId)
 /* */
 SSI_Status BlockDevice::markAsNormal()
 {
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */

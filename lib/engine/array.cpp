@@ -185,7 +185,7 @@ SSI_Status Array::setWriteCacheState(bool enable)
     foreach (i, m_BlockDevices) {
         (*i)->setWriteCache(enable);
     }
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */

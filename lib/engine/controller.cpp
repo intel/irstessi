@@ -275,7 +275,7 @@ void Controller::getVolumes(Container<Volume> &container) const
 SSI_Status Controller::readPatrolSetState(bool enable)
 {
     (void)enable;
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */

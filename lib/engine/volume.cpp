@@ -225,13 +225,7 @@ SSI_Status Volume::expand(unsigned long long newSize)
     /* calculate size depending on raid level */
     switch(m_RaidLevel) {
     case 0:
-        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size())
-        {
-            return SSI_StatusInvalidSize;
-        }
-
-        newSize /= m_BlockDevices.size();
-        break;
+        return SSI_StatusNotSupported;
     case 1:
         // No change
         break;
@@ -310,12 +304,15 @@ SSI_Status Volume::remove()
 /* */
 SSI_Status Volume::markAsNormal()
 {
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */
 SSI_Status Volume::verify(bool repair)
 {
+    if(m_RaidLevel == 0) {
+        return SSI_StatusNotSupported;
+    }
     File attr = m_Path + "/md/sync_action";
     try {
         if (repair) {
