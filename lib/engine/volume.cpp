@@ -559,7 +559,12 @@ unsigned int Volume::getMigrationProgress()
 unsigned int Volume::getMigrationTargetLevel()
 {
     String newLevel = getMdadmAttribute("New Level");
-    return getRaidLevel(newLevel);
+    unsigned int newRaidLevel = getRaidLevel(newLevel);
+    if(newRaidLevel != -1U)
+    {
+        return newRaidLevel;
+    }
+    return m_RaidLevel;
 }
 
 unsigned int Volume::getVerificationProgress()
