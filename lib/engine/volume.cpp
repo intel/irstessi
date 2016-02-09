@@ -227,7 +227,10 @@ SSI_Status Volume::expand(unsigned long long newSize)
     case 0:
         return SSI_StatusNotSupported;
     case 1:
-        // No change
+        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2)
+        {
+            return SSI_StatusInvalidSize;
+        }
         break;
     case 10:
         if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2)
