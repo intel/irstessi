@@ -74,6 +74,18 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     if (pArray == NULL)
         return SSI_StatusInvalidHandle;
 
+    Container<Volume> volumes;
+    pArray->getVolumes(volumes);
+
+    foreach (iter, volumes) {
+        Volume& volume = *(*iter);
+
+        SSI_RaidLevel raid = volume.getRaidLevel();
+        if (raid == SSI_Raid1 || raid == SSI_Raid10) {
+            return SSI_StatusNotSupported;
+        }
+    }
+
     if (diskHandles == NULL) {
         return SSI_StatusInvalidParameter;
     }

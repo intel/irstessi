@@ -201,6 +201,12 @@ Volume::~Volume()
 }
 
 /* */
+SSI_RaidLevel Volume::getRaidLevel() const
+{
+    return ui2raidlevel(m_RaidLevel);
+}
+
+/* */
 SSI_Status Volume::initialize()
 {
     return SSI_StatusNotSupported;

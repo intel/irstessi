@@ -96,6 +96,7 @@ public:
     unsigned long long getComponentSize() const {
         return m_ComponentSize;
     }
+    SSI_RaidLevel getRaidLevel() const;
 
 private:
     void __internal_initialize();
