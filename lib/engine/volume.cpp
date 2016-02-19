@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <features.h>
 #include <cstddef>
 #include <unistd.h>
-#include <iostream>
+#include <string>
 #include <cstdio>
 
 #include <ssi.h>
@@ -42,9 +42,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "block_device.h"
 #include "raid_info.h"
 
-SSI_RaidLevel ui2raidlevel(unsigned int level);
-SSI_StripSize ui2stripsize(unsigned int chunk);
-unsigned int stripsize2ui(SSI_StripSize chunk);
+namespace {
+    SSI_RaidLevel ui2raidlevel(unsigned int level);
+    SSI_StripSize ui2stripsize(unsigned int chunk);
+    unsigned int stripsize2ui(SSI_StripSize chunk);
+}
 
 /* */
 Volume::Volume() : RaidDevice(),
@@ -491,9 +493,7 @@ void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
     case SSI_Raid5:
         m_RaidLevel = 5;
         break;
-    case SSI_Raid6:
-        m_RaidLevel = 6;
-        break;
+    case SSI_Raid6: /* not supported */
     default:
         throw E_INVALID_RAID_LEVEL;
     }
@@ -601,20 +601,19 @@ void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long 
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
     /* get raidlevel info for this volume */
-    if (pRaidInfo == 0) {
+    if (pRaidInfo == NULL) {
         throw E_INVALID_HANDLE;
     }
 
     if (pRaidInfo->getRaidLevelInfo(level, &info) != SSI_StatusOk) {
-        throw E_INVALID_HANDLE;
+        throw E_INVALID_RAID_LEVEL;
     }
 
     if (diskCount < info.minDisks) {
         throw E_BUFFER_TOO_SMALL;
     }
 
-    /* For RAID_0, you can create volume from 1 disk but it requires --force parameter
-       and then SSI returns StatusFailure so we throw BufferTooSmall for better information */
+    /* For RAID_0, you can create volume from 1 disk but it requires --force which is not available from user side */
     if (level == SSI_Raid0 && diskCount == 1) {
         throw E_BUFFER_TOO_SMALL;
     }
@@ -637,9 +636,7 @@ void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long 
     case SSI_Raid5:
         divider = diskCount - 1;
         break;
-    case SSI_Raid6:
-        divider = diskCount - 2;
-        break;
+    case SSI_Raid6: /* not supported */
     default:
         throw E_INVALID_RAID_LEVEL;
     }
@@ -684,6 +681,7 @@ void Volume::create()
     } else {
         componentSize = m_ComponentSize / 1024;
     }
+
     String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
     if (shell("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
             chunk + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
@@ -692,102 +690,104 @@ void Volume::create()
     __wait_for_volume();
 }
 
-SSI_RaidLevel ui2raidlevel(unsigned int level)
-{
-    switch (level) {
-        case 0:
-            return SSI_Raid0;
-        case 1:
-            return SSI_Raid1;
-        case 5:
-            return SSI_Raid5;
-        case 6:
-            return SSI_Raid6;
-        case 10:
-            return SSI_Raid10;
-        default:
-            return SSI_RaidInvalid;
+namespace {
+    SSI_RaidLevel ui2raidlevel(unsigned int level)
+    {
+        switch (level) {
+            case 0:
+                return SSI_Raid0;
+            case 1:
+                return SSI_Raid1;
+            case 5:
+                return SSI_Raid5;
+            case 6:
+                return SSI_Raid6;
+            case 10:
+                return SSI_Raid10;
+            default:
+                return SSI_RaidInvalid;
+        }
     }
-}
 
-SSI_StripSize ui2stripsize(unsigned int chunk)
-{
-    switch (chunk) {
-        case (2 * 1024):
-            return SSI_StripSize2kB;
-        case (4 * 1024):
-            return SSI_StripSize4kB;
-        case (8 * 1024):
-            return SSI_StripSize8kB;
-        case (16 * 1024):
-            return SSI_StripSize16kB;
-        case (32 * 1024):
-            return SSI_StripSize32kB;
-        case (64 * 1024):
-            return SSI_StripSize64kB;
-        case (128 * 1024):
-            return SSI_StripSize128kB;
-        case (256 * 1024):
-            return SSI_StripSize256kB;
-        case (512 * 1024):
-            return SSI_StripSize512kB;
-        case (1024 * 1024):
-            return SSI_StripSize1MB;
-        case (2 * 1024 * 1024):
-            return SSI_StripSize2MB;
-        case (4 * 1024 * 1024):
-            return SSI_StripSize4MB;
-        case (8 * 1024 * 1024):
-            return SSI_StripSize8MB;
-        case (16 * 1024 * 1024):
-            return SSI_StripSize16MB;
-        case (32 * 1024 * 1024):
-            return SSI_StripSize32MB;
-        case (64 * 1024 * 1024):
-            return SSI_StripSize64MB;
-        default:
-            return SSI_StripSizeUnknown;
+    SSI_StripSize ui2stripsize(unsigned int chunk)
+    {
+        switch (chunk) {
+            case (2 * 1024):
+                return SSI_StripSize2kB;
+            case (4 * 1024):
+                return SSI_StripSize4kB;
+            case (8 * 1024):
+                return SSI_StripSize8kB;
+            case (16 * 1024):
+                return SSI_StripSize16kB;
+            case (32 * 1024):
+                return SSI_StripSize32kB;
+            case (64 * 1024):
+                return SSI_StripSize64kB;
+            case (128 * 1024):
+                return SSI_StripSize128kB;
+            case (256 * 1024):
+                return SSI_StripSize256kB;
+            case (512 * 1024):
+                return SSI_StripSize512kB;
+            case (1024 * 1024):
+                return SSI_StripSize1MB;
+            case (2 * 1024 * 1024):
+                return SSI_StripSize2MB;
+            case (4 * 1024 * 1024):
+                return SSI_StripSize4MB;
+            case (8 * 1024 * 1024):
+                return SSI_StripSize8MB;
+            case (16 * 1024 * 1024):
+                return SSI_StripSize16MB;
+            case (32 * 1024 * 1024):
+                return SSI_StripSize32MB;
+            case (64 * 1024 * 1024):
+                return SSI_StripSize64MB;
+            default:
+                return SSI_StripSizeUnknown;
+        }
     }
-}
 
-/* */
-unsigned int stripsize2ui(SSI_StripSize stripSize)
-{
-    switch (stripSize) {
-        case SSI_StripSize2kB:
-            return 2 * 1024;
-        case SSI_StripSize4kB:
-            return 4 * 1024;
-        case SSI_StripSize8kB:
-            return 8 * 1024;
-        case SSI_StripSize16kB:
-            return 16 * 1024;
-        case SSI_StripSize32kB:
-            return 32 * 1024;
-        case SSI_StripSize64kB:
-            return 64 * 1024;
-        case SSI_StripSize128kB:
-            return 128 * 1024;
-        case SSI_StripSize256kB:
-            return 256 * 1024;
-        case SSI_StripSize512kB:
-            return 512 * 1024;
-        case SSI_StripSize1MB:
-            return 1 * 1024 * 1024;
-        case SSI_StripSize2MB:
-            return 2 * 1024 * 1024;
-        case SSI_StripSize4MB:
-            return 4 * 1024 * 1024;
-        case SSI_StripSize8MB:
-            return 8 * 1024 * 1024;
-        case SSI_StripSize16MB:
-            return 16 * 1024 * 1024;
-        case SSI_StripSize32MB:
-            return 32 * 1024 * 1024;
-        case SSI_StripSize64MB:
-            return 64 * 1024 * 1024;
-        default:
-            throw E_INVALID_STRIP_SIZE;
+    /* */
+    unsigned int stripsize2ui(SSI_StripSize stripSize)
+    {
+        switch (stripSize) {
+            case SSI_StripSize2kB:
+                return 2 * 1024;
+            case SSI_StripSize4kB:
+                return 4 * 1024;
+            case SSI_StripSize8kB:
+                return 8 * 1024;
+            case SSI_StripSize16kB:
+                return 16 * 1024;
+            case SSI_StripSize32kB:
+                return 32 * 1024;
+            case SSI_StripSize64kB:
+                return 64 * 1024;
+            case SSI_StripSize128kB:
+                return 128 * 1024;
+            case SSI_StripSize256kB:
+                return 256 * 1024;
+            case SSI_StripSize512kB:
+                return 512 * 1024;
+            case SSI_StripSize1MB:
+                return 1 * 1024 * 1024;
+            case SSI_StripSize2MB:
+                return 2 * 1024 * 1024;
+            case SSI_StripSize4MB:
+                return 4 * 1024 * 1024;
+            case SSI_StripSize8MB:
+                return 8 * 1024 * 1024;
+            case SSI_StripSize16MB:
+                return 16 * 1024 * 1024;
+            case SSI_StripSize32MB:
+                return 32 * 1024 * 1024;
+            case SSI_StripSize64MB:
+                return 64 * 1024 * 1024;
+            default:
+                throw E_INVALID_STRIP_SIZE;
+        }
     }
 }
 

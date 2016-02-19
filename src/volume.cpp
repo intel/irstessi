@@ -182,6 +182,8 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         switch (ex) {
         case E_INVALID_STRIP_SIZE:
             return SSI_StatusInvalidStripSize;
+        case E_INVALID_HANDLE:
+            return SSI_StatusInvalidHandle;
         case E_INVALID_NAME:
             return SSI_StatusInvalidString;
         case E_INVALID_RAID_LEVEL:
