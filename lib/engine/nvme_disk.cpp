@@ -38,7 +38,29 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "block_device.h"
 #include "nvme_disk.h"
 
+namespace {
+    /**
+     * \brief Checks disk position in FDx8 by serial: XXXXXX-([1A]|[2B])
+     * \param serial - serial of disk
+     * \return 0 if it is not FDx8 disk, 1 or 2 if it is
+     */
+    unsigned int whichFultondalex8Disk(const String& serial)
+    {
+        if (serial.size() > 1) {
+            if (serial[serial.size() - 2] == '-') {
+                char last = serial[serial.size() - 1];
 
+                if (last == 'A' || last == '1') {
+                    return 1;
+                } else if (last == 'B' || last == '2') {
+                    return 2;
+                }
+            }
+        }
+
+        return 0;
+    }
+}
 
 void NVME_Disk::identify()
 {
@@ -112,6 +134,8 @@ NVME_Disk::NVME_Disk(const String &path)
         m_TotalSize = (unsigned long long) m_BlocksTotal * m_LogicalSectorSize;
     } catch (...) {
     }
+
+    m_FDx8Disk = whichFultondalex8Disk(m_SerialNum);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

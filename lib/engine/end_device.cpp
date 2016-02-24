@@ -92,7 +92,8 @@ EndDevice::EndDevice(const String &path)
       m_WriteCachePolicy(SSI_WriteCachePolicyOff),
       m_ledState(0),
       m_systemIoBusNumer(0),
-      m_PCISlotNumber(0)
+      m_PCISlotNumber(0),
+      m_FDx8Disk(0)
 {
     m_pPhy = new Phy(path, 0, this);
     m_pPort = new RemotePort(path);
@@ -341,14 +342,24 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     }
     pInfo->slotNumber = getSlotNumber();
     pInfo->locateLEDSupport = SSI_FALSE;
-    pInfo->isPreBootVisible = pEnclosure?SSI_FALSE:SSI_TRUE;
+    pInfo->isPreBootVisible = pEnclosure ? SSI_FALSE : SSI_TRUE;
     pInfo->ledState = m_ledState;
     pInfo->systemIoBusNumber = m_systemIoBusNumer;
     pInfo->PCISlotNumber = m_PCISlotNumber;
 
+    /* FDx8 */
+    pInfo->Isx8A = SSI_FALSE;
+    pInfo->Isx8B = SSI_FALSE;
+    if (m_FDx8Disk == 1) {
+        pInfo->Isx8A = SSI_TRUE;
+    } else if (m_FDx8Disk == 2) {
+        pInfo->Isx8B = SSI_TRUE;
+    }
+
     return SSI_StatusOk;
 }
 
+/* */
 SSI_Status EndDevice::locate(bool mode)
 {
     String tmp = mode?"locate":"normal";

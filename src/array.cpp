@@ -77,12 +77,15 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     Container<Volume> volumes;
     pArray->getVolumes(volumes);
 
+    bool isRaid0 = true;
     foreach (iter, volumes) {
         Volume& volume = *(*iter);
 
         SSI_RaidLevel raid = volume.getSsiRaidLevel();
         if (raid == SSI_Raid1 || raid == SSI_Raid10) {
             return SSI_StatusNotSupported;
+        } else if (raid != SSI_Raid0) {
+            isRaid0 = false;
         }
     }
 
@@ -99,6 +102,11 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
             if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }
+
+            if (!isRaid0 && pEndDevice->isFultondalex8()) {
+                return SSI_StatusNotSupported;
+            }
+
             container.add(pEndDevice);
         }
         return pArray->grow(container);

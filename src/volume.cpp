@@ -90,44 +90,44 @@ namespace {
             throw E_INVALID_NAME;
         }
     }
-}
 
-/* Function makes SSI wait until specific volume state changes to normal
- *
- * If volume state changes to any of invalid states, exception is thrown
- */
-static void waitUntilVolumeIsNormal(Volume **pVolume, Session **pSession)
-{
-    const unsigned int ONE_SECOND = 1000000;
-    const unsigned int WAIT_TIME = 5 * ONE_SECOND;
+    /* Function makes SSI wait until specific volume state changes to normal
+     *
+     * If volume state changes to any of invalid states, exception is thrown
+     */
+    void waitUntilVolumeIsNormal(Volume **pVolume, Session **pSession)
+    {
+        const unsigned int ONE_SECOND = 1000000;
+        const unsigned int WAIT_TIME = 5 * ONE_SECOND;
 
-    SSI_Handle volumeId = (*pVolume)->getId();
-    bool isNotNormal = true;
-    while (isNotNormal) {
-        SSI_Status status = getSession(SSI_NULL_HANDLE, pSession);
-        if (status != SSI_StatusOk) {
-            throw E_VOLUME_CREATE_FAILED;
+        SSI_Handle volumeId = (*pVolume)->getId();
+        bool isNotNormal = true;
+        while (isNotNormal) {
+            SSI_Status status = getSession(SSI_NULL_HANDLE, pSession);
+            if (status != SSI_StatusOk) {
+                throw E_VOLUME_CREATE_FAILED;
+            }
+
+            *pVolume = (*pSession)->getVolume(volumeId);
+            switch ((*pVolume)->getState()) {
+            case SSI_VolumeStateDegraded: /* Degraded state is still a valid volume state, especially during creation of RAID 1 with migration
+                                             (degraded volume must be created in the process) */
+            case SSI_VolumeStateNormal:
+                isNotNormal = false;
+                break;
+
+            case SSI_VolumeStateUnknown:
+            case SSI_VolumeStateFailed:
+            case SSI_VolumeStateLocked:
+            case SSI_VolumeStateNonRedundantVolumeFailedDisk:
+                throw E_VOLUME_CREATE_FAILED;
+
+            default:
+                /* keep waiting */;
+            }
+
+            usleep(WAIT_TIME);
         }
-
-        *pVolume = (*pSession)->getVolume(volumeId);
-        switch ((*pVolume)->getState()) {
-        case SSI_VolumeStateDegraded: /* Degraded state is still a valid volume state, especially during creation of RAID 1 with migration
-                                         (degraded volume must be created in the process) */
-        case SSI_VolumeStateNormal:
-            isNotNormal = false;
-            break;
-
-        case SSI_VolumeStateUnknown:
-        case SSI_VolumeStateFailed:
-        case SSI_VolumeStateLocked:
-        case SSI_VolumeStateNonRedundantVolumeFailedDisk:
-            throw E_VOLUME_CREATE_FAILED;
-
-        default:
-            /* keep waiting */;
-        }
-
-        usleep(WAIT_TIME);
     }
 }
 
@@ -159,19 +159,27 @@ SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
         return status;
+    }
 
     Volume *pVolume = getItem(pSession, volumeHandle);
-    if (pVolume == NULL)
+    if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
+    }
 
     EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
     if (pEndDevice == NULL) {
         return SSI_StatusInvalidHandle;
     }
-    if (pVolume->getState() != SSI_VolumeStateDegraded)
+
+    if (pEndDevice->isFultondalex8()) {
+        return SSI_StatusNotSupported;
+    }
+
+    if (pVolume->getState() != SSI_VolumeStateDegraded) {
         return SSI_StatusInvalidState;
+    }
 
     return pVolume->rebuild(pEndDevice);
 }

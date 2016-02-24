@@ -85,6 +85,7 @@ protected:
     unsigned int m_ledState;
     unsigned long long m_systemIoBusNumer;
     unsigned long long m_PCISlotNumber;
+    unsigned int m_FDx8Disk;
 
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
     void copy2le(char *dest, const char *src, size_t n);
@@ -111,15 +112,23 @@ public:
     String getSerialNum() const {
         return m_SerialNum;
     }
+
     Phy * getPhy() const {
         return m_pPhy;
     }
+
     Port * getPort() const {
         return m_pPort;
     }
+
     unsigned int getSectors() const {
         return m_BlocksTotal;
     }
+
+    bool isFultondalex8() const {
+        return m_FDx8Disk != 0;
+    }
+
     virtual unsigned char getStoragePoolId() const {
         return 0xff;
     }

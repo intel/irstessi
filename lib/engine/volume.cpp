@@ -359,21 +359,50 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
 {
     SSI_RaidLevel volumeLevel = ui2raidlevel(m_RaidLevel);
     RaidInfo *pRaidInfo = getRaidInfo();
+
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
+
     /* get raidlevel info for this volume */
-    if (pRaidInfo == NULL)
+    if (pRaidInfo == NULL) {
         return SSI_StatusFailed;
+    }
     pRaidInfo->getRaidLevelInfo(volumeLevel, &info);
+
     /* check new chunk is valid for this level */
-    if ((stripSize & info.stripSizesSupported) == 0 && stripSize != SSI_StripSizeUnknown)
+    if ((stripSize & info.stripSizesSupported) == 0 && stripSize != SSI_StripSizeUnknown) {
         return SSI_StatusInvalidStripSize;
+    }
+
     /* check migration to new level is possible */
-    if ((raidLevel & info.migrSupport) == 0)
+    if ((raidLevel & info.migrSupport) == 0) {
         return SSI_StatusInvalidRaidLevel;
+    }
+
     /* size change is not supported */
-    if (newSize && newSize != (m_ComponentSize << 10) * m_BlockDevices.size())
+    if (newSize && newSize != (m_ComponentSize << 10) * m_BlockDevices.size()) {
         return SSI_StatusInvalidSize;
+    }
+
+    /* FDx8 support */
+    if (raidLevel != SSI_Raid0) {
+        foreach (iter, m_BlockDevices) {
+            EndDevice& endDevice = *(*iter);
+
+            if (endDevice.isFultondalex8()) {
+                return SSI_StatusInvalidRaidLevel;
+            }
+        }
+
+        foreach (iter, disks) {
+            EndDevice& endDevice = *(*iter);
+
+            if (endDevice.isFultondalex8()) {
+                return SSI_StatusInvalidRaidLevel;
+            }
+        }
+    }
+
     /* migrate */
     switch (raidLevel) {
         case SSI_Raid0:
@@ -659,6 +688,16 @@ void Volume::create()
 {
     if (m_Name == "") {
         determineDeviceName("Volume_");
+    }
+
+    if (m_RaidLevel != 0) {
+        foreach (iter, m_BlockDevices) {
+            EndDevice& endDevice = *(*iter);
+
+            if (endDevice.isFultondalex8()) {
+                throw E_INVALID_RAID_LEVEL;
+            }
+        }
     }
 
     if (m_pSourceDisk == NULL) {

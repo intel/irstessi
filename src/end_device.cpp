@@ -37,14 +37,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "templates.h"
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<EndDevice> &container)
-{
-    pScopeObject->getEndDevices(container, scopeType == SSI_ScopeTypeControllerAll);
-}
+namespace {
+    void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<EndDevice> &container)
+    {
+        pScopeObject->getEndDevices(container, scopeType == SSI_ScopeTypeControllerAll);
+    }
 
-static EndDevice * getItem(Session *pSession, SSI_Handle handle)
-{
-    return pSession->getEndDevice(handle);
+    EndDevice * getItem(Session *pSession, SSI_Handle handle)
+    {
+        return pSession->getEndDevice(handle);
+    }
 }
 
 /* */
@@ -75,23 +77,32 @@ SSI_Status SsiDiskClearMetadata(SSI_Handle diskHandle)
 SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
         return status;
+    }
 
     EndDevice *pEndDevice = getItem(pSession, diskHandle);
-    if (pEndDevice == NULL)
+    if (pEndDevice == NULL) {
         return SSI_StatusInvalidHandle;
+    }
+
+    if (pEndDevice->isFultondalex8()) {
+        return SSI_StatusNotSupported;
+    }
 
     if (arrayHandle == SSI_NULL_HANDLE) {
         return pEndDevice->makeSpare();
     }
+
     Array *pArray = pSession->getArray(arrayHandle);
     if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
+
     if (pEndDevice->getArray() == pArray) {
         return SSI_StatusInvalidState;
     }
+
     return pArray->addSpare(pEndDevice);
 }
 
@@ -99,13 +110,19 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem))
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem)) {
         return status;
+    }
+
+    if (pEndDevice->isFultondalex8()) {
+        return SSI_StatusInvalidState;
+    }
 
     Array *pArray = pEndDevice->getArray();
     if (pArray == NULL) {
         return SSI_StatusInvalidState;
     }
+
     return pArray->removeSpare(pEndDevice);
 }
 

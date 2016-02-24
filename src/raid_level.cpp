@@ -58,16 +58,19 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     SSI_RaidLevelModifyParams params)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
         return status;
+    }
 
     Volume *pVolume = pSession->getVolume(volumeHandle);
     if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
+
     if (params.diskHandles == NULL && params.diskHandleCount != 0) {
         return SSI_StatusInvalidParameter;
     }
+
     try {
         Container<EndDevice> container;
         for (unsigned int i = 0; i < params.diskHandleCount; i++) {
@@ -75,8 +78,10 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
             if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }
+
             container.add(pEndDevice);
         }
+
         return pVolume->modify(params.newStripSize, params.newRaidLevel,
             params.newSizeInBytes, container);
     } catch (...) {
