@@ -96,7 +96,14 @@ public:
     unsigned long long getComponentSize() const {
         return m_ComponentSize;
     }
-    SSI_RaidLevel getRaidLevel() const;
+    bool hasSourceDisk() const {
+        return m_pSourceDisk != NULL;
+    }
+    unsigned long long getTotalSize() const {
+        return blk.getTotalSize();
+    }
+    SSI_RaidLevel getSsiRaidLevel() const;
+    SSI_StripSize getSsiStripSize() const;
 
 private:
     void __internal_initialize();
@@ -114,6 +121,9 @@ private:
     unsigned int getVerificationProgress();
 
     void verifyVolumeName(const String& name);
+
+    void createWithoutMigration();
+    void createForMigration();
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

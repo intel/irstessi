@@ -130,7 +130,7 @@ void UniqueIdManager::refresh()
         keyFile >> keyList;
         keyList += "\n";
     } catch (...) {
-        dlog("ssi.keys file missing")
+        dlog("ssi.keys file missing");
         /* no file? that's ok */
     }
     /* process the list to update cache */

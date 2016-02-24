@@ -96,15 +96,15 @@ public:
     }
     SSI_Status locate(bool mode);
 
-    unsigned long long getTotalSize(){
+    unsigned long long getTotalSize() const {
         return m_TotalSize;
     }
 
-    unsigned int getLogicalSectorSize(){
+    unsigned int getLogicalSectorSize() const {
         return m_LogicalSectorSize;
     }
 
-    unsigned int getPhysicalSectorSize(){
+    unsigned int getPhysicalSectorSize() const {
         return m_PhysicalSectorSize;
     }
 

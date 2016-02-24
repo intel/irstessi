@@ -80,7 +80,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     foreach (iter, volumes) {
         Volume& volume = *(*iter);
 
-        SSI_RaidLevel raid = volume.getRaidLevel();
+        SSI_RaidLevel raid = volume.getSsiRaidLevel();
         if (raid == SSI_Raid1 || raid == SSI_Raid10) {
             return SSI_StatusNotSupported;
         }
