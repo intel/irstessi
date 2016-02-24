@@ -96,6 +96,9 @@ public:
     unsigned long long getComponentSize() const {
         return m_ComponentSize;
     }
+    String getName() const {
+        return m_Name;
+    }
     bool hasSourceDisk() const {
         return m_pSourceDisk != NULL;
     }
@@ -119,8 +122,6 @@ private:
     unsigned int getMigrationProgress();
     unsigned int getMigrationTargetLevel();
     unsigned int getVerificationProgress();
-
-    void verifyVolumeName(const String& name);
 
     void createWithoutMigration();
     void createForMigration();

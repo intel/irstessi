@@ -40,14 +40,56 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "templates.h"
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Volume> &container)
-{
-    pScopeObject->getVolumes(container);
-}
+namespace {
+    void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Volume> &container)
+    {
+        pScopeObject->getVolumes(container);
+    }
 
-static Volume * getItem(Session *pSession, SSI_Handle handle)
-{
-    return pSession->getVolume(handle);
+    Volume * getItem(Session *pSession, SSI_Handle handle)
+    {
+        return pSession->getVolume(handle);
+    }
+
+    bool isVolumeNameUnique(const String& name, Session *pSession)
+    {
+        Container<Volume> volumes;
+        pSession->getVolumes(volumes);
+
+        foreach (iter, volumes) {
+            Volume& volume = *(*iter);
+
+            if (volume.getName() == name) {
+                return false;
+            } else {
+                /* temporary mdadm workaround for rename */
+                String copy = name + "_0";
+                if (volume.getName() == copy) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    void verifyVolumeName(const String& name, Session *pSession)
+    {
+        if (name.isEmpty() || name.length() > (SSI_VOLUME_NAME_LENGTH - 1) || name[0] == ' ') {
+            throw E_INVALID_NAME;
+        }
+
+        for (unsigned int index = 0; index < name.size(); index++) {
+            char character = name[index];
+            if (character < 32 || character > 126 || character == '\\') {
+                throw E_INVALID_NAME;
+            }
+        }
+
+        if (!isVolumeNameUnique(name, pSession)) {
+            throw E_INVALID_NAME;
+        }
+    }
 }
 
 /* Function makes SSI wait until specific volume state changes to normal
@@ -153,8 +195,9 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         return SSI_StatusInvalidParameter;
     }
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
         return status;
+    }
 
     Volume *pVolume = NULL;
     Array *pArray = NULL;
@@ -244,10 +287,12 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 
         /* At this point, we are sure that we've got enough disks inside container */
 
+        verifyVolumeName(params.volumeName, pSession);
         pVolume->setName(params.volumeName);
         pVolume->setRaidLevel(params.raidLevel);
-        if (params.raidLevel != SSI_Raid1)
+        if (params.raidLevel != SSI_Raid1) {
             pVolume->setStripSize(params.stripSize);
+        }
         pVolume->create();
         pSession->addVolume(pVolume);
         pSession->addArray(pArray);
@@ -355,8 +400,9 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
         return status;
+    }
 
     Array *pArray = pSession->getArray(params.arrayHandle);
     if (pArray == NULL) {
@@ -364,8 +410,9 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
     }
     Container<EndDevice> container;
     pArray->getEndDevices(container, false);
-    if (0 == container.size())
+    if (0 == container.size()) {
         pArray->getEndDevices(container, true);
+    }
     Volume *pVolume = NULL;
     try {
         try {
@@ -375,7 +422,8 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         }
         pVolume->setParent(pArray);
         pVolume->setEndDevices(container);
-        pVolume->setComponentSize(params.sizeInBytes, container, params.raidLevel);
+        pVolume->setComponentSize(params.sizeInBytes, container.size(), params.raidLevel);
+        verifyVolumeName(params.volumeName, pSession);
         pVolume->setName(params.volumeName);
         pVolume->setStripSize(params.stripSize);
         pVolume->setRaidLevel(params.raidLevel);
@@ -408,9 +456,27 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
     const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    Session *pSession = NULL;
+    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
         return status;
+    }
+
+    Volume *pVolume = NULL;
+    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem)) {
+        return status;
+    }
+
+    try {
+        verifyVolumeName(volumeName, pSession);
+    } catch (Exception ex) {
+        switch (ex) {
+        case E_INVALID_NAME:
+            return SSI_StatusInvalidString;
+
+        default:
+            return SSI_StatusFailed;
+        }
+    }
 
     return pVolume->rename(volumeName);
 }
