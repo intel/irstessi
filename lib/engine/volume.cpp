@@ -997,8 +997,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
     }
     switch (m_RaidLevel) {
     case 0:
-        if (disks.size() < 1) {
-            /* check if there are any spares */
+        if (disks.size() != 1) {
             return SSI_StatusNotSupported;
         }
 
@@ -1029,7 +1028,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
         if (disks.size() > 0 && chunkChange) {
             return SSI_StatusNotSupported;
         } else if (disks.size() > 0) {
-            return pArray->grow(disks);
+            return SSI_StatusNotSupported;
         } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
             return SSI_StatusOk;
         }

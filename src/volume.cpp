@@ -98,7 +98,7 @@ namespace {
     void waitUntilVolumeIsNormal(Volume **pVolume)
     {
         const unsigned int ONE_SECOND = 1000000;
-        const unsigned int WAIT_TIME = 5 * ONE_SECOND;
+        const unsigned int WAIT_TIME = 10 * ONE_SECOND;
 
         SSI_Handle volumeId = (*pVolume)->getId();
         bool isNotNormal = true;
@@ -343,31 +343,46 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
                 break;
 
             case SSI_Raid5:
-                /* While migration to RAID_5 is not working correctly, this solution will not work! */
-                if (pVolume->modify(pVolume->getSsiStripSize(), SSI_Raid5, UNUSED_PARAMETER, container) != SSI_StatusOk) {
+            {
+                /* Resizing to (n-1)-disk RAID_0 to migrate it */
+                Container<EndDevice> lastDisk;
+                EndDevice* disk = *(--container.end());
+                lastDisk.add(disk);
+                container.remove(disk->getId());
+
+                if (pVolume->modify(pVolume->getSsiStripSize(), SSI_Raid0, UNUSED_PARAMETER, container) != SSI_StatusOk) {
                     throw E_VOLUME_CREATE_FAILED;
                 }
+
+                waitUntilVolumeIsNormal(&pVolume);
+
+                if (pVolume->modify(pVolume->getSsiStripSize(), SSI_Raid5, UNUSED_PARAMETER, lastDisk) != SSI_StatusOk) {
+                    throw E_VOLUME_CREATE_FAILED;
+                }
+
                 break;
+            }
 
             case SSI_Raid10:
-                {
-                    /* Resizing to 2-disk RAID_0 to resize it further */
-                    Container<EndDevice> secondDisk;
-                    EndDevice* second = *container.begin();
-                    secondDisk.add(second);
-                    container.remove(second->getId());
+            {
+                /* Resizing to 2-disk RAID_0 to migrate it */
+                Container<EndDevice> secondDisk;
+                EndDevice* second = *container.begin();
+                secondDisk.add(second);
+                container.remove(second->getId());
 
-                    if (pVolume->modify(pVolume->getSsiStripSize(), SSI_Raid0, UNUSED_PARAMETER, secondDisk) != SSI_StatusOk) {
-                        throw E_VOLUME_CREATE_FAILED;
-                    }
-
-                    waitUntilVolumeIsNormal(&pVolume);
-
-                    if (pVolume->modify(pVolume->getSsiStripSize(), params.raidLevel, UNUSED_PARAMETER, container) != SSI_StatusOk) {
-                        throw E_VOLUME_CREATE_FAILED;
-                    }
+                if (pVolume->modify(pVolume->getSsiStripSize(), SSI_Raid0, UNUSED_PARAMETER, secondDisk) != SSI_StatusOk) {
+                    throw E_VOLUME_CREATE_FAILED;
                 }
+
+                waitUntilVolumeIsNormal(&pVolume);
+
+                if (pVolume->modify(pVolume->getSsiStripSize(), params.raidLevel, UNUSED_PARAMETER, container) != SSI_StatusOk) {
+                    throw E_VOLUME_CREATE_FAILED;
+                }
+
                 break;
+            }
 
             case SSI_Raid1:
                 if (shell("mdadm '/dev/" + pArray->getDevName() + "' --add '/dev/" + pEndDevice->getDevName() + "'") != 0) {
