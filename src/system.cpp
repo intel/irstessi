@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -69,17 +69,20 @@ SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize cacheSize)
 SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
     SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
-        return status;
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
+    }
 
     if (storageArea != SSI_StorageAreaCim) {
         return SSI_StatusInvalidParameter;
     }
-    StorageDevice *pDevice = pSession->getDevice(deviceHandle);
+
+    StorageDevice *pDevice = session->getDevice(deviceHandle);
     if (pDevice == NULL) {
         return SSI_StatusInvalidHandle;
     }
+
     return pDevice->readStorageArea(buffer, bufferLen);
 }
 
@@ -87,18 +90,21 @@ SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
 SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle,
     SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession))
-        return status;
+        TemporarySession session;
+        if (!session.isValid()) {
+            return SSI_StatusNotInitialized;
+        }
 
-    if (storageArea != SSI_StorageAreaCim) {
-        return SSI_StatusInvalidParameter;
-    }
-    StorageDevice *pDevice = pSession->getDevice(deviceHandle);
-    if (pDevice == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-    return pDevice->writeStorageArea(buffer, bufferLen);
+        if (storageArea != SSI_StorageAreaCim) {
+            return SSI_StatusInvalidParameter;
+        }
+
+        StorageDevice *pDevice = session->getDevice(deviceHandle);
+        if (pDevice == NULL) {
+            return SSI_StatusInvalidHandle;
+        }
+
+        return pDevice->writeStorageArea(buffer, bufferLen);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

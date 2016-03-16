@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -57,12 +57,12 @@ SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
 SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     SSI_RaidLevelModifyParams params)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
-        return status;
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
     }
 
-    Volume *pVolume = pSession->getVolume(volumeHandle);
+    Volume *pVolume = session->getVolume(volumeHandle);
     if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
@@ -74,7 +74,7 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
     try {
         Container<EndDevice> container;
         for (unsigned int i = 0; i < params.diskHandleCount; i++) {
-            EndDevice *pEndDevice = pSession->getEndDevice(params.diskHandles[i]);
+            EndDevice *pEndDevice = session->getEndDevice(params.diskHandles[i]);
             if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }

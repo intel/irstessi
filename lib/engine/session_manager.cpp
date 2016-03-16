@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -35,16 +35,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 /* */
 SessionManager::SessionManager()
-    : m_pNullSession(NULL)
 {
 }
 
 /* */
 SessionManager::~SessionManager()
 {
-    if (m_pNullSession)
-        delete m_pNullSession;
-
     foreach (i, m_Sessions)
         pContextMgr->remove(*i);
 }
@@ -52,14 +48,7 @@ SessionManager::~SessionManager()
 /* */
 Session * SessionManager::getSession(unsigned int id)
 {
-    if (id == 0) {
-        if (m_pNullSession)
-            delete m_pNullSession;
-        m_pNullSession = new Session();
-        return m_pNullSession;
-    } else {
-        return m_Sessions.find(id);
-    }
+    return m_Sessions.find(id);
 }
 
 /* */
@@ -91,6 +80,7 @@ SSI_Status SessionManager::closeSession(unsigned int id)
     try {
         pSession = m_Sessions.remove(id);
         pContextMgr->remove(pSession);
+        delete pSession;
     } catch (...) {
         return SSI_StatusInvalidParameter;
     }

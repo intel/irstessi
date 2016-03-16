@@ -51,10 +51,10 @@ namespace {
         return pSession->getVolume(handle);
     }
 
-    bool isVolumeNameUnique(const String& name, Session *pSession)
+    bool isVolumeNameUnique(const String& name, const Session* session)
     {
         Container<Volume> volumes;
-        pSession->getVolumes(volumes);
+        session->getVolumes(volumes);
 
         foreach (iter, volumes) {
             Volume& volume = *(*iter);
@@ -73,7 +73,7 @@ namespace {
         return true;
     }
 
-    void verifyVolumeName(const String& name, Session *pSession)
+    void verifyVolumeName(const String& name, const Session* session)
     {
         if (name.isEmpty() || name.length() > (SSI_VOLUME_NAME_LENGTH - 1) || name[0] == ' ') {
             throw E_INVALID_NAME;
@@ -86,16 +86,16 @@ namespace {
             }
         }
 
-        if (!isVolumeNameUnique(name, pSession)) {
+        if (!isVolumeNameUnique(name, session)) {
             throw E_INVALID_NAME;
         }
     }
 
-    /* Function makes SSI wait until specific volume state changes to normal
+    /** Function makes SSI wait until specific volume state changes to normal
      *
      * If volume state changes to any of invalid states, exception is thrown
      */
-    void waitUntilVolumeIsNormal(Volume **pVolume, Session **pSession)
+    void waitUntilVolumeIsNormal(Volume **pVolume)
     {
         const unsigned int ONE_SECOND = 1000000;
         const unsigned int WAIT_TIME = 5 * ONE_SECOND;
@@ -103,12 +103,12 @@ namespace {
         SSI_Handle volumeId = (*pVolume)->getId();
         bool isNotNormal = true;
         while (isNotNormal) {
-            SSI_Status status = getSession(SSI_NULL_HANDLE, pSession);
-            if (status != SSI_StatusOk) {
-                throw E_VOLUME_CREATE_FAILED;
+            TemporarySession session;
+            if (!session.isValid()) {
+                throw E_NOT_AVAILABLE;
             }
 
-            *pVolume = (*pSession)->getVolume(volumeId);
+            *pVolume = session->getVolume(volumeId);
             switch ((*pVolume)->getState()) {
             case SSI_VolumeStateDegraded: /* Degraded state is still a valid volume state, especially during creation of RAID 1 with migration
                                              (degraded volume must be created in the process) */
@@ -149,8 +149,9 @@ SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
 SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
     return pVolume->markAsNormal();
 }
@@ -158,17 +159,17 @@ SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 /* */
 SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
-        return status;
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
     }
 
-    Volume *pVolume = getItem(pSession, volumeHandle);
+    Volume *pVolume = getItem(session.get(), volumeHandle);
     if (pVolume == NULL) {
         return SSI_StatusInvalidHandle;
     }
 
-    EndDevice *pEndDevice = pSession->getEndDevice(diskHandle);
+    EndDevice *pEndDevice = session->getEndDevice(diskHandle);
     if (pEndDevice == NULL) {
         return SSI_StatusInvalidHandle;
     }
@@ -188,8 +189,9 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
     return pVolume->remove();
 }
@@ -202,9 +204,10 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     if (volumeHandle == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
-        return status;
+
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
     }
 
     Volume *pVolume = NULL;
@@ -216,14 +219,14 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     /* create container */
     try {
         for (unsigned int i = 0; i < params.numDisks; ++i) {
-            pEndDevice = pSession->getEndDevice(params.disks[i]);
+            pEndDevice = session->getEndDevice(params.disks[i]);
             if (pEndDevice == NULL) {
                 return SSI_StatusInvalidHandle;
             }
             container.add(pEndDevice);
         }
 
-        pEndDevice = pSession->getEndDevice(params.sourceDisk);
+        pEndDevice = session->getEndDevice(params.sourceDisk);
 
         try {
             pArray = new Array();
@@ -295,15 +298,15 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 
         /* At this point, we are sure that we've got enough disks inside container */
 
-        verifyVolumeName(params.volumeName, pSession);
+        verifyVolumeName(params.volumeName, session.get());
         pVolume->setName(params.volumeName);
         pVolume->setRaidLevel(params.raidLevel);
         if (params.raidLevel != SSI_Raid1) {
             pVolume->setStripSize(params.stripSize);
         }
         pVolume->create();
-        pSession->addVolume(pVolume);
-        pSession->addArray(pArray);
+        session->addVolume(pVolume);
+        session->addArray(pArray);
     } catch (Exception ex) {
         delete pVolume;
         pArray->remove();
@@ -326,7 +329,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 
     try {
         if (pVolume->hasSourceDisk()) {
-            waitUntilVolumeIsNormal(&pVolume, &pSession);
+            waitUntilVolumeIsNormal(&pVolume);
 
             if (container.find(pEndDevice->getId()) != NULL) {
                 container.remove(pEndDevice->getId());
@@ -358,7 +361,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
                         throw E_VOLUME_CREATE_FAILED;
                     }
 
-                    waitUntilVolumeIsNormal(&pVolume, &pSession);
+                    waitUntilVolumeIsNormal(&pVolume);
 
                     if (pVolume->modify(pVolume->getSsiStripSize(), params.raidLevel, UNUSED_PARAMETER, container) != SSI_StatusOk) {
                         throw E_VOLUME_CREATE_FAILED;
@@ -384,6 +387,8 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pArray->remove();
         delete pArray;
         switch (ex) {
+        case E_NOT_AVAILABLE:
+            return SSI_StatusNotInitialized;
         case E_INVALID_STRIP_SIZE:
             return SSI_StatusInvalidStripSize;
         case E_INVALID_HANDLE:
@@ -407,20 +412,22 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 /* */
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
-        return status;
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
     }
 
-    Array *pArray = pSession->getArray(params.arrayHandle);
+    Array *pArray = session->getArray(params.arrayHandle);
     if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
+
     Container<EndDevice> container;
     pArray->getEndDevices(container, false);
     if (0 == container.size()) {
         pArray->getEndDevices(container, true);
     }
+
     Volume *pVolume = NULL;
     try {
         try {
@@ -431,13 +438,14 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         pVolume->setParent(pArray);
         pVolume->setEndDevices(container);
         pVolume->setComponentSize(params.sizeInBytes, container.size(), params.raidLevel);
-        verifyVolumeName(params.volumeName, pSession);
+        verifyVolumeName(params.volumeName, session.get());
         pVolume->setName(params.volumeName);
         pVolume->setStripSize(params.stripSize);
         pVolume->setRaidLevel(params.raidLevel);
         pVolume->create();
         pVolume->update();
-        pSession->addVolume(pVolume);
+        session->addVolume(pVolume);
+
         return SSI_StatusOk;
     } catch (Exception ex) {
         delete pVolume;
@@ -464,18 +472,18 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
     const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
-        return status;
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
     }
 
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem)) {
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
     }
 
     try {
-        verifyVolumeName(volumeName, pSession);
+        verifyVolumeName(volumeName, session.get());
     } catch (Exception ex) {
         switch (ex) {
         case E_INVALID_NAME:
@@ -493,8 +501,9 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
 SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
     return pVolume->expand(newSizeMB*1024ULL);
 }
@@ -504,8 +513,9 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
     SSI_VolumeCachePolicy policy)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
     return pVolume->setCachePolicy(policy == SSI_VolumeCachePolicyOff);
 }
@@ -514,8 +524,9 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
 SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
     return pVolume->initialize();
 }
@@ -524,11 +535,13 @@ SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
-    if (pVolume->getState() != SSI_VolumeStateNormal)
+    if (pVolume->getState() != SSI_VolumeStateNormal) {
         return SSI_StatusInvalidState;
+    }
 
     return pVolume->verify(repair == SSI_TRUE);
 }
@@ -537,12 +550,14 @@ SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, volumeHandle, &pVolume, getItem))
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
+    }
 
     if (pVolume->getState() != SSI_VolumeStateVerifying &&
-        pVolume->getState() != SSI_VolumeStateVerifyingAndFix)
+        pVolume->getState() != SSI_VolumeStateVerifyingAndFix) {
         return SSI_StatusInvalidState;
+    }
 
     return pVolume->cancelVerify();
 }

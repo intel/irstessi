@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -67,8 +67,9 @@ SSI_Status SsiGetEndDeviceInfo(SSI_Handle session, SSI_Handle endDeviceHandle,
 SSI_Status SsiDiskClearMetadata(SSI_Handle diskHandle)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem))
+    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
         return status;
+    }
 
     return pEndDevice->clearMetadata();
 }
@@ -76,12 +77,12 @@ SSI_Status SsiDiskClearMetadata(SSI_Handle diskHandle)
 /* */
 SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(SSI_NULL_HANDLE, &pSession)) {
-        return status;
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
     }
 
-    EndDevice *pEndDevice = getItem(pSession, diskHandle);
+    EndDevice *pEndDevice = getItem(session.get(), diskHandle);
     if (pEndDevice == NULL) {
         return SSI_StatusInvalidHandle;
     }
@@ -94,7 +95,7 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
         return pEndDevice->makeSpare();
     }
 
-    Array *pArray = pSession->getArray(arrayHandle);
+    Array *pArray = session->getArray(arrayHandle);
     if (pArray == NULL) {
         return SSI_StatusInvalidHandle;
     }
@@ -110,7 +111,7 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem)) {
+    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
         return status;
     }
 
@@ -130,8 +131,9 @@ SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 SSI_Status SsiDiskMarkAsNormal(SSI_Handle diskHandle)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem))
+    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
         return status;
+    }
 
     return pEndDevice->markAsNormal();
 }
@@ -140,8 +142,9 @@ SSI_Status SsiDiskMarkAsNormal(SSI_Handle diskHandle)
 SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlockInfo)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem))
+    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
         return status;
+    }
 
     return pEndDevice->unlock(unlockInfo);
 }
@@ -150,8 +153,9 @@ SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlockInfo)
 SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 poolId)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, diskHandle, &pEndDevice, getItem))
+    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
         return status;
+    }
 
     return pEndDevice->assignPoolId(poolId);
 }
@@ -161,8 +165,9 @@ SSI_Status SsiPassthroughCommand(SSI_Handle deviceHandle, void *cmdInfoUnit,
     void *dataBuffer, SSI_Uint32 dataBufferLen, SSI_DataDirection dataDirection)
 {
     EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, deviceHandle, &pEndDevice, getItem))
+    if (SSI_Status status = SsiGetItem(deviceHandle, &pEndDevice, getItem)) {
         return status;
+    }
 
     return pEndDevice->passthroughCmd(cmdInfoUnit, dataBuffer, dataBufferLen,
         dataDirection);

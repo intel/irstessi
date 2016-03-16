@@ -101,7 +101,7 @@ Session::Session()
 
     std::set<CanonicalPath> handledNVMes;
     foreach (i, dirs) {
-    	CanonicalPath path = *(*i) + "driver";
+        CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
             VMD *pVMD = new VMD(CanonicalPath(*(*i)));
             pVMD->discover();
@@ -119,7 +119,7 @@ Session::Session()
 
         if(handledNVMes.end() != handledNVMes.find(*(*i)))
         {
-        	continue;
+            continue;
         }
 
         if (path == dir) {
@@ -425,6 +425,23 @@ void Session::__internal_attach_imsm_array(const String &path)
         }
     } catch (...) {
         /* TODO: log that there's not enough resources in the system. */
+    }
+}
+
+TemporarySession::TemporarySession() : m_session(NULL)
+{
+    if (pContextMgr != NULL) {
+        try {
+            m_session = new Session();
+        } catch (...) {
+            /* Out of memory, no more sessions allowed. */
+        }
+    }
+}
+
+TemporarySession::~TemporarySession() {
+    if (isValid()) {
+        delete m_session;
     }
 }
 

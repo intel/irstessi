@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -61,8 +61,9 @@ SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
 SSI_Status SsiPortLocate(SSI_Handle portHandle, SSI_Bool mode)
 {
     Port *pPort = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, portHandle, &pPort, getItem))
+    if (SSI_Status status = SsiGetItem(portHandle, &pPort, getItem)) {
         return status;
+    }
 
     return pPort->locate(mode == SSI_TRUE);
 }

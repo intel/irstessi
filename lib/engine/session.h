@@ -121,6 +121,26 @@ public:
     void addRaidInfo(RaidInfo *pRaidInfo);
 };
 
+class TemporarySession
+{
+public:
+    TemporarySession();
+    ~TemporarySession();
+
+    bool isValid() const { return m_session != NULL; }
+    Session* get() { return m_session; }
+    const Session* get() const { return m_session; }
+
+    Session* operator->() { return get(); }
+    const Session* operator->() const { return get(); }
+
+private:
+    TemporarySession(const TemporarySession&) {}
+    void operator=(const TemporarySession&) {}
+
+    Session* m_session;
+};
+
 #endif /* __SESSION_H__INCLUDED__ */
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

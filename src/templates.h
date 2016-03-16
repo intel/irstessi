@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -35,22 +35,55 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     void (*getItems)(ScopeObject *, SSI_ScopeType, Container<T> &))
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession))
+    if (SSI_Status status = getSession(session, &pSession)) {
         return status;
+    }
 
     ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
     if (pScopeObject == NULL) {
         return SSI_StatusInvalidScope;
     }
+
     if (!pScopeObject->scopeTypeMatches(scopeType)) {
         return SSI_StatusInvalidScope;
     }
+
     Container<T> container;
     try {
         getItems(pScopeObject, scopeType, container);
     } catch (...) {
         return SSI_StatusInvalidScope;
     }
+
+    return container.getHandles(handleList, handleCount);
+}
+
+template <class T>
+SSI_Status SsiGetHandles(SSI_ScopeType scopeType, SSI_Handle scopeHandle,
+    SSI_Handle *handleList, SSI_Uint32 *handleCount,
+    void (*getItems)(ScopeObject *, SSI_ScopeType, Container<T> &))
+{
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
+    }
+
+    ScopeObject *pScopeObject = session->getObject(scopeHandle);
+    if (pScopeObject == NULL) {
+        return SSI_StatusInvalidScope;
+    }
+
+    if (!pScopeObject->scopeTypeMatches(scopeType)) {
+        return SSI_StatusInvalidScope;
+    }
+
+    Container<T> container;
+    try {
+        getItems(pScopeObject, scopeType, container);
+    } catch (...) {
+        return SSI_StatusInvalidScope;
+    }
+
     return container.getHandles(handleList, handleCount);
 }
 
@@ -59,12 +92,30 @@ SSI_Status SsiGetItem(SSI_Handle session, SSI_Handle itemHandle, T **pItem,
     T2 * (*getItem)(Session *, SSI_Handle))
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession))
+    if (SSI_Status status = getSession(session, &pSession)) {
         return status;
+    }
 
     *pItem = getItem(pSession, itemHandle);
-    if (*pItem == NULL)
+    if (*pItem == NULL) {
         return SSI_StatusInvalidHandle;
+    }
+
+    return SSI_StatusOk;
+}
+
+template <class T, class T2>
+SSI_Status SsiGetItem(SSI_Handle itemHandle, T **pItem, T2 * (*getItem)(Session *, SSI_Handle))
+{
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
+    }
+
+    *pItem = getItem(session.get(), itemHandle);
+    if (*pItem == NULL) {
+        return SSI_StatusInvalidHandle;
+    }
 
     return SSI_StatusOk;
 }
@@ -74,8 +125,21 @@ SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle itemHandle, T *info,
     T2 * (*getItem)(Session *, SSI_Handle))
 {
     T2 *pItem = NULL;
-    if (SSI_Status status = SsiGetItem(session, itemHandle, &pItem, getItem))
+    if (SSI_Status status = SsiGetItem(session, itemHandle, &pItem, getItem)) {
         return status;
+    }
+
+    return pItem->getInfo(info);
+}
+
+template <class T, class T2>
+SSI_Status SsiGetInfo(SSI_Handle itemHandle, T *info,
+    T2 * (*getItem)(Session *, SSI_Handle))
+{
+    T2 *pItem = NULL;
+    if (SSI_Status status = SsiGetItem(itemHandle, &pItem, getItem)) {
+        return status;
+    }
 
     return pItem->getInfo(info);
 }

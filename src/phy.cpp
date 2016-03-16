@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -61,8 +61,9 @@ SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
 SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
 {
     Phy *pPhy = NULL;
-    if (SSI_Status status = SsiGetItem(SSI_NULL_HANDLE, phyHandle, &pPhy, getItem))
+    if (SSI_Status status = SsiGetItem(phyHandle, &pPhy, getItem)) {
         return status;
+    }
 
     return pPhy->locate(mode == SSI_TRUE);
 }

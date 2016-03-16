@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -132,10 +132,11 @@ void check_configuration()
         if (write_config(MDADM_CONFIG_PATH, stdConfig) != 0)
             dlog("Warning: failed to update mdadm.conf");
     }
-    if (restart_monitor() == 0)
-        dlog("Monitor restarted successfully")
-    else
+    if (restart_monitor() == 0) {
+        dlog("Monitor restarted successfully");
+    } else {
         dlog("Error starting Monitor");
+    }
 }
 
 void get_mdadm_version(char *buffer, size_t size)
