@@ -284,9 +284,12 @@ SSI_Status Volume::rename(const String &newName)
         return SSI_StatusFailed;
     }
 
-    if (m_State != SSI_VolumeStateNormal)
+    if (m_State != SSI_VolumeStateNormal) {
         return SSI_StatusInvalidState;
+    }
 
+    /* MDADM issue */
+    /* mdadm cuts last character from 16 character-long name after successful rename */
     if (shell("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
             pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
         return pArray->assemble();
@@ -1028,7 +1031,10 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
         if (disks.size() > 0 && chunkChange) {
             return SSI_StatusNotSupported;
         } else if (disks.size() > 0) {
-            return SSI_StatusNotSupported;
+            /* MDADM issue */
+            /* Not all scenarios are correctly handled by mdadm
+               For now, it yields undefined behavior */
+            return pArray->grow(disks);
         } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
             return SSI_StatusOk;
         }

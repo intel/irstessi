@@ -271,9 +271,11 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
 SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 {
     usleep(3000000);
-    if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N '" + newName + "' '/dev/md/" + m_Name + "'") == 0) {
+    if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N '" + newName + "' '/dev/md/" + m_Name + "'") == 0 &&
+            shell("mdadm -Ebs >> /etc/mdadm.conf") == 0) {
         return SSI_StatusOk;
     }
+
     return SSI_StatusFailed;
 }
 

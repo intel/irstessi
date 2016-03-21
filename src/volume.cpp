@@ -61,12 +61,6 @@ namespace {
 
             if (volume.getName() == name) {
                 return false;
-            } else {
-                /* temporary mdadm workaround for rename */
-                String copy = name + "_0";
-                if (volume.getName() == copy) {
-                    return false;
-                }
             }
         }
 
