@@ -271,8 +271,9 @@ SSI_Status Volume::expand(unsigned long long newSize)
 
     /* convert size for mdadm */
     String size = (newSize == 0)?"max":String(newSize);
-    if (shell("mdadm --grow '/dev/" + m_DevName + "' --size=" + size) == 0)
+    if (shellEx("mdadm --grow '/dev/" + m_DevName + "' --size=" + size) == 0) {
         return SSI_StatusOk;
+    }
     return SSI_StatusFailed;
 }
 
@@ -726,7 +727,7 @@ void Volume::createWithoutMigration()
 
     String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
 
-    if (shell("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
+    if (shellEx("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
               chunk + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
         throw E_VOLUME_CREATE_FAILED;
     }

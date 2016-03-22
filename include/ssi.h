@@ -1990,6 +1990,17 @@ SSI_API SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle, SSI_StorageArea 
 **/
 SSI_API SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable);
 
+/**
+ * @fn  SSI_API const SSI_Char * SsiGetLastErrorMessage()
+ *
+ * @brief   Ssi read last error message.
+ *
+ *
+ * @return Error message string.
+
+**/
+SSI_API const SSI_Char * SsiGetLastErrorMessage();
+
 #ifndef _MSC_VER
 #pragma GCC visibility pop
 #endif

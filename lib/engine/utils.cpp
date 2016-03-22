@@ -35,6 +35,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "log/log.h"
 
+String SSI_STDERRMessage;
+bool LastErrorFlag = false;
+
+void setLastErrorMessage(const String &ErrorMessage)
+{
+    SSI_STDERRMessage = ErrorMessage;
+    LastErrorFlag = true;
+}
+
+
 /**
  * @brief capture shell output as binary data
  *
@@ -42,6 +52,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
  *
  * @return	number of bytes read or -1 for error
  */
+
 int shell_cap(const String &s, void *buf, size_t &size)
 {
     int count;
@@ -154,6 +165,34 @@ int shell(const String &s)
         break;
     }
     return ret;
+}
+
+int shellEx(const String &s)
+{
+    String cmd = "export MDADM_EXPERIMENTAL=1; " + s + " 2>&1 1>/dev/null";
+    FILE *in;
+    const int errorCode = -1;
+    const int successCode = 0;
+    const unsigned int ErrorLength = 1024;
+    char str[ErrorLength] = {};
+    String errorMessage;
+
+    if (!(in = popen(cmd.get(), "r"))) {
+        return errorCode;
+    }
+
+    while (fgets(str, sizeof(str), in) != NULL) {
+        errorMessage.append(str);
+    }
+
+    setLastErrorMessage(errorMessage);
+
+    int statusCode = pclose(in);
+    if (WEXITSTATUS(statusCode)) {
+        return errorCode;
+    }
+
+    return successCode;
 }
 
 /* Look if process is already running

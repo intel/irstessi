@@ -80,4 +80,17 @@ SSI_Status getSession(SSI_Handle session, Session **pSession)
     return SSI_StatusOk;
 }
 
+const SSI_Char * SsiGetLastErrorMessage()
+{
+    static const SSI_Char* NoMessage = NULL;
+
+    if (LastErrorFlag) {
+        LastErrorFlag = false;
+        return SSI_STDERRMessage.get();
+    }
+    else {
+        return NoMessage;
+    }
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 expandtab: */
