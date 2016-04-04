@@ -58,7 +58,7 @@ NVME::NVME(const String &path)
 void NVME::discover()
 {
     unsigned int number = 0;
-    NVME_Phy *pPhy = new NVME_Phy(CanonicalPath(m_Path), number++, this);
+    NVME_Phy *pPhy = new NVME_Phy(CanonicalPath(m_Path), 0, number++, this);
     attachPhy(pPhy);
     pPhy->discover();
 }

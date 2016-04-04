@@ -935,6 +935,8 @@ typedef struct _SSI_EndDeviceInfo
     SSI_Bool Isx8A;
     /** Fultondale x8 disk */
     SSI_Bool Isx8B;
+    /** VMD domain index, if enddevice is attached to VMD controller */
+    SSI_Uint32 vmdDomain;
 } SSI_EndDeviceInfo;
 
 /**

@@ -34,7 +34,7 @@ public:
 
 public:
     void getAddress(SSI_Address &address) const;
-    void discover();
+    void discover(const String &path);
 
     const std::vector<CanonicalPath>& getHandledNVMEPaths();
 
@@ -47,6 +47,8 @@ protected:
 
 private:
 	std::vector<CanonicalPath> m_HandledNVMEPaths;
+	unsigned int m_EndDevicesCount;
+	unsigned int m_DomainCount;
 };
 
 #endif /* __VMD_H__INCLUDED__ */

@@ -102,6 +102,9 @@ public:
     bool hasSourceDisk() const {
         return m_pSourceDisk != NULL;
     }
+    bool isSystemVolume() const {
+        return m_SystemVolume;
+    }
     unsigned long long getTotalSize() const {
         return blk.getTotalSize();
     }

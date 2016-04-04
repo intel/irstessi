@@ -86,7 +86,7 @@ protected:
     unsigned long long m_systemIoBusNumer;
     unsigned long long m_PCISlotNumber;
     unsigned int m_FDx8Disk;
-
+    unsigned int m_vmdDomain;
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
     void copy2le(char *dest, const char *src, size_t n);
 public:
@@ -127,6 +127,10 @@ public:
 
     bool isFultondalex8() const {
         return m_FDx8Disk != 0;
+    }
+
+    unsigned int getVmdDomain() const {
+        return m_vmdDomain;
     }
 
     virtual unsigned char getStoragePoolId() const {

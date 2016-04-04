@@ -93,7 +93,8 @@ EndDevice::EndDevice(const String &path)
       m_ledState(0),
       m_systemIoBusNumer(0),
       m_PCISlotNumber(0),
-      m_FDx8Disk(0)
+      m_FDx8Disk(0),
+      m_vmdDomain(0)
 {
     m_pPhy = new Phy(path, 0, this);
     m_pPort = new RemotePort(path);
@@ -356,6 +357,9 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
         pInfo->Isx8B = SSI_TRUE;
     }
 
+    /* VMD domain */
+    pInfo->vmdDomain = getVmdDomain();
+
     return SSI_StatusOk;
 }
 
@@ -464,7 +468,7 @@ void EndDevice::determineBlocksFree(Array *pArray)
         Container<EndDevice> endDevices;
         (*volume)->getEndDevices(endDevices, true);
         foreach (endDevice, endDevices) {
-            if((*endDevice)->getSerialNum() == m_SerialNum) {
+            if ((*endDevice)->getSerialNum() == m_SerialNum) {
                 occupiedBlocks += (unsigned long long) (*volume)->getComponentSize();
                 occupiedBlocks += IMSM_RESERVED_SECTORS;
                 stripSize = (*volume)->getStripSize();
@@ -477,10 +481,9 @@ void EndDevice::determineBlocksFree(Array *pArray)
         }
     }
 
-    if(volumeCount == 0) {
+    if (volumeCount == 0) {
         m_BlocksFree = m_BlocksTotal;
-    }
-    else {
+    } else {
         if (occupiedBlocks > 0) {
             occupiedBlocks += MPB_SECTOR_CNT;
         }

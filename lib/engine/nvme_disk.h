@@ -60,13 +60,15 @@ struct nvme_id_ctrl {
 /* */
 class NVME_Disk : public BlockDevice {
 public:
-	NVME_Disk(const String &path);
+	NVME_Disk(const String &path, unsigned int vmdDomain);
 
     SSI_DiskType getDiskType() const {
-        return SSI_DiskTypeNVME;
+        return SSI_DiskTypeVMD;
     }
 protected:
 	void identify();
+private:
+	void __internal_determine_disk_is_system();
 
 };
 

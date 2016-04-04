@@ -55,10 +55,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define EM_MSG_WAIT     1500
 
 /* */
-NVME_Phy::NVME_Phy(const String &path, unsigned int number, StorageObject *pParent)
+NVME_Phy::NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, StorageObject *pParent)
     : Phy(path, number, pParent)
 {
 	m_Protocol = SSI_PhyProtocolNVME;
+	m_VmdDomain = vmdDomain;
 }
 
 /* */
@@ -68,7 +69,7 @@ void NVME_Phy::discover()
     m_pPort->setParent(m_pParent);
     m_pPort->attachPhy(this);
 
-    EndDevice *pEndDevice = __internal_attach_end_device(m_Path);
+    EndDevice *pEndDevice = __internal_attach_end_device(m_Path, m_VmdDomain);
     if (pEndDevice != NULL) {
         pEndDevice->setParent(m_pParent);
         Phy *pPhy = pEndDevice->getPhy();
@@ -81,10 +82,10 @@ void NVME_Phy::discover()
 }
 
 /* */
-EndDevice * NVME_Phy::__internal_attach_end_device(String path)
+EndDevice * NVME_Phy::__internal_attach_end_device(String path, unsigned int vmdDomain)
 {
     EndDevice *pEndDevice = NULL;
-    pEndDevice = new NVME_Disk(path);
+    pEndDevice = new NVME_Disk(path, vmdDomain);
     return pEndDevice;
 }
 

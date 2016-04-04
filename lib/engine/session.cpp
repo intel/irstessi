@@ -98,47 +98,21 @@ Session::Session()
 
     dir = "/sys/bus/pci/drivers/vmd";
     dirs = dir.dirs();
-
-    std::set<CanonicalPath> handledNVMes;
+    // all VMD controllers are presented as 1 controller
+    VMD *pVMD = NULL;
     foreach (i, dirs) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            VMD *pVMD = new VMD(CanonicalPath(*(*i)));
-            pVMD->discover();
-            pVMD->addToSession(this);
-
-            handledNVMes.insert(pVMD->getHandledNVMEPaths().begin(), pVMD->getHandledNVMEPaths().end());
-        }
-    }
-
-    dir = "/sys/bus/pci/drivers/nvme";
-    dirs = dir.dirs();
-    foreach (i, dirs) {
-        CanonicalPath path = *(*i) + "driver";
-        CanonicalPath currentPath = *(*i);
-
-        if(handledNVMes.end() != handledNVMes.find(*(*i)))
-        {
-            continue;
-        }
-
-        if (path == dir) {
-            File attr;
-            String vendor;
-            attr = *(*i) + "vendor";
-            try {
-                attr >> vendor;
-                if (vendor != "0x8086")
-                    continue;
-            } catch (...) {
-                /* TODO log that vendor cannot be read from filesystem */
-                continue;
+            if (pVMD == NULL) {
+                pVMD = new VMD(CanonicalPath(*(*i)));
             }
-            NVME *pNVME = new NVME(CanonicalPath(*(*i)));
-            pNVME->discover();
-            pNVME->addToSession(this);
+            pVMD->discover(*(*i));
         }
     }
+    if (pVMD != NULL) {
+        pVMD->addToSession(this);
+    }
+
     foreach (i, m_Controllers) {
         RaidInfo *pRaidInfo = (*i)->findRaidInfo(m_RaidInfo);
         if (pRaidInfo)

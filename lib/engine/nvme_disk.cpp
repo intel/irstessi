@@ -98,7 +98,7 @@ void NVME_Disk::identify()
 }
 
 /* */
-NVME_Disk::NVME_Disk(const String &path)
+NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     : BlockDevice(path)
 {
     Directory dir("/sys/class/nvme");
@@ -113,6 +113,7 @@ NVME_Disk::NVME_Disk(const String &path)
         }
     }
 
+    __internal_determine_disk_is_system();
     identify();
     File attr;
 
@@ -136,6 +137,21 @@ NVME_Disk::NVME_Disk(const String &path)
     }
 
     m_FDx8Disk = whichFultondalex8Disk(m_SerialNum);
+    m_vmdDomain = vmdDomain;
+}
+
+/* */
+void NVME_Disk::__internal_determine_disk_is_system()
+{
+    String result;
+    if (shell_cap("df /boot", result) == 0) {
+        try {
+            result.find("/dev/" + m_DevName);
+            m_IsSystem = true;
+        } catch (...) {
+            m_IsSystem = false;
+        }
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -52,33 +52,42 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 VMD::VMD(const String &path)
     : Controller(path)
 {
-    /* TODO: read the name of controller from PCI bar */
-    m_Name = "VMD at " + m_Path.reverse_right("0000:");
+    m_Name = "VMD";
+    m_DomainCount = 0;
+    m_EndDevicesCount = 0;
 }
 
 /* */
-void VMD::discover()
+void VMD::discover(const String &path)
 {
-    unsigned int number = 0;
-    CanonicalPath cPath(m_Path);
+    const String IntelVendorTag = "0x8086";
+    CanonicalPath vmdPath(path);
+    m_DomainCount++;
 
-    Directory dir(cPath + "domain/device/");
-    CanonicalPath temp, subtemp, nvmePath;
+    Directory dir("/sys/bus/pci/drivers/nvme");
     std::list<Directory *> dirs = dir.dirs();
+    dirs = dir.dirs();
     foreach (i, dirs) {
-        temp = *(*i);
-        Directory subdir = (temp);
-        std::list<Directory *> subdirs = subdir.dirs();
-        foreach (j, subdirs) {
-        	subtemp = *(*j);
-        	nvmePath = subtemp + "/driver";
-        	if(nvmePath == "/sys/bus/pci/drivers/nvme"){
-                    NVME_Phy *pPhy = new NVME_Phy(CanonicalPath(subtemp), number++, this);
-                    attachPhy(pPhy);
-                    pPhy->discover();
-
-                    m_HandledNVMEPaths.push_back(CanonicalPath(subtemp));
-        	}
+        CanonicalPath nvmeDriverPath = *(*i) + "driver";
+        CanonicalPath nvmePath = *(*i);
+        if (nvmeDriverPath == dir) {
+            File attr;
+            String vendor;
+            attr = *(*i) + "vendor";
+            try {
+                attr >> vendor;
+                if (vendor != IntelVendorTag) {
+                    continue;
+                }
+            } catch (...) {
+                /* TODO log that vendor cannot be read from filesystem */
+                continue;
+            }
+            if ((unsigned int)nvmePath.compare(vmdPath) == nvmePath.length() - vmdPath.length()) {
+                NVME_Phy *pPhy = new NVME_Phy(nvmePath, m_DomainCount, m_EndDevicesCount++, this);
+                attachPhy(pPhy);
+                pPhy->discover();
+            }
         }
     }
 }
@@ -103,7 +112,7 @@ RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
     }
 
     orom_info *pInfo = &pInfo_ext->data;
-    foreach(i,RaidInfos){
+    foreach (i,RaidInfos) {
         if ((*i)->getControllerType() == SSI_ControllerTypeVMD &&
            (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
             m_pRaidInfo = (*i);
