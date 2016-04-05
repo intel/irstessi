@@ -85,7 +85,7 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
 
         SSI_RaidLevel raid = volume.getSsiRaidLevel();
         if (raid == SSI_Raid1 || raid == SSI_Raid10) {
-            return SSI_StatusNotSupported;
+            return SSI_StatusInvalidRaidLevel;
         } else if (raid != SSI_Raid0) {
             isRaid0 = false;
         }

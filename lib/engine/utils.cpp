@@ -44,7 +44,6 @@ void setLastErrorMessage(const String &ErrorMessage)
     LastErrorFlag = true;
 }
 
-
 /**
  * @brief capture shell output as binary data
  *
@@ -65,7 +64,7 @@ int shell_cap(const String &s, void *buf, size_t &size)
     }
     do {
         count = fread(buffer + index, sizeof(unsigned char), size - index, pd);
-	index += count;
+    index += count;
     } while (count > 0);
     size = index;
     return pclose(pd);

@@ -891,13 +891,14 @@ namespace {
 SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks)
 {
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL)
+    if (pArray == NULL) {
         return SSI_StatusFailed;
+    }
 
     bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
     String ch = "";
     try {
-        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize)/1024) : "";
+        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize) / 1024) : "";
     } catch (...) {
         return SSI_StatusInvalidStripSize;
     }
@@ -933,6 +934,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
                 if (disks.size() == 0 && !chunkChange) {
                     return SSI_StatusOk;
                 }
+
                 usleep(3000000);
                 if (disks.size() > 0) {
                     return pArray->grow(disks);
@@ -964,20 +966,30 @@ SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSiz
 {
     SSI_Status status;
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (m_RaidLevel != 0 || m_BlockDevices.size() != 2  || disks.size() < 2)
-        return SSI_StatusNotSupported;
-    if (stripSize && stripSize != ui2stripsize(m_StripSize))
-        return SSI_StatusInvalidStripSize;
-    if (pArray == NULL)
+    if (pArray == NULL) {
         return SSI_StatusFailed;
+    }
+
+    if (m_RaidLevel != 0 || m_BlockDevices.size() != 2) {
+        return SSI_StatusNotSupported;
+    } else if (disks.size() != 2) {
+        setLastErrorMessage("Cannot migrate to RAID10. Migration to RAID10 is supported only with 2 disks");
+
+        return SSI_StatusInvalidParameter;
+    } else if (stripSize && stripSize != ui2stripsize(m_StripSize)) {
+        return SSI_StatusInvalidStripSize;
+    }
 
     Container<EndDevice> addedToSpare = Array::getSpareableEndDevices(disks);
 
     status = pArray->addSpare(disks);
-    if (status != SSI_StatusOk)
+    if (status != SSI_StatusOk) {
         return status;
-    if (shell("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0)
+    }
+
+    if (shell("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0) {
         return SSI_StatusOk;
+    }
 
     pArray->removeSpare(addedToSpare, true);
     return SSI_StatusFailed;
@@ -989,60 +1001,66 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
     Container<EndDevice> addedToSpare;
     SSI_Status status = SSI_StatusOk;
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL)
+    if (pArray == NULL) {
         return SSI_StatusFailed;
+    }
 
     bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
     String ch = "";
     try {
-        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize)/1024) : "";
+        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize) / 1024) : "";
     } catch (...) {
         return SSI_StatusInvalidStripSize;
     }
+
     switch (m_RaidLevel) {
-    case 0:
-        if (disks.size() != 1) {
-            return SSI_StatusNotSupported;
-        }
+        case 0:
+            if (disks.size() != 1) {
+                setLastErrorMessage("Cannot migrate to RAID5. Migration to RAID5 is supported only with 1 disk");
 
-        addedToSpare = Array::getSpareableEndDevices(disks);
-        status = pArray->addSpare(disks);
-        if (status != SSI_StatusOk) {
-            return status;
-        } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
-            return SSI_StatusOk;
-        }
+                return SSI_StatusInvalidParameter;
+            }
 
-        pArray->removeSpare(addedToSpare, true);
-        break;
-
-    case 10:
-        if (disks.size() > 0) {
-            return SSI_StatusNotSupported;
-        }
-
-        if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
-            if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
+            addedToSpare = Array::getSpareableEndDevices(disks);
+            status = pArray->addSpare(disks);
+            if (status != SSI_StatusOk) {
+                return status;
+            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
                 return SSI_StatusOk;
             }
-        }
-        break;
 
-    case 5:
-        if (disks.size() > 0 && chunkChange) {
+            pArray->removeSpare(addedToSpare, true);
+            break;
+
+        case 10:
+            if (disks.size() > 0) {
+                setLastErrorMessage("Cannot migrate from RAID10 to RAID5 with additional disks");
+
+                return SSI_StatusInvalidParameter;
+            }
+
+            if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+                if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
+                    return SSI_StatusOk;
+                }
+            }
+            break;
+
+        case 5:
+            if (disks.size() > 0 && chunkChange) {
+                return SSI_StatusNotSupported;
+            } else if (disks.size() > 0) {
+                /* MDADM issue */
+                /* Not all scenarios are correctly handled by mdadm
+                   For now, it yields undefined behavior */
+                return pArray->grow(disks);
+            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
+                return SSI_StatusOk;
+            }
+            break;
+
+        default:
             return SSI_StatusNotSupported;
-        } else if (disks.size() > 0) {
-            /* MDADM issue */
-            /* Not all scenarios are correctly handled by mdadm
-               For now, it yields undefined behavior */
-            return pArray->grow(disks);
-        } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
-            return SSI_StatusOk;
-        }
-        break;
-
-    default:
-        return SSI_StatusNotSupported;
     }
 
     return SSI_StatusFailed;

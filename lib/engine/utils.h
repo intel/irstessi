@@ -36,6 +36,9 @@ extern String SSI_STDERRMessage;
 extern bool LastErrorFlag;
 
 /* */
+void setLastErrorMessage(const String &ErrorMessage);
+
+/* */
 int shell_cap(const String &s, String &r);
 
 /**
