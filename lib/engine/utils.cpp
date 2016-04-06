@@ -29,11 +29,28 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstring>
 #include <cstdlib>
 
+#include <vector>
+
 #include "exception.h"
 #include "string.h"
 #include "filesystem.h"
 #include "utils.h"
 #include "log/log.h"
+
+using std::vector;
+
+namespace {
+    bool isFound(const String& string, unsigned int offset, const char* pattern, unsigned int& position)
+    {
+        try {
+            position = string.find(pattern, offset);
+        } catch (...) {
+            return false;
+        }
+
+        return true;
+    }
+}
 
 String SSI_STDERRMessage;
 bool LastErrorFlag = false;
@@ -166,32 +183,74 @@ int shell(const String &s)
     return ret;
 }
 
-int shellEx(const String &s)
+int shellEx(const String &s, unsigned int linesNum, unsigned int offset)
 {
-    String cmd = "export MDADM_EXPERIMENTAL=1; " + s + " 2>&1 1>/dev/null";
-    FILE *in;
-    const int errorCode = -1;
-    const int successCode = 0;
-    const unsigned int ErrorLength = 1024;
-    char str[ErrorLength] = {};
-    String errorMessage;
+    const int ErrorCode = -1;
+    const int SuccessCode = 0;
+    const unsigned int BufferLength = 1024;
+    const char NewLines[] = "\n";
+    const unsigned int WordsToRemoveLength = 2;
+    const String WordsToRemove[WordsToRemoveLength] = {
+        "mdadm: ",
+        "mdmon: "
+    };
 
+    FILE *in;
+    String cmd = "export MDADM_EXPERIMENTAL=1; " + s + " 2>&1 1>/dev/null";
     if (!(in = popen(cmd.get(), "r"))) {
-        return errorCode;
+        return ErrorCode;
     }
 
-    while (fgets(str, sizeof(str), in) != NULL) {
-        errorMessage.append(str);
+    String rawErrorMessage;
+    char buffer[BufferLength] = {};
+    while (fgets(buffer, BufferLength, in) != NULL) {
+        rawErrorMessage.append(buffer);
+    }
+
+    vector<String> lines;
+    unsigned int pos = 0;
+    unsigned int next = 0;
+
+    String line;
+    while (isFound(rawErrorMessage, pos, NewLines, next)) {
+        line = String(rawErrorMessage.get(pos), next - pos);
+        line.trim();
+
+        for (unsigned int i = 0; i < WordsToRemoveLength; ++i) {
+            unsigned int found = 0;
+
+            while (isFound(line, 0, WordsToRemove[i], found)) {
+                line = line.reverse_mid(line.get(found), line.get(found + WordsToRemove[i].length()));
+            }
+        }
+
+        if (line != "") {
+            lines.push_back(line);
+        }
+
+        pos = next + 1;
+        line.clear();
+    }
+
+    String errorMessage;
+    vector<String>::size_type size = lines.size();
+    vector<String>::size_type i;
+    for (i = (linesNum + offset) > size ? size : (linesNum + offset); i > offset; --i)
+    {
+        errorMessage.append(lines[size - i]);
+        if (i > offset + 1) {
+            errorMessage.append(" ");
+        }
     }
 
     setLastErrorMessage(errorMessage);
 
     int statusCode = pclose(in);
     if (WEXITSTATUS(statusCode)) {
-        return errorCode;
+        return ErrorCode;
     }
 
-    return successCode;
+    return SuccessCode;
 }
 
 /* Look if process is already running

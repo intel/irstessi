@@ -340,6 +340,29 @@ public:
         return mid(left.m_buffer, right.m_buffer);
     }
 
+    String reverse_mid(unsigned int start, unsigned int end) const {
+        try {
+            if (start < end) {
+                String leftPart(get(), start);
+                leftPart.append(String(get(end)));
+                return leftPart;
+            }
+        } catch (...) {
+        }
+        return String("");
+    }
+    String reverse_mid(const char *start, const char *end) const {
+        try {
+            unsigned int pos = find(start);
+            return reverse_mid(pos, pos + find(end));
+        } catch (...) {
+            return String("");
+        }
+    }
+    String reverse_mid(const String &left, const String &right) const {
+        return reverse_mid(left.m_buffer, right.m_buffer);
+    }
+
     void trim();
 
     String reverse_after(const String &s) const {
@@ -460,7 +483,7 @@ inline String operator + (const char *left, const String &right) {
 }
 
 inline bool operator < (const String &left, const String &right) {
-	return left.compare(right) < 0;
+    return left.compare(right) < 0;
 }
 
 #endif /* __STRING_H__INCLUDED__ */

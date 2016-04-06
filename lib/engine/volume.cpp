@@ -764,7 +764,7 @@ void Volume::createForMigration()
     case 0:
     case 5:
     case 10:
-        if (shell("mdadm -CR '" + m_Name + "' -amd -l " + String(0) + " --size=" + componentSize +
+        if (shellEx("mdadm -CR '" + m_Name + "' -amd -l " + String(0) + " --size=" + componentSize +
                   chunk + " -n 1 " + device + " --force") != 0) {
             throw E_VOLUME_CREATE_FAILED;
         }
@@ -773,7 +773,7 @@ void Volume::createForMigration()
     case 1:
         {
             String otherDevice = " '/dev/" + (*devices.begin())->getDevName() + "'";
-            if (shell("mdadm -CR '" + m_Name + "' -l " + String(m_RaidLevel) + " -n 2 " + otherDevice + " missing") != 0) {
+            if (shellEx("mdadm -CR '" + m_Name + "' -l " + String(m_RaidLevel) + " -n 2 " + otherDevice + " missing") != 0) {
                 throw E_VOLUME_CREATE_FAILED;
             }
         }

@@ -54,7 +54,7 @@ int shell_cap(const String &s, void *buf, size_t &size);
 int shell(const String &s);
 
 /* */
-int shellEx(const String &s);
+int shellEx(const String &s, unsigned int linesNum = 1, unsigned int offset = 0);
 
 /* */
 int processExist(int pid, const String &s);
