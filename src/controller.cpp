@@ -68,4 +68,10 @@ SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
     return pController->readPatrolSetState(enable == SSI_TRUE);
 }
 
+/* */
+SSI_Status SsiROHISetState(SSI_Handle controllerHandle, SSI_Bool enable)
+{
+    return SSI_StatusNotSupported;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

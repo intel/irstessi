@@ -377,6 +377,20 @@ typedef enum _SSI_StripSize
 } SSI_StripSize;
 
 /**
+ * @enum    SSI_Rwh
+ *
+ * @brief    Close Raid Write Hole Policy.
+**/
+typedef enum _SSI_RwhPolicy
+{
+    SSI_RwhOff = 0,
+    SSI_RwhDistributed = 1,
+    SSI_RwhJournalingDrive = 2,
+    SSI_RwhInvalid = 3,
+
+} SSI_RwhPolicy;
+
+/**
  * @enum    SSI_DeviceType
  *
  * @brief   Values that represent Device types.
@@ -863,6 +877,8 @@ typedef enum _SSI_DiskUsage
     SSI_DiskUsageArrayMemberReadOnlyMount = 5,
     /** Disk is mounted as a pass through but has meta data */
     SSI_DiskUsagePassThruReadOnlyMount    = 6,
+    /** Disk is marked as a journaling */
+    SSI_DiskUsageJournaling               = 7,
 } SSI_DiskUsage;
 
 /**
@@ -1114,6 +1130,8 @@ typedef struct _SSI_VolumeInfo
     SSI_Uint32 migrProgress;
     /** Volume cache policy */
     SSI_VolumeCachePolicy cachePolicy;
+    /** Volume Close Raid Write Hole Policy */
+    SSI_RwhPolicy rwhPolicy;
     /** If true, volume contains system data required for boot */
     SSI_Bool systemVolume;
     /** If true, volume is currently migrating */
@@ -1128,6 +1146,8 @@ typedef struct _SSI_VolumeInfo
     SSI_Uint32 logicalSectorSize;
     /** Volume's physical sector size */
     SSI_Uint32 physicalSectorSize;
+    /** Journaling drive handle*/
+    SSI_Handle journalingDriveHandle;
 } SSI_VolumeInfo;
 
 /**
@@ -1192,6 +1212,10 @@ typedef struct _SSI_CreateFromDisksParams
     SSI_RaidLevel  raidLevel;
     /** Size in bytes of new volume */
     SSI_Uint64     sizeInBytes;
+    /** Close Write Hole Policy */
+    SSI_RwhPolicy rwhPolicy;
+    /**Journaling drive handle for Raid Write Hole policy */
+    SSI_Handle journalingDrive;
 } SSI_CreateFromDisksParams;
 
 /**
@@ -1211,6 +1235,10 @@ typedef struct _SSI_CreateFromArrayParams
     SSI_RaidLevel raidLevel;
     /** Size in bytes of new volume. 0 - use all available space */
     SSI_Uint64    sizeInBytes;
+    /** Close Write Hole Policy */
+    SSI_RwhPolicy rwhPolicy;
+    /**Journaling drive handle for Raid Write Hole policy*/
+    SSI_Handle journalingDrive;
 } SSI_CreateFromArrayParams;
 
 /**
@@ -1835,6 +1863,20 @@ SSI_API SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB
 SSI_API SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle, SSI_VolumeCachePolicy policy);
 
 /**
+ * @fn    SSI_API SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle journalingDriveHandle, SSI_RwhPolicy policy)
+ *
+* @brief    Changes the raid write hole policy for a given volume.
+ *
+ * @param    volumeHandle    Handle of the volume to modify.
+ * @param    journalingDriveHandle    Handle of the journaling drive to mark.
+ * @param    policy            The new raid write hole policy.
+ *
+ * @return    #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusInvalidState,
+ * @return #SSI_InvalidParameter, #SSI_StatusFailed.
+**/
+SSI_API SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle journalingDriveHandle, SSI_RwhPolicy policy);
+
+/**
  * @fn  SSI_API SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
  *
  * @brief   Initializes redundant volume (adding parity / mirroring).
@@ -1991,6 +2033,19 @@ SSI_API SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle, SSI_StorageArea 
  * @return  #SSI_StatusFailed, #SSI_StatusInvalidState
 **/
 SSI_API SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable);
+
+/**
+* @fn  SSI_API SSI_Status SsiROHISetState(SSI_Handle controllerHandle, SSI_Bool enable)
+*
+* @brief   Ssi rebuild on hot insert set state.
+*
+* @param   controllerHandle    Handle of the controller.
+* @param   enable              Boolean to enable or disable rebuild on hot insert.
+*
+* @return  #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidParameter, #SSI_StatusNotSupported,
+* @return  #SSI_StatusFailed, #SSI_StatusInvalidState
+**/
+SSI_API SSI_Status SsiROHISetState(SSI_Handle controllerHandle, SSI_Bool enable);
 
 /**
  * @fn  SSI_API const SSI_Char * SsiGetLastErrorMessage()

@@ -530,6 +530,12 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
 }
 
 /* */
+SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle journalingDriveHandle, SSI_RwhPolicy policy)
+{
+    return SSI_StatusNotImplemented;
+}
+
+/* */
 SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 {
     Volume *pVolume = NULL;
