@@ -37,6 +37,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/context_manager.h>
 #include <engine/array.h>
 #include <engine/volume.h>
+#include <engine/utils.h>
 
 #include "templates.h"
 
@@ -271,6 +272,11 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
             return SSI_StatusInvalidState;
         case E_BUFFER_TOO_SMALL:
             return SSI_StatusBufferTooSmall;
+        case E_SYSTEM_DEVICE:
+            /* TODO: temporary solution.
+                     When Create with migration will work, this needs to be changed respectively */
+            setLastErrorMessage("Volume with system device is not allowed.");
+            return SSI_StatusInvalidParameter;
         default:
             return SSI_StatusFailed;
         }
@@ -292,7 +298,6 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 
         /* At this point, we are sure that we've got enough disks inside container */
 
-        verifyVolumeName(params.volumeName, session.get());
         pVolume->setName(params.volumeName);
         pVolume->setRaidLevel(params.raidLevel);
         if (params.raidLevel != SSI_Raid1) {
@@ -447,7 +452,6 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         pVolume->setParent(pArray);
         pVolume->setEndDevices(container);
         pVolume->setComponentSize(params.sizeInBytes, container.size(), params.raidLevel);
-        verifyVolumeName(params.volumeName, session.get());
         pVolume->setName(params.volumeName);
         pVolume->setStripSize(params.stripSize);
         pVolume->setRaidLevel(params.raidLevel);
@@ -481,26 +485,9 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
     const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
-    }
-
     Volume *pVolume = NULL;
     if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
         return status;
-    }
-
-    try {
-        verifyVolumeName(volumeName, session.get());
-    } catch (Exception ex) {
-        switch (ex) {
-        case E_INVALID_NAME:
-            return SSI_StatusInvalidString;
-
-        default:
-            return SSI_StatusFailed;
-        }
     }
 
     return pVolume->rename(volumeName);

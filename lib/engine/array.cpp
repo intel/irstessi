@@ -271,12 +271,33 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
 SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 {
     usleep(3000000);
-    if (shell("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N '" + newName + "' '/dev/md/" + m_Name + "'") == 0 &&
-            shell("mdadm -Ebs >> /etc/mdadm.conf") == 0) {
-        return SSI_StatusOk;
+    SSI_Status status = SSI_StatusOk;
+
+    /*
+       When mdadm yields error on create with "/", on rename it's temporary replaced with "-" so all is "ok".
+       When temporary name is set to requested name (newName), volume is deleted and endDevices cannot be removed
+       from array through SSI API
+    */
+    try {
+        newName.find("/");
+
+        setLastErrorMessage(newName + " is an invalid name for an md device.");
+        status = SSI_StatusInvalidString;
+    } catch (...) {
+        // newName does not have "/" character
     }
 
-    return SSI_StatusFailed;
+    if (status == SSI_StatusOk) {
+        if (shellEx("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N '" + newName + "' '/dev/md/" + m_Name + "'", 1, 1) != 0) {
+            status = SSI_StatusFailed;
+        }
+
+        if (shell("mdadm -Ebs >> /etc/mdadm.conf") != 0) {
+            return SSI_StatusFailed;
+        }
+    }
+
+    return status;
 }
 
 /* */
