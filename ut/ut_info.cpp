@@ -166,6 +166,8 @@ int main(int argc, char *argv[])
                         cout << "\treadPatrolSupport: " << (bool)controllerInfo.readPatrolSupport << endl;
                         cout << "\treadPatrolEnabled: " << (bool)controllerInfo.readPatrolEnabled << endl;
                         cout << "\txorEnabled: " << (bool)controllerInfo.xorEnabled << endl;
+                        cout << "\trohiEnabled: " << (bool)controllerInfo.rohiEnabled << endl;
+                        cout << "\trohiSupport: " << (bool)controllerInfo.rohiSupport << endl;
                     } else {
                         cout << "E. Unable to get controller info (status=" << statusStr[status] << ")" << endl;
                     }

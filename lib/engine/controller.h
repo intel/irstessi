@@ -113,6 +113,7 @@ protected:
     bool m_PhyLocate;
     bool m_DiskUnlock;
     bool m_PatrolReadSupport;
+    bool m_ROHISupport;
 
     virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeUnknown;

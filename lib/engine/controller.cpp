@@ -66,7 +66,8 @@ Controller::Controller(const String &path)
       m_HWXORSupported(false),
       m_PhyLocate(false),
       m_DiskUnlock(false),
-      m_PatrolReadSupport(false)
+      m_PatrolReadSupport(false),
+      m_ROHISupport(false)
 {
     File attr;
     struct PCIHeader pciInfo;
@@ -183,6 +184,8 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     pInfo->readPatrolEnabled = SSI_TRUE;
     pInfo->readPatrolSupport =
         m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
+    pInfo->rohiEnabled = SSI_FALSE;
+    pInfo->rohiSupport = m_ROHISupport ? SSI_TRUE : SSI_FALSE;
 
     return SSI_StatusOk;
 }

@@ -256,7 +256,9 @@ typedef enum _SSI_Status
     /** Driver has returned a busy notification */
     SSI_StatusDriverBusy             = 23,
     /** Too many items (disks, etc) have been specified */
-    SSI_StatusBufferTooLarge         = 24
+    SSI_StatusBufferTooLarge         = 24,
+    /** Disable on-device cache failed */
+    SSI_StatusDisableCacheFailed     = 25
 } SSI_Status;
 
 /**
@@ -632,7 +634,10 @@ typedef struct _SSI_ControllerInfo
     SSI_Bool readPatrolEnabled;
     /** If true, H/W XOR is enabled for this controller */
     SSI_Bool xorEnabled;
-
+    /** If true, Enabling or disabling rebuild on hot insert is supported for this controller. */
+    SSI_Bool rohiSupport;
+    /** If true, Rebuild on hot insert is enabled for this controller */
+    SSI_Bool rohiEnabled;
 } SSI_ControllerInfo;
 
 /**
