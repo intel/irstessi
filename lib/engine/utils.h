@@ -32,11 +32,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #define foreach(i, c) for(typeof(c.begin()) i = c.begin(); i != c.end(); ++i)
 
-extern String SSI_STDERRMessage;
-extern bool LastErrorFlag;
-
 /* */
 void setLastErrorMessage(const String &ErrorMessage);
+
+String getLastErrorMessage();
+
+void clearLastErrorMessage();
 
 /* */
 int shell_cap(const String &s, String &r);

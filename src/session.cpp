@@ -30,6 +30,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/session.h>
 #include <engine/context_manager.h>
 
+#include <string.h>
+
 /* */
 SSI_Status SsiSessionOpen(SSI_Handle *pSession)
 {
@@ -80,17 +82,32 @@ SSI_Status getSession(SSI_Handle session, Session **pSession)
     return SSI_StatusOk;
 }
 
-const SSI_Char * SsiGetLastErrorMessage()
+SSI_Status SsiGetLastErrorMessage(SSI_Char *destination, SSI_Uint32 *num)
 {
-    static const SSI_Char* NoMessage = NULL;
+    if (num == NULL) {
+        return SSI_StatusInvalidParameter;
+    }
 
-    if (LastErrorFlag) {
-        LastErrorFlag = false;
-        return SSI_STDERRMessage.get();
+    String source = getLastErrorMessage();
+    if (source.isEmpty()) {
+        *num = 0;
+        return SSI_StatusOk;
     }
-    else {
-        return NoMessage;
+
+    unsigned int ssiErrorLength = source.length();
+    if (ssiErrorLength >= *num) {
+        *num = ssiErrorLength + 1;
+        return SSI_StatusBufferTooSmall;
     }
+
+    if (destination == NULL) {
+        return SSI_StatusInvalidParameter;
+    }
+
+    strncpy(destination, source.get(), ssiErrorLength);
+    clearLastErrorMessage();
+
+    return SSI_StatusOk;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=96 expandtab: */

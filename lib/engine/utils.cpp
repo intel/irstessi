@@ -40,6 +40,25 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 using std::vector;
 
 namespace {
+    String SSI_STDERRMessage;
+}
+
+void setLastErrorMessage(const String &ErrorMessage)
+{
+    SSI_STDERRMessage = ErrorMessage;
+}
+
+String getLastErrorMessage()
+{
+    return SSI_STDERRMessage;
+}
+
+void clearLastErrorMessage()
+{
+    SSI_STDERRMessage.clear();
+}
+
+namespace {
     bool isFound(const String& string, unsigned int offset, const char* pattern, unsigned int& position)
     {
         try {
@@ -50,15 +69,6 @@ namespace {
 
         return true;
     }
-}
-
-String SSI_STDERRMessage;
-bool LastErrorFlag = false;
-
-void setLastErrorMessage(const String &ErrorMessage)
-{
-    SSI_STDERRMessage = ErrorMessage;
-    LastErrorFlag = true;
 }
 
 /**

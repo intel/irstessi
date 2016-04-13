@@ -2053,15 +2053,16 @@ SSI_API SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool e
 SSI_API SSI_Status SsiROHISetState(SSI_Handle controllerHandle, SSI_Bool enable);
 
 /**
- * @fn  SSI_API const SSI_Char * SsiGetLastErrorMessage()
+ * @fn  SSI_API SSI_Status SsiGetLastErrorMessage(SSI_Char *destination, SSI_Uint32 *num);
  *
  * @brief   Ssi read last error message.
  *
+ * @param   destination        Buffer for last error message.
+ * @param   num                Length of the buffer in bytes. If buffer size is too small, num is set to required size.
  *
- * @return Error message string.
-
+ * @return SSI_StatusOk, SSI_StatusInvalidParameter, SSI_BufferTooSmall
 **/
-SSI_API const SSI_Char * SsiGetLastErrorMessage();
+SSI_API SSI_Status SsiGetLastErrorMessage(SSI_Char *destination, SSI_Uint32 *num);
 
 #ifndef _MSC_VER
 #pragma GCC visibility pop
