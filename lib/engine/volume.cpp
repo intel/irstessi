@@ -705,82 +705,26 @@ void Volume::create()
     }
 
     if (m_pSourceDisk == NULL) {
-        createWithoutMigration();
-    } else {
-        createForMigration();
-    }
-}
+        String devices;
+        foreach (i, m_BlockDevices) {
+            devices += " '/dev/" + (*i)->getDevName() + "'";
+        }
 
-void Volume::createWithoutMigration()
-{
-    String devices;
-    foreach (i, m_BlockDevices) {
-        devices += " '/dev/" + (*i)->getDevName() + "'";
-    }
+        String componentSize;
+        if (m_ComponentSize == 0) {
+            componentSize = "max";
+        } else {
+            componentSize = m_ComponentSize / 1024;
+        }
 
-    String componentSize;
-    if (m_ComponentSize == 0) {
-        componentSize = "max";
-    } else {
-        componentSize = m_ComponentSize / 1024;
-    }
+        String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
 
-    String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
-
-    if (shellEx("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
-              chunk + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
-        throw E_VOLUME_CREATE_FAILED;
-    }
-
-    __wait_for_volume();
-}
-
-void Volume::createForMigration()
-{
-    BlockDevice& source = *m_pSourceDisk;
-
-    if (m_BlockDevices.find(source.getId()) == NULL) {
-        throw E_INVALID_HANDLE;
-    }
-
-    Container<EndDevice> devices;
-    foreach (iter, m_BlockDevices) {
-        devices.add(*iter);
-    }
-
-    devices.remove(source.getId());
-
-    String device = " '/dev/" + source.getDevName() + "'";
-
-    String componentSize;
-    if (m_ComponentSize == 0) {
-        componentSize = "max";
-    } else {
-        componentSize = m_ComponentSize / 1024;
-    }
-
-    String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
-    switch (m_RaidLevel) {
-    case 0:
-    case 5:
-    case 10:
-        if (shellEx("mdadm -CR '" + m_Name + "' -amd -l " + String(0) + " --size=" + componentSize +
-                  chunk + " -n 1 " + device + " --force") != 0) {
+        if (shellEx("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
+                  chunk + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
             throw E_VOLUME_CREATE_FAILED;
         }
-        break;
-
-    case 1:
-        {
-            String otherDevice = " '/dev/" + (*devices.begin())->getDevName() + "'";
-            if (shellEx("mdadm -CR '" + m_Name + "' -l " + String(m_RaidLevel) + " -n 2 " + otherDevice + " missing") != 0) {
-                throw E_VOLUME_CREATE_FAILED;
-            }
-        }
-        break;
-
-    default:
-        throw E_INVALID_RAID_LEVEL;
+    } else {
+        throw E_NOT_SUPPORTED;
     }
 
     __wait_for_volume();

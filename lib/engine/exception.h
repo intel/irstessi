@@ -52,7 +52,8 @@ enum Exception {
     E_INVALID_RAID_LEVEL,
     E_LAST,
     E_BUFFER_TOO_LARGE,
-    E_INVALID_SIZE
+    E_INVALID_SIZE,
+    E_NOT_SUPPORTED
 };
 
 Exception errno_to_exception_code(int err);

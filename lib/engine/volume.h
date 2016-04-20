@@ -125,9 +125,6 @@ private:
     unsigned int getMigrationProgress();
     unsigned int getMigrationTargetLevel();
     unsigned int getVerificationProgress();
-
-    void createWithoutMigration();
-    void createForMigration();
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
