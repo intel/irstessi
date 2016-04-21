@@ -79,6 +79,10 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
                 return SSI_StatusInvalidHandle;
             }
 
+            if (pVolume->getLogicalSectorSize() != pEndDevice->getLogicalSectorSize()) {
+                return SSI_StatusNotSupported;
+            }
+
             container.add(pEndDevice);
         }
 

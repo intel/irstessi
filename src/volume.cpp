@@ -104,6 +104,10 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
         return SSI_StatusInvalidState;
     }
 
+    if (pVolume->getLogicalSectorSize() != pEndDevice->getLogicalSectorSize()) {
+        return SSI_StatusNotSupported;
+    }
+
     return pVolume->rebuild(pEndDevice);
 }
 
@@ -125,6 +129,11 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         return SSI_StatusInvalidParameter;
     }
 
+    if (params.numDisks == 0) {
+        setLastErrorMessage("Not enough disks to create volume.");
+        return SSI_StatusInvalidParameter;
+    }
+
     TemporarySession session;
     if (!session.isValid()) {
         return SSI_StatusNotInitialized;
@@ -143,6 +152,16 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
                 return SSI_StatusInvalidHandle;
             }
             container.add(pEndDevice);
+        }
+
+        // check block sizes
+        unsigned int blockSize = container.front()->getLogicalSectorSize();
+        foreach (iter, container) {
+            EndDevice& disk = *(*iter);
+
+            if (disk.getLogicalSectorSize() != blockSize) {
+                return SSI_StatusNotSupported;
+            }
         }
 
         pEndDevice = session->getEndDevice(params.sourceDisk);

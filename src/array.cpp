@@ -99,6 +99,14 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
         return SSI_StatusBufferTooSmall;
     }
 
+    Container<EndDevice> enddevices;
+    pArray->getEndDevices(enddevices, true);
+
+    if (enddevices.empty()) {
+        return SSI_StatusInternalError;
+    }
+
+    unsigned int blockSize = enddevices.front()->getLogicalSectorSize();
     try {
         Container<EndDevice> container;
         for (unsigned int i = 0; i < diskHandleCount; i++) {
@@ -108,6 +116,10 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
             }
 
             if (!isRaid0 && pEndDevice->isFultondalex8()) {
+                return SSI_StatusNotSupported;
+            }
+
+            if (pEndDevice->getLogicalSectorSize() != blockSize) {
                 return SSI_StatusNotSupported;
             }
 

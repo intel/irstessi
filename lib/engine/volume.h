@@ -108,6 +108,9 @@ public:
     unsigned long long getTotalSize() const {
         return blk.getTotalSize();
     }
+    unsigned long long getLogicalSectorSize() const {
+        return blk.getLogicalSectorSize();
+    }
     SSI_RaidLevel getSsiRaidLevel() const;
     SSI_StripSize getSsiStripSize() const;
 

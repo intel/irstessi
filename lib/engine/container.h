@@ -88,6 +88,14 @@ public:
         return const_cast<Container *>(this)->m_list.end();
     }
 
+    const T * front() const {
+        return m_list.front();
+    }
+
+    bool empty() const {
+        return m_list.empty();
+    }
+
     void clear() {
         m_list.clear();
     }
