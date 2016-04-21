@@ -296,7 +296,25 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
         return status;
     }
 
-    return pVolume->rename(volumeName);
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
+    }
+
+    String name = volumeName;
+
+    Container<Volume> volumes;
+    session->getVolumes(volumes);
+    foreach (iter, volumes) {
+        Volume& volume = *(*iter);
+
+        if (volume.getName() == name) {
+            setLastErrorMessage("Volume name already in use.");
+            return SSI_StatusInvalidString;
+        }
+    }
+
+    return pVolume->rename(name);
 }
 
 /* */
@@ -307,7 +325,7 @@ SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
         return status;
     }
 
-    return pVolume->expand(newSizeMB*1024ULL);
+    return pVolume->expand(newSizeMB * 1024ULL);
 }
 
 /* */
