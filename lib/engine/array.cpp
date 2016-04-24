@@ -116,7 +116,9 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
     if (count == 0) {
         return SSI_StatusOk;
     }
-    if (shell("mdadm '/dev/" + m_DevName + "' -a" + endDevices) == 0) {
+    unsigned int lines = 3;
+    unsigned int offset = 0;
+    if (shellEx("mdadm '/dev/" + m_DevName + "' -a" + endDevices, lines, offset) == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -437,7 +439,9 @@ void Array::create()
         throw E_BUFFER_TOO_SMALL;
     }
 
-    if (shell("mdadm -CR '" + m_Name + "' -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices) != 0) {
+    unsigned int lines = 3;
+    unsigned int offset = 0;
+    if (shellEx("mdadm -CR '" + m_Name + "' -f -amd -eimsm -n" + String(m_BlockDevices.size()) + devices, lines, offset) != 0) {
         throw E_ARRAY_CREATE_FAILED;
     }
     __wait_for_container();
