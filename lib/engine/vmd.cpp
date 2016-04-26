@@ -126,7 +126,7 @@ RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
 
 const std::vector<CanonicalPath>& VMD::getHandledNVMEPaths()
 {
-	return m_HandledNVMEPaths;
+    return m_HandledNVMEPaths;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

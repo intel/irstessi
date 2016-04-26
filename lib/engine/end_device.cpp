@@ -166,8 +166,10 @@ EndDevice::EndDevice(const String &path)
     try {
         attr =  "/sys/class/block/" + m_DevName + "/size";
         attr >> m_BlocksTotal;
+        m_BlocksTotal /= (m_LogicalSectorSize / DEFAULT_SECTOR_SIZE);
         m_TotalSize = (unsigned long long) m_BlocksTotal * m_LogicalSectorSize;
-    } catch (...) {
+    }
+    catch(...) {
     }
 
     getAtaDiskInfo("/dev/"+ m_DevName, m_Model, m_SerialNum, m_Firmware);
@@ -464,17 +466,18 @@ void EndDevice::determineBlocksFree(Array *pArray)
     Container<Volume> volumes;
     pArray->getVolumes(volumes);
 
+    uint64_t raidSectorSize = volumes.front()->getLogicalSectorSize();
     foreach (volume, volumes) {
         Container<EndDevice> endDevices;
         (*volume)->getEndDevices(endDevices, true);
         foreach (endDevice, endDevices) {
             if ((*endDevice)->getSerialNum() == m_SerialNum) {
-                occupiedBlocks += (unsigned long long) (*volume)->getComponentSize();
+                occupiedBlocks += ((unsigned long long) (*volume)->getComponentSize() * KILOBYTE) / raidSectorSize;
                 occupiedBlocks += IMSM_RESERVED_SECTORS;
                 stripSize = (*volume)->getStripSize();
                 volumeCount++;
                 foreach (endDevice2, endDevices) {
-                    totalBlocks = min(totalBlocks, (*endDevice2)->getTotalSize() / RAID_SECTOR_SIZE);
+                    totalBlocks = min(totalBlocks, (*endDevice2)->getTotalSize() / raidSectorSize);
                 }
                 break;
             }
@@ -487,10 +490,14 @@ void EndDevice::determineBlocksFree(Array *pArray)
         if (occupiedBlocks > 0) {
             occupiedBlocks += MPB_SECTOR_CNT;
         }
-        m_BlocksFree = totalBlocks - occupiedBlocks;
+        if (occupiedBlocks > totalBlocks) {
+            m_BlocksFree = 0;
+        } else {
+            m_BlocksFree = totalBlocks - occupiedBlocks;
+        }
     }
 
-    if ((m_BlocksFree < stripSize / RAID_SECTOR_SIZE) || (volumeCount > 1)) {
+    if ((m_BlocksFree < stripSize / raidSectorSize) || (volumeCount > 1)) {
         m_BlocksFree = 0;
     }
 }

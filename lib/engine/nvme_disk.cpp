@@ -132,10 +132,12 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     try {
         attr =  "/sys/class/block/" + m_DevName + "/size";
         attr >> m_BlocksTotal;
+        m_BlocksTotal = m_BlocksTotal / (m_LogicalSectorSize / DEFAULT_SECTOR_SIZE);
         m_TotalSize = (unsigned long long) m_BlocksTotal * m_LogicalSectorSize;
     } catch (...) {
     }
 
+    m_BlocksFree = m_BlocksTotal;
     m_FDx8Disk = whichFultondalex8Disk(m_SerialNum);
     m_vmdDomain = vmdDomain;
 }

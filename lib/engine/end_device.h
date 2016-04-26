@@ -22,6 +22,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __END_DEVICE_H__INCLUDED__
 #define __END_DEVICE_H__INCLUDED__
 
+#define DEFAULT_SECTOR_SIZE 512
+#define KILOBYTE 1024
+
 // Forward declaration
 class Array;
 class Enclosure;
@@ -75,8 +78,8 @@ protected:
     String m_Model;
     String m_Firmware;
     unsigned long long m_TotalSize;
-    unsigned int m_BlocksTotal;
-    unsigned int m_BlocksFree;
+    unsigned long long m_BlocksTotal;
+    unsigned long long m_BlocksFree;
     unsigned int m_LogicalSectorSize;
     unsigned int m_PhysicalSectorSize;
     unsigned long long m_SASAddress;

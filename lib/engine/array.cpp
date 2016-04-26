@@ -475,18 +475,23 @@ void Array::__internal_determine_total_and_free_size()
     unsigned long long occupiedSize = 0;
     unsigned int stripSize = 0;
     int volumeCount = 0;
-    for (Iterator<Volume *> i = m_Volumes; *i != 0; ++i) {
+    u_int64_t raidSectorSize = m_Volumes.front()->getLogicalSectorSize();
+    foreach (i, m_Volumes) {
         occupiedSize += (unsigned long long) (*i)->getComponentSize() << 10;
-        occupiedSize += IMSM_RESERVED_SECTORS * RAID_SECTOR_SIZE;
+        occupiedSize += IMSM_RESERVED_SECTORS * raidSectorSize;
         stripSize = (*i)->getStripSize();
         volumeCount++;
 
     }
     if (occupiedSize > 0) {
-        occupiedSize += MPB_SECTOR_CNT * RAID_SECTOR_SIZE;
-        occupiedSize = occupiedSize * m_BlockDevices;
+        occupiedSize += MPB_SECTOR_CNT * raidSectorSize;
+        occupiedSize = occupiedSize * m_BlockDevices.size();
     }
-    m_FreeSize = m_TotalSize - occupiedSize;
+    if (occupiedSize > m_TotalSize) {
+        m_FreeSize = 0;
+    } else {
+        m_FreeSize = m_TotalSize - occupiedSize;
+    }
 
     if ((m_FreeSize < stripSize) || (volumeCount > 1)) {
         m_FreeSize = 0;
