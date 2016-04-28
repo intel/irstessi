@@ -458,6 +458,7 @@ void EndDevice::attachPort(Port *pPort)
 
 void EndDevice::determineBlocksFree(Array *pArray)
 {
+    uint64_t raidSectorSize = DEFAULT_SECTOR_SIZE;
     unsigned long long int totalBlocks = -1ULL;
     unsigned long long occupiedBlocks = 0;
     unsigned int stripSize = 0;
@@ -466,7 +467,9 @@ void EndDevice::determineBlocksFree(Array *pArray)
     Container<Volume> volumes;
     pArray->getVolumes(volumes);
 
-    uint64_t raidSectorSize = volumes.front()->getLogicalSectorSize();
+    if (!volumes.empty()) {
+        raidSectorSize = volumes.front()->getLogicalSectorSize();
+    }
     foreach (volume, volumes) {
         Container<EndDevice> endDevices;
         (*volume)->getEndDevices(endDevices, true);

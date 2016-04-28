@@ -467,6 +467,7 @@ void Array::attachVolume(Volume *pVolume)
 /* */
 void Array::__internal_determine_total_and_free_size()
 {
+    u_int64_t raidSectorSize = DEFAULT_SECTOR_SIZE;
     unsigned long long int totalSize = -1ULL;
     for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
         totalSize = min(totalSize, (*i)->getTotalSize());
@@ -475,7 +476,9 @@ void Array::__internal_determine_total_and_free_size()
     unsigned long long occupiedSize = 0;
     unsigned int stripSize = 0;
     int volumeCount = 0;
-    u_int64_t raidSectorSize = m_Volumes.front()->getLogicalSectorSize();
+    if (!m_Volumes.empty()) {
+        raidSectorSize = m_Volumes.front()->getLogicalSectorSize();
+    }
     foreach (i, m_Volumes) {
         occupiedSize += (unsigned long long) (*i)->getComponentSize() << 10;
         occupiedSize += IMSM_RESERVED_SECTORS * raidSectorSize;

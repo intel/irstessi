@@ -329,7 +329,7 @@ SSI_Status Volume::markAsNormal()
 /* */
 SSI_Status Volume::verify(bool repair)
 {
-    if(m_RaidLevel == 0) {
+    if (m_RaidLevel == 0) {
         return SSI_StatusNotSupported;
     }
     File attr = m_Path + "/md/sync_action";
