@@ -165,7 +165,7 @@ public:
         throw E_INVALID_OPERATION;
     }
 
-    virtual SSI_Status locate(bool mode) {
+    virtual SSI_Status locate(bool mode) const {
         return SSI_StatusNotSupported;
     }
 

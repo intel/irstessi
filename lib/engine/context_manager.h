@@ -54,9 +54,11 @@ public:
     SSI_Status getSystemInfo(SSI_SystemInfo *) const;
 
 private:
+    ContextManager(const ContextManager& contextManager) { /* do not create copies */ }
     SessionManager *m_pSessionMgr;
     EventManager *m_pEventMgr;
     UniqueIdManager *m_pUniqueIdMgr;
+    void operator = (const ContextManager&) { };
 };
 
 /* */

@@ -74,6 +74,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define SCSI_SENSE_DISK_SETTING_PAGE    8
 #define HD_DATA_BUFFER_SIZE             24
 
+EndDevice::EndDevice(const EndDevice &endDevice)
+    : StorageDevice(endDevice.getPath())
+{
+   /* do not create copies */
+}
+
 /* */
 EndDevice::EndDevice(const String &path)
     : StorageDevice(path),
@@ -279,6 +285,15 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
 /* */
 EndDevice::~EndDevice()
 {
+    if (m_pPhy) {
+        delete m_pPhy;
+    }
+    if (m_pPort) {
+        delete m_pPort;
+    }
+    if (m_pEnclosure) {
+        delete m_pEnclosure;
+    }
 }
 
 /* */
@@ -366,7 +381,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 }
 
 /* */
-SSI_Status EndDevice::locate(bool mode)
+SSI_Status EndDevice::locate(bool mode) const
 {
     String tmp = mode?"locate":"normal";
     if (shell("ledctl " + tmp + "='/dev/" + m_DevName + "'") == 0)

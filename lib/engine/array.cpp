@@ -47,7 +47,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 Array::Array(const String &path)
     : RaidDevice(path),
-      m_Busy(false)
+      m_Busy(false),
+      m_TotalSize(0),
+      m_FreeSize(0)
 {
     String metadata;
     Directory dir("/sys/devices/virtual/block");

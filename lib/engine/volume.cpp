@@ -633,7 +633,7 @@ void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long 
         throw E_INVALID_RAID_LEVEL;
     }
 
-    if (diskCount < info.minDisks) {
+    if (diskCount == 0 || diskCount < info.minDisks) {
         throw E_BUFFER_TOO_SMALL;
     }
 

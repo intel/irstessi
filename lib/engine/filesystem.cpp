@@ -218,6 +218,14 @@ void File::__internal_read_content()
 }
 
 /* */
+void File::__internal_copy_content(const File &file)
+{
+    m_ContentCapacity = file.m_ContentCapacity;
+    m_ContentSize = file.m_ContentSize;
+    memcpy(m_pContent, file.m_pContent, m_ContentSize);
+}
+
+/* */
 unsigned long long File::__internal_to_ulonglong()
 {
     if (m_pContent == NULL) {

@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __FILESYSTEM_H__INCLUDED__
 
 #include <list>
+#include <cstring>
 
 /* */
 class Path : public String {
@@ -95,14 +96,15 @@ public:
     virtual ~File() {
         __internal_clear_content();
     }
-
 public:
     File & operator = (const File &file) {
+        if (this == &file) {
+            return *this;
+        }
         __internal_clear_content();
         assign(file);
-        m_pContent = file.m_pContent;
-        m_ContentCapacity = file.m_ContentCapacity;
-        m_ContentSize = file.m_ContentSize;
+        __internal_copy_content(file);
+
         return *this;
     }
     virtual void read(void *buffer, unsigned int size);

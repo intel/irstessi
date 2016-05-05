@@ -66,6 +66,10 @@ static struct orom_info_ext *__efi_add_info(struct orom_info *data, unsigned int
     } else {
         delete data;
         data = NULL;
+        delete orom_ext;
+        orom_ext = NULL;
+        delete elem;
+        elem = NULL;
         return NULL;
     }
     return elem->orom_ext;
@@ -235,7 +239,7 @@ struct orom_info_ext * efi_get(SSI_ControllerType controllerType, unsigned int d
 
 char *guid2str(char *buffer, struct efi_guid guid)
 {
-    sprintf(buffer, "%02x%02x%02x%02x-%02x%02x-%02x%02x-"
+    snprintf(buffer, sizeof(guid.b), "%02x%02x%02x%02x-%02x%02x-%02x%02x-"
             "%02x%02x-%02x%02x%02x%02x%02x%02x",
             guid.b[3], guid.b[2], guid.b[1], guid.b[0],
             guid.b[5], guid.b[4], guid.b[7], guid.b[6],

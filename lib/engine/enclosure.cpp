@@ -41,7 +41,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 Enclosure::Enclosure(const String &path)
     : StorageObject(path),
-      m_LogicalId("")
+      m_LogicalId(""),
+      m_SlotCount(0),
+      m_SubenclosureCount(0)
 {
     CanonicalPath temp;
     File attr;

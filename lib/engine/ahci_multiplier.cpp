@@ -70,6 +70,13 @@ AHCI_Multiplier::AHCI_Multiplier(const String &path, Directory &dir)
 }
 
 /* */
+AHCI_Multiplier::AHCI_Multiplier(const AHCI_Multiplier &multiplier)
+    : RoutingDevice(multiplier.getPath())
+{
+    /* do not create copies */
+}
+
+/* */
 bool AHCI_Multiplier::__internal_attach_end_device(const Path &path, unsigned int number)
 {
     CanonicalPath temp = path + "driver";

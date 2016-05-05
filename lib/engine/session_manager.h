@@ -32,7 +32,9 @@ public:
     ~SessionManager();
 
 private:
+    SessionManager(const SessionManager& sessionMgr) { /* do not create copies */ }
     Container<Session> m_Sessions;
+    void operator = (const SessionManager&) { }
 
 public:
     Session * getSession(unsigned int id);

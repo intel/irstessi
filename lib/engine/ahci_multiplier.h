@@ -26,6 +26,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 class AHCI_Multiplier : public RoutingDevice {
 public:
     AHCI_Multiplier(const String &path, Directory &dir);
+    ~AHCI_Multiplier() {
+        if (m_pPhy) {
+            delete m_pPhy;
+        }
+    }
 
     // ScopeObject
 
@@ -60,7 +65,9 @@ protected:
     Phy *m_pPhy;
 
 private:
+    AHCI_Multiplier(const AHCI_Multiplier &multiplier);
     bool __internal_attach_end_device(const Path &path, unsigned int number);
+    void operator = (const AHCI_Multiplier&) { }
 };
 
 #endif /* __AHCI_MULTIPLIER_H__INCLUDED__ */

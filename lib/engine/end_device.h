@@ -42,6 +42,9 @@ public:
     virtual ~EndDevice();
 
     // Object
+private:
+    EndDevice(const EndDevice &endDevice);
+    void operator = (const EndDevice&) { };
 
 public:
     bool operator ==(const Object &object) const;
@@ -98,7 +101,7 @@ public:
     Controller * getController() const {
         return m_pParent ? m_pParent->getController() : NULL;
     }
-    SSI_Status locate(bool mode);
+    SSI_Status locate(bool mode) const;
 
     unsigned long long getTotalSize() const {
         return m_TotalSize;

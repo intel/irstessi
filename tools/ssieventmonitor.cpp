@@ -101,14 +101,14 @@ static int _exec_ssimsg(void)
 	case 0: {
 	    cp = canonicalize_file_name("/proc/self/exe");
 	    if (cp) {
-		strcpy(buffer, cp);
+		strncpy(buffer, cp, sizeof(buffer));
 		free(cp);
 		cp = strrchr(buffer, '/');
 		if (cp)
 			cp++;
 		else
 			cp = buffer;
-		strcpy(cp, "ssimsg");
+		strncpy(cp, "ssimsg", strlen("ssimsg"));
 	    }
 	    for (i = 0; paths[i] != NULL; i++) {
 		if (execlp(paths[i], "ssimsg", SENTINEL) < 0) {
@@ -612,6 +612,7 @@ int main(int argc, char *argv[])
     } else if (argc > 1) {
 	fprintf(stderr, "Usage:\n"
 		"    %s[ -d | --daemonise ] - starts as a daemon\n", basename(argv[0]));
+        return 1;
     } else {
 	return _event_watch();
     }

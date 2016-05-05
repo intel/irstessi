@@ -90,7 +90,7 @@ void UniqueIdManager::add(Object *pObject)
             File keyFile(String(SSI_IDKEY_FILE));
             try {
                 char s[11];
-                sprintf(s, "0x%x", id);
+                snprintf(s, sizeof(s), "0x%x", id);
                 String idkey = String(s) + String(":") + key + String("\n");
                 keyFile.write(idkey, true);
             } catch (...) {
