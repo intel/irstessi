@@ -44,6 +44,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 
 #include "log/log.h"
+
+namespace {
+    bool isBlockDeviceSata(const BlockDevice& device) {
+        return device.getDiskType() == SSI_DiskTypeSATA;
+    }
+
+    bool isBlockDeviceVmd(const BlockDevice& device) {
+        return device.getDiskType() == SSI_DiskTypeVMD;
+    }
+}
+
 /* */
 Array::Array(const String &path)
     : RaidDevice(path),
@@ -398,6 +409,32 @@ Container<EndDevice> Array::getSpareableEndDevices(const Container<EndDevice>& e
         }
     }
     return result;
+}
+
+SSI_Status Array::canAddEndDevices(const Container<EndDevice>& endDevices) const
+{
+    bool isSata = false;
+
+    /* Checking which devices we have (assuming if one is SATA - all are SATA etc.) */
+    /* For now, we only support SATA and VMD */
+    if (!m_BlockDevices.empty()) {
+        const BlockDevice& device = *m_BlockDevices.front();
+
+        isSata = isBlockDeviceSata(device);
+    }
+
+    /* Checking if new devices can be add */
+    foreach (i, endDevices) {
+        const BlockDevice* device = dynamic_cast<const BlockDevice*>(*i);
+
+        if (device != NULL) {
+            if ((isBlockDeviceSata(*device) && !isSata) || (isBlockDeviceVmd(*device) && isSata)) {
+                return SSI_StatusInvalidParameter;
+            }
+        }
+    }
+
+    return SSI_StatusOk;
 }
 
 void Array::__wait_for_container()

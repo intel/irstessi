@@ -411,10 +411,13 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     switch (raidLevel) {
         case SSI_Raid0:
             return __toRaid0(stripSize, newSize, disks);
+
         case SSI_Raid10:
             return __toRaid10(stripSize, newSize, disks);
+
         case SSI_Raid5:
             return __toRaid5(stripSize, newSize, disks);
+
         default:
             return SSI_StatusNotSupported;
     }
@@ -848,33 +851,52 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
     }
 
     switch (m_RaidLevel) {
-        case 0:
+        case 0: {
             if (disks.size() == 0 && !chunkChange) {
                 return SSI_StatusOk;
             } else if (disks.size() > 0 && chunkChange) {
                 return SSI_StatusNotSupported;
             } else if (disks.size() > 0) {
-                return pArray->grow(disks);
+                SSI_Status status = pArray->canAddEndDevices(disks);
+                if (status == SSI_StatusOk) {
+                    return pArray->grow(disks);
+                } else if (status == SSI_StatusInvalidParameter) {
+                    setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+                }
+                return status;
             } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
                 return SSI_StatusOk;
             }
             break;
+        }
 
-        case 1:
+        case 1: {
             if (chunkChange) {
                 return SSI_StatusInvalidStripSize;
-            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+            }
+
+            SSI_Status status = pArray->canAddEndDevices(disks);
+            if (status == SSI_StatusOk && shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
                 if (disks.size() > 0) {
                     return pArray->grow(disks);
                 }
                 return SSI_StatusOk;
             }
-            break;
 
-        case 10:
+            if (status == SSI_StatusInvalidParameter) {
+                setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+            }
+
+            return status;
+        }
+
+        case 10: {
             if (disks.size() > 0 && chunkChange) {
                 return SSI_StatusNotSupported;
-            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+            }
+
+            SSI_Status status = pArray->canAddEndDevices(disks);
+            if (status == SSI_StatusOk && shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
                 if (disks.size() == 0 && !chunkChange) {
                     return SSI_StatusOk;
                 }
@@ -886,9 +908,15 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
                     return SSI_StatusOk;
                 }
             }
-            break;
 
-        case 5:
+            if (status == SSI_StatusInvalidParameter) {
+                setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+            }
+
+            return status;
+        }
+
+        case 5: {
             if (disks.size() > 0) {
                 return SSI_StatusNotSupported;
             } else if (chunkChange) {
@@ -897,6 +925,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
                 return SSI_StatusOk;
             }
             break;
+        }
 
         default:
             return SSI_StatusNotSupported;
@@ -922,6 +951,16 @@ SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSiz
         return SSI_StatusInvalidParameter;
     } else if (stripSize && stripSize != ui2stripsize(m_StripSize)) {
         return SSI_StatusInvalidStripSize;
+    }
+
+    status = pArray->canAddEndDevices(disks);
+
+    if (status != SSI_StatusOk) {
+        if (status == SSI_StatusInvalidParameter) {
+            setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+        }
+
+        return status;
     }
 
     Container<EndDevice> addedToSpare = Array::getSpareableEndDevices(disks);
@@ -958,11 +997,20 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
     }
 
     switch (m_RaidLevel) {
-        case 0:
+        case 0: {
             if (disks.size() != 1) {
                 setLastErrorMessage("Cannot migrate to RAID5. Migration to RAID5 is supported only with 1 disk");
 
                 return SSI_StatusInvalidParameter;
+            }
+
+            status = pArray->canAddEndDevices(disks);
+            if (status != SSI_StatusOk) {
+                if (status == SSI_StatusInvalidParameter) {
+                    setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+                }
+
+                return status;
             }
 
             addedToSpare = Array::getSpareableEndDevices(disks);
@@ -975,8 +1023,9 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
 
             pArray->removeSpare(addedToSpare, true);
             break;
+        }
 
-        case 10:
+        case 10: {
             if (disks.size() > 0) {
                 setLastErrorMessage("Cannot migrate from RAID10 to RAID5 with additional disks");
 
@@ -989,19 +1038,29 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
                 }
             }
             break;
+        }
 
-        case 5:
+        case 5: {
             if (disks.size() > 0 && chunkChange) {
                 return SSI_StatusNotSupported;
             } else if (disks.size() > 0) {
-                /* MDADM issue */
-                /* Not all scenarios are correctly handled by mdadm
-                   For now, it yields undefined behavior */
+                status = pArray->canAddEndDevices(disks);
+                if (status != SSI_StatusOk) {
+                    if (status == SSI_StatusInvalidParameter) {
+                        setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+                    }
+
+                    return status;
+                }
+
+                /* MDADM issue
+                   Not all scenarios are correctly handled by mdadm. For now, it yields undefined behavior */
                 return pArray->grow(disks);
             } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
                 return SSI_StatusOk;
             }
             break;
+        }
 
         default:
             return SSI_StatusNotSupported;

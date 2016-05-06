@@ -97,6 +97,7 @@ public:
     SSI_Status assemble();
     SSI_Status getInfo(SSI_ArrayInfo *pInfo) const;
     static Container<EndDevice> getSpareableEndDevices(const Container<EndDevice>& endDevices);
+    SSI_Status canAddEndDevices(const Container<EndDevice>& endDevices) const;
 private:
     void __internal_determine_total_and_free_size();
     void __internal_determine_array_name();
