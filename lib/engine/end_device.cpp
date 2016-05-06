@@ -359,7 +359,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
         pInfo->systemDisk = SSI_FALSE;
     }
     pInfo->slotNumber = getSlotNumber();
-    pInfo->locateLEDSupport = SSI_FALSE;
+    pInfo->locateLEDSupport = SSI_TRUE;     //Like in Windows SSI. If disk is connected to Intel controller it should be true and all detected controllers are Intel's.
     pInfo->isPreBootVisible = pEnclosure ? SSI_FALSE : SSI_TRUE;
     pInfo->ledState = m_ledState;
     pInfo->systemIoBusNumber = m_systemIoBusNumer;
