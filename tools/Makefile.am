@@ -18,3 +18,5 @@ ssieventmonitor_CPPFLAGS =                \
         -I$(top_srcdir)/include         \
         -I$(top_srcdir)/lib
 
+ssieventmonitor_LDADD =			\
+	$(top_srcdir)/lib/safeclib/libsafec.la

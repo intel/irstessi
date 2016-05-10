@@ -80,6 +80,7 @@ AC_CONFIG_FILES([Makefile
                  lib/mpb/Makefile
                  lib/orom/Makefile
                  lib/log/Makefile
+		 lib/safeclib/Makefile
                  src/Makefile
                  tools/Makefile])
 

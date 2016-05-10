@@ -35,6 +35,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <stdlib.h>
 
 #include "orom.h"
+#include "lib/safeclib/safe_mem_lib.h"
 
 #define VIDEO_BIOS_START_ADDR       0x000C0000U
 #define SYSTEM_BIOS_START_ADDR      0x000F0000U
@@ -79,7 +80,7 @@ static void * __orom_add_info(unsigned int device_id, void *data, unsigned int o
         elem->device_id = device_id;
         elem->orom_dev_id = orom_dev_id;
         bus_error = false;
-        memcpy(elem, data, sizeof(struct orom_info));
+        memcpy_s(elem, sizeof(struct node), data, sizeof(struct orom_info));
         if (!bus_error) {
             elem->next = cache;
             cache = elem;

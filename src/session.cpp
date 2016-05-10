@@ -32,6 +32,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <string.h>
 
+extern "C" {
+#include "lib/safeclib/safe_str_lib.h"
+}
+
 /* */
 SSI_Status SsiSessionOpen(SSI_Handle *pSession)
 {
@@ -104,7 +108,7 @@ SSI_Status SsiGetLastErrorMessage(SSI_Char *destination, SSI_Uint32 *num)
         return SSI_StatusInvalidParameter;
     }
 
-    strncpy(destination, source.get(), ssiErrorLength);
+    strncpy_s(destination, (rsize_t)*num, source.get(), ssiErrorLength);
     clearLastErrorMessage();
 
     return SSI_StatusOk;

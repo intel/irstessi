@@ -56,6 +56,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "controller.h"
 
+extern "C" {
+#include "lib/safeclib/safe_mem_lib.h"
+}
+
 /* */
 #define HD_SERIALNO_LENGTH              20
 
@@ -244,7 +248,7 @@ struct ata_identify_device {
 void EndDevice::copy2le(char *dest, const char *src, size_t n)
 {
 #ifdef WORDS_BIGENDIAN
-    memcpy(dest, src, n);
+    memcpy_s(dest, n, src, n);
 #else
   for (size_t i = 0; i < n; i += 2) {
     dest[i]   = src[i+1];

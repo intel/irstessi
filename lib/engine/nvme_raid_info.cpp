@@ -39,6 +39,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "nvme_raid_info.h"
 #include "utils.h"
 
+extern "C" {
+#include "lib/safeclib/safe_mem_lib.h"
+}
 
 /* */
 NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
@@ -46,7 +49,7 @@ NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
 {
     attachController(pNVME);
 
-	memset(&orom_nvme, 0, sizeof(orom_info));
+	memset_s(&orom_nvme, sizeof(orom_info), 0);
 
 	m_OromDevId = -2;
 

@@ -23,9 +23,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sys/wait.h>
 #include <sys/inotify.h>
 
+extern "C" {
+#include "lib/safeclib/safe_str_lib.h"
+}
+
 #define MAX_LINE_LEN 1024
 #define MAX_CONTAINERS	10
 #define INACTIVE_STR	"inactive"
+#define INACTIVE_STR_LEN 8
 
 #ifndef SELECT_TIMEOUT
  /* default timeout: five seconds */
@@ -101,14 +106,14 @@ static int _exec_ssimsg(void)
 	case 0: {
 	    cp = canonicalize_file_name("/proc/self/exe");
 	    if (cp) {
-		strncpy(buffer, cp, sizeof(buffer));
+		strcpy_s(buffer, sizeof(buffer), cp);
 		free(cp);
 		cp = strrchr(buffer, '/');
 		if (cp)
 			cp++;
 		else
 			cp = buffer;
-		strncpy(cp, "ssimsg", strlen("ssimsg"));
+		strcpy_s(cp, sizeof("ssimsg") - 1, "ssimsg");
 	    }
 	    for (i = 0; paths[i] != NULL; i++) {
 		if (execlp(paths[i], "ssimsg", SENTINEL) < 0) {
@@ -307,7 +312,7 @@ static void _collect_devices(char *buf, container_dev *container)
     container[i].devnum = _get_devnum(buf);
     buf = strstr(buf, INACTIVE_STR);
     if (buf) {
-	buf += strlen(INACTIVE_STR);
+	buf += INACTIVE_STR_LEN;
     }
     while(buf++) { /* skip whitespace */
 	_add_member_devname(&container[i].devs, buf);

@@ -36,6 +36,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "filesystem.h"
 #include "utils.h"
 
+extern "C" {
+#include "lib/safeclib/safe_str_lib.h"
+}
+
 /* */
 void CanonicalPath::__canonicalize_path_name(const char *path)
 {
@@ -132,7 +136,7 @@ void File::read(void *buffer, unsigned int size)
     if (size == 0) {
         throw E_BUFFER_TOO_SMALL;
     }
-    memcpy(buffer, m_pContent, min(size, m_ContentSize));
+    memcpy_s(buffer, size, m_pContent, size);
 }
 
 /* */
@@ -153,7 +157,7 @@ void File::__internal_realloc_content(unsigned long long size, bool copy)
         unsigned char *p = new unsigned char[size + 1];
         if (m_pContent != NULL) {
             if (copy == true && m_ContentSize > 0) {
-                memcpy(p, m_pContent, m_ContentSize);
+                memcpy_s(p, size, m_pContent, m_ContentSize);
             }
             delete [] m_pContent;
         }
@@ -175,7 +179,7 @@ void File::__internal_read_from_virtual_fs(int fd)
             break;
         }
         __internal_realloc_content(m_ContentSize + bytes_read);
-        memcpy(m_pContent + m_ContentSize, temp, bytes_read);
+        memcpy_s(m_pContent + m_ContentSize, bytes_read, temp, bytes_read);
         m_ContentSize += bytes_read;
         if (static_cast<unsigned int>(bytes_read) < sizeof(temp)) {
             break;
@@ -222,7 +226,7 @@ void File::__internal_copy_content(const File &file)
 {
     m_ContentCapacity = file.m_ContentCapacity;
     m_ContentSize = file.m_ContentSize;
-    memcpy(m_pContent, file.m_pContent, m_ContentSize);
+    memcpy_s(m_pContent, m_ContentSize, file.m_pContent, m_ContentSize);
 }
 
 /* */

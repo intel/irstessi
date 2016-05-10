@@ -50,4 +50,5 @@ libssi_la_LIBADD =                      \
         ../lib/log/liblog.la            \
         ../lib/orom/liborom.la          \
         ../lib/mpb/libmpb.la            \
-        ../lib/engine/libengine.la
+        ../lib/engine/libengine.la	\
+	../lib/safeclib/libsafec.la
