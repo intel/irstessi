@@ -203,6 +203,8 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         }
     }
 
+    clearLastErrorMessage();
+
     /* create volume */
     try {
         try {
