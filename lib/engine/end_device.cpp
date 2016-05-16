@@ -32,6 +32,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <memory.h>
 #include <typeinfo>
 
+#include <vector>
+
 #include <scsi/sg_lib.h>
 #include <scsi/sg_cmds_basic.h>
 
@@ -60,6 +62,8 @@ extern "C" {
 #include "lib/safeclib/safe_mem_lib.h"
 }
 
+using std::vector;
+
 /* */
 #define HD_SERIALNO_LENGTH              20
 
@@ -77,6 +81,53 @@ extern "C" {
 #define SCSI_CAP_BUFFER_SIZE            8
 #define SCSI_SENSE_DISK_SETTING_PAGE    8
 #define HD_DATA_BUFFER_SIZE             24
+
+namespace {
+    vector<String> split(const String& string, const String& delimiter)
+    {
+        bool found = true;
+        vector<String> splitted;
+        unsigned int offset = 0;
+        while (found) {
+            unsigned int pos;
+            try {
+                pos = string.find(delimiter, offset);
+            } catch (...) {
+                found = false;
+                continue;
+            }
+
+            splitted.push_back(string.mid(offset, pos));
+            offset = pos + 1;
+        }
+
+        return splitted;
+    }
+
+    void replace(String& string, const String& what, const String& into)
+    {
+        String replaced;
+        bool found = true;
+        unsigned int offset = 0;
+        while (found) {
+            unsigned int pos;
+            try {
+                pos = string.find(what, offset);
+            } catch (...) {
+                found = false;
+                continue;
+            }
+
+            replaced.append(string.mid(offset, pos));
+            replaced.append(into);
+            offset = pos + what.length();
+        }
+
+        replaced.append(string.mid(offset, string.length()));
+
+        string = replaced;
+    }
+} // <<anonymous>>
 
 EndDevice::EndDevice(const EndDevice &endDevice)
     : StorageDevice(endDevice.getPath())
@@ -223,67 +274,43 @@ EndDevice::EndDevice(const String &path)
     }
 }
 
-#define ATTR_PACKED __attribute__((packed))
-
-#pragma pack(1)
-struct ata_identify_device {
-    unsigned short words000_009[10];
-    char  serial_no[20];
-    unsigned short words020_022[3];
-    char  fw_rev[8];
-    char  model[40];
-    unsigned short words047_079[33];
-    unsigned short major_rev_num;
-    unsigned short minor_rev_num;
-    unsigned short command_set_1;
-    unsigned short command_set_2;
-    unsigned short command_set_extension;
-    unsigned short cfs_enable_1;
-    unsigned short word086;
-    unsigned short csf_default;
-    unsigned short words088_255[168];
-} ATTR_PACKED;
-#pragma pack()
-
-void EndDevice::copy2le(char *dest, const char *src, size_t n)
-{
-#ifdef WORDS_BIGENDIAN
-    memcpy_s(dest, n, src, n);
-#else
-  for (size_t i = 0; i < n; i += 2) {
-    dest[i]   = src[i+1];
-    dest[i+1] = src[i];
-  }
-#endif
-}
-
 /**
- * @brief Fills model, vendor and firmware properties for ATA drives using sg_sat_identify
+ * @brief Fills model, vendor and firmware properties for ATA drives using udevadm
  *
  * @return  0 for success, -1 if popen fails and status of sg_sat_identify otherwise
  */
 int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware)
 {
-    int status;
-    ata_identify_device ata;
-    size_t size = sizeof(ata);
-    /* one more to hold trailing zero */
-    char buf[sizeof(ata.model) + 1];
-    status = shell_cap("sg_sat_identify --raw " + devName + " 2>/dev/null", &ata, size);
-    if (status != 0)
+    const char Delimiter[] = "\n";
+    const unsigned int ModelIndex = 0;
+    const unsigned int FirmwareIndex = 1;
+    const unsigned int SerialIndex = 2;
+
+    String data;
+    /* We use udevadm to get some info about device,
+     * then grep only leaves model, revision and serial lines (in such order) and
+     * then sed edits "E: ID_[KEY]=[VALUE]" to "[VALUE]" for each line */
+    int status = shell_output("udevadm info --name " + devName + " | "
+                              "grep -E '(ID_MODEL=.*|ID_SERIAL_SHORT=.*|ID_REVISION=.*)' | "
+                              "sed 's/^.*=\\(.*\\)$/\\1/g'", data);
+    if (status != 0) {
+        return status;
+    }
+
+    vector<String> values = split(data, Delimiter);
+
+    if (values.size() == 3) {
+        model = values[ModelIndex];
+        replace(model, "_", " ");
+        serial = values[SerialIndex];
+        replace(serial, "_", " ");
+        firmware = values[FirmwareIndex];
+        replace(firmware, "_", " ");
+    } else {
+        status = -1;
+    }
+
     return status;
-    if (size != sizeof(ata))
-    return -1;
-    buf[sizeof(ata.serial_no)] = '\0';
-    copy2le(buf, const_cast<const char *>(ata.serial_no), sizeof(ata.serial_no));
-    serial.assign(buf);
-    buf[sizeof(ata.model)] = '\0';
-    copy2le(buf, const_cast<const char *>(ata.model), sizeof(ata.model));
-    model.assign(buf);
-    buf[sizeof(ata.fw_rev)] = '\0';
-    copy2le(buf, const_cast<const char *>(ata.fw_rev), sizeof(ata.fw_rev));
-    firmware.assign(buf);
-    return 0;
 }
 
 /* */

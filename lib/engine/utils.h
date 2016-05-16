@@ -52,6 +52,9 @@ int shell_cap(const String &s, String &r);
 int shell_cap(const String &s, void *buf, size_t &size);
 
 /* */
+int shell_output(const String &command, String &output);
+
+/* */
 int shell(const String &s);
 
 /* */

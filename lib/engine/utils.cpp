@@ -117,6 +117,28 @@ int shell_cap(const String &s, String &r)
     return pclose(pd);
 }
 
+/* */
+int shell_output(const String &command, String &output)
+{
+    const unsigned int BufferLength = 1024;
+    const int Success = 0;
+    const int Failure = -1;
+
+    output.clear();
+    FILE *in;
+    String cmd = command + " 2>/dev/null";
+    if (!(in = popen(cmd.get(), "r"))) {
+        return Failure;
+    }
+
+    char buffer[BufferLength] = {};
+    while (fgets(buffer, BufferLength, in) != NULL) {
+        output.append(buffer);
+    }
+
+    return Success;
+}
+
 
 static void close_parent_fds(void)
 {

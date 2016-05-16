@@ -94,7 +94,6 @@ protected:
     unsigned int m_FDx8Disk;
     unsigned int m_vmdDomain;
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
-    void copy2le(char *dest, const char *src, size_t n);
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     RaidInfo * getRaidInfo() const;
