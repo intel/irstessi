@@ -44,7 +44,7 @@ public:
     // Object
 private:
     EndDevice(const EndDevice &endDevice);
-    void operator = (const EndDevice&) { };
+    void operator =(const EndDevice&) {}
 
 public:
     bool operator ==(const Object &object) const;

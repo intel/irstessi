@@ -33,6 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <typeinfo>
 
 #include <vector>
+#include <fstream>
 
 #include <scsi/sg_lib.h>
 #include <scsi/sg_cmds_basic.h>
@@ -186,6 +187,11 @@ EndDevice::EndDevice(const String &path)
     if (!m_DevName) {
         m_DevName = m_Path.reverse_after("/");
     }
+
+    if (m_DevName.isEmpty()) {
+        return;
+    }
+
     temp = m_Path + "/generic";
     m_SgName = temp.reverse_after("/");
     File attr;
@@ -277,7 +283,7 @@ EndDevice::EndDevice(const String &path)
 /**
  * @brief Fills model, vendor and firmware properties for ATA drives using udevadm
  *
- * @return  0 for success, -1 if popen fails and status of sg_sat_identify otherwise
+ * @return  0 for success, -1 if popen fails and status of udevadm otherwise
  */
 int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware)
 {
@@ -285,6 +291,11 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     const unsigned int ModelIndex = 0;
     const unsigned int FirmwareIndex = 1;
     const unsigned int SerialIndex = 2;
+
+    // SSI sometimes uses m_devName as handler and for some cases (like VMD) '/dev/' + m_devName points to nothing
+    if (!std::ifstream(devName)) {
+        return -1;
+    }
 
     String data;
     /* We use udevadm to get some info about device,

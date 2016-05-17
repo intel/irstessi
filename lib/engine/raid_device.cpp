@@ -27,6 +27,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <unistd.h>
 #include <typeinfo>
 
+#include <limits>
+
 #include <ssi.h>
 #include <log/log.h>
 
@@ -42,6 +44,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "raid_device.h"
 #include "raid_info.h"
+
+using std::numeric_limits;
 
 /* */
 RaidDevice::RaidDevice(const String &path)
@@ -200,9 +204,25 @@ void RaidDevice::setEndDevices(const Container<EndDevice> &container)
 /* */
 void RaidDevice::setName(const String &deviceName)
 {
+    const unsigned int npos = numeric_limits<unsigned int>::max();
+
     if (deviceName.length() > 16) {
         throw E_INVALID_NAME;
     }
+
+    unsigned int pos = npos;
+    try {
+        String trimmed = deviceName;
+        trimmed.trim();
+        pos = trimmed.find(" ");
+    } catch (...) {
+        /* Not found */
+    }
+
+    if (pos != npos) {
+        throw E_INVALID_NAME;
+    }
+
     m_Name = deviceName;
 }
 

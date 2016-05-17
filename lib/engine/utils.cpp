@@ -136,6 +136,10 @@ int shell_output(const String &command, String &output)
         output.append(buffer);
     }
 
+    int statusCode = pclose(in);
+    if (WEXITSTATUS(statusCode)) {
+        return Failure;
+    }
     return Success;
 }
 

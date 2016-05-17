@@ -26,6 +26,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cerrno>
 #include <unistd.h>
 
+#include <limits>
+
 #include <ssi.h>
 
 #include "exception.h"
@@ -44,6 +46,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 
 #include "log/log.h"
+
+using std::numeric_limits;
 
 namespace {
     bool isBlockDeviceSata(const BlockDevice& device) {
@@ -285,31 +289,46 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
 /* */
 SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 {
+    const unsigned int npos = numeric_limits<unsigned int>::max();
     usleep(3000000);
-    SSI_Status status = SSI_StatusOk;
 
+    unsigned int pos = npos;
     /*
        When mdadm yields error on create with "/", on rename it's temporary replaced with "-" so all is "ok".
        When temporary name is set to requested name (newName), volume is deleted and endDevices cannot be removed
        from array through SSI API
+
+       Also, spaces are also banned.
     */
     try {
-        newName.find("/");
-
-        setLastErrorMessage(newName + " is an invalid name for an md device.");
-        status = SSI_StatusInvalidString;
+        pos = newName.find("/");
     } catch (...) {
-        // newName does not have "/" character
+        /* newName does not have "/" character */
+    }
+
+
+    try {
+        String trimmed = newName;
+        trimmed.trim();
+        pos = trimmed.find(" ");
+    } catch (...) {
+        /* newName does not have " " character */
+    }
+
+    SSI_Status status = SSI_StatusOk;
+    if (pos != npos) {
+        setLastErrorMessage(newName + " is an invalid name for an md device.");
+        status =  SSI_StatusInvalidString;
     }
 
     if (status == SSI_StatusOk) {
         if (shellEx("mdadm --misc --update-subarray=" + String(ordinal) + " --update=name -N '" + newName + "' '/dev/md/" + m_Name + "'", 1, 1) != 0) {
             status = SSI_StatusFailed;
         }
+    }
 
-        if (shell("mdadm -Ebs >> /etc/mdadm.conf") != 0) {
-            return SSI_StatusFailed;
-        }
+    if (shell("mdadm -Ebs >> /etc/mdadm.conf") != 0) {
+        return SSI_StatusFailed;
     }
 
     return status;
