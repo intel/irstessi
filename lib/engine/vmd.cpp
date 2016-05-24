@@ -60,7 +60,6 @@ VMD::VMD(const String &path)
 /* */
 void VMD::discover(const String &path)
 {
-    const String IntelVendorTag = "0x8086";
     CanonicalPath vmdPath(path);
     m_DomainCount++;
 
@@ -71,18 +70,6 @@ void VMD::discover(const String &path)
         CanonicalPath nvmeDriverPath = *(*i) + "driver";
         CanonicalPath nvmePath = *(*i);
         if (nvmeDriverPath == dir) {
-            File attr;
-            String vendor;
-            attr = *(*i) + "vendor";
-            try {
-                attr >> vendor;
-                if (vendor != IntelVendorTag) {
-                    continue;
-                }
-            } catch (...) {
-                /* TODO log that vendor cannot be read from filesystem */
-                continue;
-            }
             if ((unsigned int)nvmePath.compare(vmdPath) == nvmePath.length() - vmdPath.length()) {
                 NVME_Phy *pPhy = new NVME_Phy(nvmePath, m_DomainCount, m_EndDevicesCount++, this);
                 attachPhy(pPhy);
