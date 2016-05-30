@@ -61,7 +61,8 @@ Volume::Volume() : RaidDevice(),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
       blk(0),
-      m_pSourceDisk(0)
+      m_pSourceDisk(NULL),
+      m_RwhPolicy(SSI_RwhInvalid)
 {
 }
 
@@ -79,7 +80,8 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
       blk(path),
-      m_pSourceDisk(0)
+      m_pSourceDisk(NULL),
+      m_RwhPolicy(SSI_RwhInvalid)
 {
     String temp;
     File attr;
@@ -194,6 +196,13 @@ Volume::Volume(const String &path, unsigned int ordinal)
         } catch (...) {
             // Intentionaly left blank
         }
+    }
+    try {
+        attr = m_Path + "/md/rwh_policy";
+        attr >> temp;
+        m_RwhPolicy = parseRwhPolicy(temp);
+    } catch (...) {
+        // Intentionaly left blank
     }
 }
 
@@ -423,6 +432,21 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     }
 }
 
+SSI_Status Volume::changeRwhPolicy(SSI_RwhPolicy policy)
+{
+    if (policy != SSI_RwhDistributed && policy != SSI_RwhOff)
+        return SSI_StatusNotSupported;
+
+    if (m_RwhPolicy == policy)
+        return SSI_StatusOk;
+
+    if (shell("mdadm --rwh-policy=" + rwhPolicyToString(policy) + " '/dev/" + m_DevName + "'") == 0) {
+        m_RwhPolicy = policy;
+        return SSI_StatusOk;
+    }
+    return SSI_StatusFailed;
+}
+
 /* */
 SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
 {
@@ -451,6 +475,7 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     pInfo->verifyErrors = m_MismatchCount;
     pInfo->verifyBadBlocks = 0;
     pInfo->physicalSectorSize = blk.getPhysicalSectorSize();
+    pInfo->rwhPolicy = m_RwhPolicy;
 
     return SSI_StatusOk;
 }
@@ -560,6 +585,16 @@ unsigned int Volume::getRaidLevel(const String& raidLevel)
     }
 }
 
+void Volume::setRwhPolicy(SSI_RwhPolicy policy)
+{
+    if (policy == SSI_RwhOff || policy == SSI_RwhDistributed)
+        m_RwhPolicy = policy;
+    else if (policy == SSI_RwhJournalingDrive)
+        throw E_NOT_SUPPORTED;
+    else
+        throw E_INVALID_OBJECT;
+}
+
 String Volume::getMdadmAttribute(const String &attribute)
 {
     const String command = String("mdadm -D '/dev/md/") + m_Name + "' | grep '" + attribute + "'";
@@ -619,6 +654,30 @@ unsigned int Volume::getMigrationTargetLevel()
 unsigned int Volume::getVerificationProgress()
 {
     return getPercentageStatus("Check Status");
+}
+
+SSI_RwhPolicy Volume::parseRwhPolicy(const String& policy) const
+{
+    if (policy == rwhPolicyToString(SSI_RwhOff))
+        return SSI_RwhOff;
+    else if (policy == rwhPolicyToString(SSI_RwhDistributed))
+        return SSI_RwhDistributed;
+    else if (policy == rwhPolicyToString(SSI_RwhJournalingDrive))
+        return SSI_RwhJournalingDrive;
+    else
+        return SSI_RwhInvalid;
+}
+
+String Volume::rwhPolicyToString(SSI_RwhPolicy policy) const
+{
+    if (policy == SSI_RwhOff)
+        return "off";
+    else if (policy == SSI_RwhDistributed)
+        return "ppl-distributed";
+    else if (policy == SSI_RwhJournalingDrive)
+        return "ppl-journal";
+    else
+        throw E_NOT_SUPPORTED;
 }
 
 /* Convert total Volume size to component size and set it */
@@ -721,9 +780,11 @@ void Volume::create()
         }
 
         String chunk = (m_RaidLevel != 1) ? " --chunk=" + String(m_StripSize / 1024) : "";
+        String rwhPolicy = m_RwhPolicy == SSI_RwhDistributed ?
+                " --rwh-policy=" + rwhPolicyToString(m_RwhPolicy) : "";
 
         if (shellEx("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
-                  chunk + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
+                  chunk + rwhPolicy + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
             throw E_VOLUME_CREATE_FAILED;
         }
     } else {

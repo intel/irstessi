@@ -223,6 +223,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         if (params.raidLevel != SSI_Raid1) {
             pVolume->setStripSize(params.stripSize);
         }
+        pVolume->setRwhPolicy(params.rwhPolicy);
         pVolume->create();
         session->addVolume(pVolume);
         session->addArray(pArray);
@@ -242,6 +243,10 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
                 return SSI_StatusBufferTooSmall;
             case E_BUFFER_TOO_LARGE:
                 return SSI_StatusBufferTooLarge;
+            case E_INVALID_OBJECT:
+                return SSI_StatusInvalidParameter;
+            case E_NOT_SUPPORTED:
+                return SSI_StatusNotSupported;
             default:
                 return SSI_StatusFailed;
         }
@@ -282,6 +287,7 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         pVolume->setName(params.volumeName);
         pVolume->setStripSize(params.stripSize);
         pVolume->setRaidLevel(params.raidLevel);
+        pVolume->setRwhPolicy(params.rwhPolicy);
         pVolume->create();
         pVolume->update();
         session->addVolume(pVolume);
@@ -300,6 +306,10 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
                 return SSI_StatusBufferTooSmall;
             case E_BUFFER_TOO_LARGE:
                 return SSI_StatusBufferTooLarge;
+            case E_INVALID_OBJECT:
+                return SSI_StatusInvalidParameter;
+            case E_NOT_SUPPORTED:
+                return SSI_StatusNotSupported;
             default:
                 return SSI_StatusFailed;
         }
@@ -364,7 +374,12 @@ SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
 /* */
 SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle journalingDriveHandle, SSI_RwhPolicy policy)
 {
-    return SSI_StatusNotImplemented;
+    Volume *pVolume = NULL;
+    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+        return status;
+    }
+
+    return pVolume->changeRwhPolicy(policy);
 }
 
 /* */

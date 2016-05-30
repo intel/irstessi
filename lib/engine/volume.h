@@ -68,6 +68,7 @@ protected:
     SSI_VolumeState m_State;
     BlockDevice blk;
     BlockDevice *m_pSourceDisk;
+    SSI_RwhPolicy m_RwhPolicy;
 
 public:
     SSI_Status initialize();
@@ -81,11 +82,13 @@ public:
     SSI_Status verify(bool repair);
     SSI_Status modify(SSI_StripSize chunkSize, SSI_RaidLevel raidLevel,
         unsigned long long newSize, const Container<EndDevice> &disks);
+    SSI_Status changeRwhPolicy(SSI_RwhPolicy policy);
 
     void setComponentSize(unsigned long long size, unsigned long long diskCount, SSI_RaidLevel level);
     void setStripSize(SSI_StripSize stripSize);
     void setSourceDisk(EndDevice *pEndDevice);
     void setRaidLevel(SSI_RaidLevel raidLevel);
+    void setRwhPolicy(SSI_RwhPolicy policy);
 
     SSI_VolumeState getState() const {
         return m_State;
@@ -128,6 +131,9 @@ private:
     unsigned int getMigrationProgress();
     unsigned int getMigrationTargetLevel();
     unsigned int getVerificationProgress();
+
+    SSI_RwhPolicy parseRwhPolicy(const String& policy) const;
+    String rwhPolicyToString(SSI_RwhPolicy policy) const;
 };
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
