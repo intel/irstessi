@@ -88,7 +88,8 @@ static bool monitor_running()
     } catch (...) {
         return false;
     }
-    if (shell_cap("ps " + pid, buffer) == 0) {
+    const String command = "ps " + pid;
+    if (shell_cap(command, buffer) == 0) {
         try {
             buffer.find("mdadm");
         } catch (...) {

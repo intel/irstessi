@@ -39,6 +39,12 @@ public:
     Path(const Path &path)
         : String(path) {
     }
+    Path& operator =(const Path &path) {
+        if (this != &path) {
+            assign(path);
+        }
+        return *this;
+    }
 };
 
 inline Path operator + (const Path &left, const String &right) {
@@ -75,6 +81,12 @@ public:
     }
     CanonicalPath(const Path &path) {
         __canonicalize_path_name(path.get());
+    }
+    CanonicalPath& operator =(const CanonicalPath &path) {
+        if (this != &path) {
+            __canonicalize_path_name(path.get());
+        }
+        return *this;
     }
 
 private:
@@ -262,6 +274,16 @@ public:
         assign(path);
         m_Filter = "";
         m_Valid = false;
+        return *this;
+    }
+    Directory & operator = (const Directory &dir) {
+        if (this != &dir) {
+            __internal_clear_content();
+            assign(dir);
+            m_Valid = dir.m_Valid;
+            m_Filter = dir.m_Filter;
+            __internal_copy_content(dir);
+        }
         return *this;
     }
     Directory & operator = (const char *path) {

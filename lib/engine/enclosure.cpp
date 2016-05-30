@@ -76,12 +76,14 @@ Enclosure::Enclosure(const String &path)
     }
 
     String sbuffer;
-    if (shell_cap("sg_ses -p 0x1 /dev/" + m_SgName, sbuffer) == 0) {
+    const String command1 = "sg_ses -p 0x1 /dev/" + m_SgName;
+    if (shell_cap(command1, sbuffer) == 0) {
         m_LogicalId = sbuffer.between("logical identifier (hex): ", "\n");
         m_LogicalId.trim();
         m_SubenclosureCount = sbuffer.between("number of secondary subenclosures:", "\n");
     }
-    shell_cap("sg_ses -p 0xa /dev/" + m_SgName, sbuffer);
+    const String command2 = "sg_ses -p 0xa /dev/" + m_SgName;
+    shell_cap(command2, sbuffer);
     if (sbuffer)
         __get_slot_info(sbuffer);
 

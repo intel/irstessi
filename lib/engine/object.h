@@ -63,6 +63,8 @@ public:
 
 protected:
     unsigned int m_Id;
+private:
+    void operator =(const Object&) {}
 };
 
 /* */

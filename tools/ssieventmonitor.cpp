@@ -53,9 +53,6 @@ extern "C" {
  #define SSI_MSG_NAME "ssimsg"
 #endif
 
-
-#define SENTINEL (const char *)0
-
 #define IS_SET(x, mask) ((x & mask) != 0)
 
 #ifdef DEBUG
@@ -90,6 +87,8 @@ static int _msglog(const char *format, ...)
 static int _exec_ssimsg(void)
 {
     int i;
+    char *envp[] = { NULL };
+    const char *argv[] = { "ssimsg", NULL };
     char buffer[PATH_MAX];
     char *cp;
     const char *paths[] = {
@@ -116,7 +115,7 @@ static int _exec_ssimsg(void)
 		strcpy_s(cp, sizeof("ssimsg") - 1, "ssimsg");
 	    }
 	    for (i = 0; paths[i] != NULL; i++) {
-		if (execlp(paths[i], "ssimsg", SENTINEL) < 0) {
+		if (execve(paths[i], (char **)argv, envp) < 0) {
 		    continue;
 		}
 		perror("can't run ssimsg");
@@ -330,9 +329,14 @@ static int _read_mdstat(int fd)
     /* switch sets */
     _switch_current();
     /* then read and interpret contents */
-    mdstat = fdopen(dup(fd), "r");
+    int fd_new = dup(fd);
+    if (fd_new < 0) {
+        return 1;
+    }
+    mdstat = fdopen(fd_new, "r");
     if (!mdstat) {
-	return 1;
+        close(fd_new);
+        return 1;
     }
     rewind(mdstat);
     while(fgets(line, sizeof(line) - 1, mdstat)) {

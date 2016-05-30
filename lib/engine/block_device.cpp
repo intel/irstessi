@@ -153,7 +153,8 @@ void BlockDevice::setWriteCache(bool enable)
 void BlockDevice::__internal_determine_disk_usage()
 {
     String result;
-    if (shell_cap("mdadm -Es /dev/" + m_DevName, result) != 0) {
+    const String command = "mdadm -Es /dev/" + m_DevName;
+    if (shell_cap(command, result) != 0) {
         m_DiskUsage = SSI_DiskUsagePassThru;
         return;
     }

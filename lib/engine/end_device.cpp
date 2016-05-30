@@ -266,7 +266,8 @@ EndDevice::EndDevice(const String &path)
     if (fd >= 0) {
         if (hdioNotSupported) {
             String sbuffer;
-            if (m_SerialNum.isEmpty() && shell_cap("sg_inq /dev/" + m_DevName, sbuffer) == 0) {
+            const String command = "sg_inq /dev/" + m_DevName;
+            if (m_SerialNum.isEmpty() && shell_cap(command, sbuffer) == 0) {
                 m_SerialNum = sbuffer.between("Unit serial number: ", "\n");
                 m_SerialNum.trim();
             }
@@ -301,9 +302,10 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     /* We use udevadm to get some info about device,
      * then grep only leaves model, revision and serial lines (in such order) and
      * then sed edits "E: ID_[KEY]=[VALUE]" to "[VALUE]" for each line */
-    int status = shell_output("udevadm info --name " + devName + " | "
-                              "grep -E '(ID_MODEL=.*|ID_SERIAL_SHORT=.*|ID_REVISION=.*)' | "
-                              "sed 's/^.*=\\(.*\\)$/\\1/g'", data);
+    const String command = "udevadm info --name " + devName + " | "
+                           "grep -E '(ID_MODEL=.*|ID_SERIAL_SHORT=.*|ID_REVISION=.*)' | "
+                           "sed 's/^.*=\\(.*\\)$/\\1/g'";
+    int status = shell_output(command, data);
     if (status != 0) {
         return status;
     }

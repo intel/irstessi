@@ -36,6 +36,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "filesystem.h"
 #include "utils.h"
 #include "log/log.h"
+#include <fcntl.h>
 
 using std::vector;
 
@@ -126,7 +127,7 @@ int shell_output(const String &command, String &output)
 
     output.clear();
     FILE *in;
-    String cmd = command + " 2>/dev/null";
+    const String cmd = command + " 2>/dev/null";
     if (!(in = popen(cmd.get(), "r"))) {
         return Failure;
     }
@@ -191,8 +192,11 @@ static void close_parent_fds(void)
 int shell(const String &s)
 {
     pid_t pid;
+    int i = 0;
     int ret = 0, status=0;
     String cmd = "export MDADM_EXPERIMENTAL=1; " + s;
+    char *envp[] = { NULL };
+    const char *argv[] = { "sh", "-c", cmd.get(), NULL };
 
     dlog(s);
     switch(fork()) {
@@ -201,8 +205,15 @@ int shell(const String &s)
          * Before switching into new executable close all non standard
          * file handlers.*/
         close_parent_fds();
-        execl("/bin/sh", "sh", "-c", cmd.get(), NULL);
-        /* If we're here then execl failed*/
+
+        i = open("/dev/null", O_RDWR); /* bind stdin to process */
+        if (i != -1) {
+            dup(i); /* stdout */
+            dup(i); /* stderr */
+        }
+
+        execve("/bin/sh", (char **)argv, envp);
+        /* If we're here then execve failed*/
         exit(-1);
         break;
     case -1:
@@ -232,7 +243,7 @@ int shellEx(const String &s, unsigned int linesNum, unsigned int offset)
     };
 
     FILE *in;
-    String cmd = "export MDADM_EXPERIMENTAL=1; " + s + " 2>&1 1>/dev/null";
+    const String cmd = "export MDADM_EXPERIMENTAL=1; " + s + " 2>&1 1>/dev/null";
     if (!(in = popen(cmd.get(), "r"))) {
         return ErrorCode;
     }
