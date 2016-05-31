@@ -626,6 +626,9 @@ unsigned int Volume::getPercentageStatus(const String &attribute)
         unsigned int percentPos = progress.find("%");
         progress = progress.mid(0, percentPos);
         res = atoi(static_cast<const char*>(progress));
+        if (res < 0 || res > 100) {
+            return 0;
+        }
         res = static_cast<unsigned int>(static_cast<unsigned long long>(res) * 0xFFFFFFFF / 100);
     }
     catch(...)
