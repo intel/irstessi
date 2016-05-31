@@ -118,10 +118,10 @@ static int _exec_ssimsg(void)
 		if (execve(paths[i], (char **)argv, envp) < 0) {
 		    continue;
 		}
-		perror("can't run ssimsg");
-		return 1;
 	    }
-	    break;
+	    // if we are here it means that execve failed
+	    perror("can't run ssimsg");
+	    return 1;
 	}
 	case -1:
 	    perror("Fork failed");
