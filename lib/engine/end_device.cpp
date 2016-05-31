@@ -64,6 +64,7 @@ extern "C" {
 }
 
 using std::vector;
+using std::ifstream;
 
 /* */
 #define HD_SERIALNO_LENGTH              20
@@ -103,30 +104,6 @@ namespace {
         }
 
         return splitted;
-    }
-
-    void replace(String& string, const String& what, const String& into)
-    {
-        String replaced;
-        bool found = true;
-        unsigned int offset = 0;
-        while (found) {
-            unsigned int pos;
-            try {
-                pos = string.find(what, offset);
-            } catch (...) {
-                found = false;
-                continue;
-            }
-
-            replaced.append(string.mid(offset, pos));
-            replaced.append(into);
-            offset = pos + what.length();
-        }
-
-        replaced.append(string.mid(offset, string.length()));
-
-        string = replaced;
     }
 } // <<anonymous>>
 
@@ -282,9 +259,9 @@ EndDevice::EndDevice(const String &path)
 }
 
 /**
- * @brief Fills model, vendor and firmware properties for ATA drives using udevadm
+ * @brief Fills model, vendor and firmware properties for ATA drives using smartctl
  *
- * @return  0 for success, -1 if popen fails and status of udevadm otherwise
+ * @return  0 for success, -1 if popen fails and status of smartctl otherwise
  */
 int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware)
 {
@@ -294,17 +271,16 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     const unsigned int SerialIndex = 2;
 
     // SSI sometimes uses m_devName as handler and for some cases (like VMD) '/dev/' + m_devName points to nothing
-    if (!std::ifstream(devName)) {
+    if (!ifstream(devName)) {
         return -1;
     }
 
     String data;
-    /* We use udevadm to get some info about device,
+
+    /* We use smartctl to get info about device,
      * then grep only leaves model, revision and serial lines (in such order) and
-     * then sed edits "E: ID_[KEY]=[VALUE]" to "[VALUE]" for each line */
-    const String command = "udevadm info --name " + devName + " | "
-                           "grep -E '(ID_MODEL=.*|ID_SERIAL_SHORT=.*|ID_REVISION=.*)' | "
-                           "sed 's/^.*=\\(.*\\)$/\\1/g'";
+     * then cut edits "[KEY]:   [VALUE]" to "   [VALUE]" for each line (trim is required) */
+    const String command = "smartctl --xall " + devName + " | grep -E 'Device Model|Serial Number|Firmware Version' | cut -d : -f 2-";
     int status = shell_output(command, data);
     if (status != 0) {
         return status;
@@ -314,11 +290,8 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
 
     if (values.size() == 3) {
         model = values[ModelIndex];
-        replace(model, "_", " ");
         serial = values[SerialIndex];
-        replace(serial, "_", " ");
         firmware = values[FirmwareIndex];
-        replace(firmware, "_", " ");
     } else {
         status = -1;
     }
