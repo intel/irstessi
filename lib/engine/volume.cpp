@@ -617,7 +617,7 @@ String Volume::getMdadmAttribute(const String &attribute)
     }
     return "";
 }
-#include <stdio.h>
+
 unsigned int Volume::getPercentageStatus(const String &attribute)
 {
     unsigned int res = 0;
@@ -625,9 +625,7 @@ unsigned int Volume::getPercentageStatus(const String &attribute)
     try {
         unsigned int percentPos = progress.find("%");
         progress = progress.mid(0, percentPos);
-        printf("Volume::getPercentageStatus progress=%s\n", progress.get());
         res = atoi(static_cast<const char*>(progress));
-        printf("Volume::getPercentageStatus res=%u\n", res);
         res = static_cast<unsigned int>(static_cast<unsigned long long>(res) * 0xFFFFFFFF / 100);
     }
     catch(...)

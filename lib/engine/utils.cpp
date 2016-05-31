@@ -195,7 +195,7 @@ int shell(const String &s)
     int i = 0;
     int ret = 0, status=0;
     String cmd = "export MDADM_EXPERIMENTAL=1; " + s;
-    char *envp[] = { NULL };
+    const char *envp[] = { "PATH=/sbin:/usr/sbin:/bin:/usr/bin", NULL };
     const char *argv[] = { "sh", "-c", cmd.get(), NULL };
 
     dlog(s);
@@ -212,7 +212,7 @@ int shell(const String &s)
             dup(i); /* stderr */
         }
 
-        execve("/bin/sh", (char **)argv, envp);
+        execve("/bin/sh", (char **)argv, (char **)envp);
         /* If we're here then execve failed*/
         exit(-1);
         break;
