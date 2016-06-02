@@ -217,9 +217,6 @@ EndDevice::EndDevice(const String &path)
     }
 
     getAtaDiskInfo("/dev/"+ m_DevName, m_Model, m_SerialNum, m_Firmware);
-    m_SerialNum.trim();
-    m_Model.trim();
-    m_Firmware.trim();
 
     unsigned char buffer[4096];
     bool hdioNotSupported = true;
@@ -267,8 +264,8 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
 {
     const char Delimiter[] = "\n";
     const unsigned int ModelIndex = 0;
-    const unsigned int FirmwareIndex = 1;
-    const unsigned int SerialIndex = 2;
+    const unsigned int SerialIndex = 1;
+    const unsigned int FirmwareIndex = 2;
 
     // SSI sometimes uses m_devName as handler and for some cases (like VMD) '/dev/' + m_devName points to nothing
     if (!ifstream(devName)) {
@@ -280,7 +277,7 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     /* We use smartctl to get info about device,
      * then grep only leaves model, revision and serial lines (in such order) and
      * then cut edits "[KEY]:   [VALUE]" to "   [VALUE]" for each line (trim is required) */
-    const String command = "smartctl --xall " + devName + " | grep -E 'Device Model|Serial Number|Firmware Version' | cut -d : -f 2-";
+    const String command = "smartctl -i " + devName + " | grep -E 'Device Model|Serial Number|Firmware Version' | cut -d : -f 2-";
     int status = shell_output(command, data);
     if (status != 0) {
         return status;
@@ -289,6 +286,9 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     vector<String> values = split(data, Delimiter);
 
     if (values.size() == 3) {
+        foreach (value, values) {
+            (*value).trim();
+        }
         model = values[ModelIndex];
         serial = values[SerialIndex];
         firmware = values[FirmwareIndex];
