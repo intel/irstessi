@@ -87,6 +87,7 @@ protected:
     unsigned int m_PhysicalSectorSize;
     unsigned long long m_SASAddress;
     SSI_ScsiAddress m_SCSIAddress;
+    SSI_BdfAddress m_BDFAddress;
     SSI_WriteCachePolicy m_WriteCachePolicy;
     unsigned int m_ledState;
     unsigned long long m_systemIoBusNumer;

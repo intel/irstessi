@@ -25,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <unistd.h>
 #include <sys/ioctl.h>
 #include <string.h>
-
+#include <sstream>
 #include <ssi.h>
 
 #include "exception.h"
@@ -63,6 +63,15 @@ namespace {
         }
 
         return 0;
+    }
+
+    template< typename T>
+    void from_hex(const String& value, T& result)
+    {
+        unsigned int x;
+        std::stringstream ss(value.get());
+        ss >> std::hex >> x;
+        result = static_cast<T>(x);
     }
 }
 
@@ -112,6 +121,23 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
             break;
         }
     }
+    // clear scsi address for nvme since it's trash
+    m_SCSIAddress.host = 0;
+    m_SCSIAddress.bus = 0;
+    m_SCSIAddress.target = 0;
+    m_SCSIAddress.lun = 0;
+
+    String bdfAddress = m_Path.reverse_after("/");
+    from_hex(bdfAddress.left(":"), m_BDFAddress.domain);
+
+    bdfAddress = bdfAddress.after(":");
+    from_hex(bdfAddress.left(":"), m_BDFAddress.bus);
+
+    bdfAddress = bdfAddress.after(":");
+    from_hex(bdfAddress.left("."), m_BDFAddress.device);
+
+    bdfAddress = bdfAddress.after(".");
+    from_hex(bdfAddress, m_BDFAddress.function);
 
     __internal_determine_disk_is_system();
     identify();

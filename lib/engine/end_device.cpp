@@ -150,6 +150,12 @@ EndDevice::EndDevice(const String &path)
     scsiAddress = scsiAddress.after(":");
     m_SCSIAddress.lun = scsiAddress;
 
+    // BDF address is currently used only for NVMe/VMD
+    m_BDFAddress.domain = 0;
+    m_BDFAddress.bus = 0;
+    m_BDFAddress.device = 0;
+    m_BDFAddress.function = 0;
+
     Directory dir(m_Path + "/block");
     CanonicalPath temp;
     std::list<Directory *> dirs = dir.dirs();
@@ -426,7 +432,12 @@ void EndDevice::getAddress(SSI_Address &address) const
 {
     address.scsiAddress = m_SCSIAddress;
     address.sasAddress = m_SASAddress;
+    address.bdfAddress = m_BDFAddress;
     address.sasAddressPresent = m_SASAddress ? SSI_TRUE : SSI_FALSE;
+    address.bdfAddressPresent = SSI_TRUE;
+    // if bus, device and function are 0 it's very likely that address in not valid
+    if (m_BDFAddress.bus == 0 && m_BDFAddress.device == 0 && m_BDFAddress.device == 0)
+       address.bdfAddressPresent = SSI_FALSE;
 }
 
 

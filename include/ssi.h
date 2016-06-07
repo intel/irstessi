@@ -456,6 +456,23 @@ typedef struct _SSI_ScsiAddress
 } SSI_ScsiAddress;
 
 /**
+* @struct    SSI_BdfAddress
+*
+* @brief    Structure to represent the BDF address in SSI.
+**/
+typedef struct _SSI_BdfAddress
+{
+    /** BDF domain number */
+    SSI_Uint32 domain;
+    /** BDF bus number */
+    SSI_Uint8 bus;
+    /** BDF device number */
+    SSI_Uint8 device;
+    /** BDF function number */
+    SSI_Uint8 function;
+} SSI_BdfAddress;
+
+/**
  * @struct  SSI_Address
  *
  * @brief   Structure to represent Address in SSI.
@@ -470,6 +487,10 @@ typedef struct _SSI_Address
     SSI_Bool sasAddressPresent;
     /** SAS address */
     SSI_Uint64 sasAddress;
+    /** if true, bdfAddress is valid */
+    SSI_Bool bdfAddressPresent;
+    /** BDF address */
+    SSI_BdfAddress bdfAddress;
 } SSI_Address;
 
 /**
