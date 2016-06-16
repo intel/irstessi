@@ -935,7 +935,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
         }
 
         case 1: {
-            if (chunkChange) {
+            if (chunkChange || stripSize != SSI_StripSize64kB) {
                 return SSI_StatusInvalidStripSize;
             }
 
