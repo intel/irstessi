@@ -29,8 +29,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstring>
 #include <cstdlib>
 
-#include <vector>
-
 #include "exception.h"
 #include "string.h"
 #include "filesystem.h"
@@ -42,11 +40,31 @@ using std::vector;
 
 namespace {
     String SSI_STDERRMessage;
+
+    bool isFound(const String& string, unsigned int offset, const char* pattern, unsigned int& position)
+    {
+        try {
+            position = string.find(pattern, offset);
+        } catch (...) {
+            return false;
+        }
+
+        return true;
+    }
 }
 
 void setLastErrorMessage(const String &ErrorMessage)
 {
     SSI_STDERRMessage = ErrorMessage;
+
+    /* dot removal */
+    try {
+        if (SSI_STDERRMessage.last() == '.') {
+            SSI_STDERRMessage.pop_back();
+        }
+    } catch (...) {
+        /* empty string */
+    }
 }
 
 String getLastErrorMessage()
@@ -59,16 +77,37 @@ void clearLastErrorMessage()
     SSI_STDERRMessage.clear();
 }
 
-namespace {
-    bool isFound(const String& string, unsigned int offset, const char* pattern, unsigned int& position)
-    {
-        try {
-            position = string.find(pattern, offset);
-        } catch (...) {
-            return false;
+void mdadmErrorLines(const String& output, vector<String>& lines)
+{
+    const char NewLines[] = "\n";
+    const unsigned int WordsToRemoveLength = 2;
+    const String WordsToRemove[WordsToRemoveLength] = {
+        "mdadm: ",
+        "mdmon: "
+    };
+
+    unsigned int pos = 0;
+    unsigned int next = 0;
+
+    String line;
+    while (isFound(output, pos, NewLines, next)) {
+        line = String(output.get(pos), next - pos);
+        line.trim();
+
+        for (unsigned int i = 0; i < WordsToRemoveLength; ++i) {
+            unsigned int found = 0;
+
+            while (isFound(line, 0, WordsToRemove[i], found)) {
+                line = line.reverse_mid(line.get(found), line.get(found + WordsToRemove[i].length()));
+            }
         }
 
-        return true;
+        if (line != "") {
+            lines.push_back(line);
+        }
+
+        pos = next + 1;
+        line.clear();
     }
 }
 
@@ -119,15 +158,15 @@ int shell_cap(const String &s, String &r)
 }
 
 /* */
-int shell_output(const String &command, String &output)
+int shell_output(const String &command, String &output, bool errorOutput)
 {
-    const unsigned int BufferLength = 1024;
+    const unsigned int BufferLength = 64 * 1024;
     const int Success = 0;
     const int Failure = -1;
 
     output.clear();
     FILE *in;
-    const String cmd = command + " 2>/dev/null";
+    const String cmd = command + (errorOutput ? " 2>&1 1>/dev/null" : " 2>/dev/null");
     if (!(in = popen(cmd.get(), "r"))) {
         return Failure;
     }
@@ -141,6 +180,7 @@ int shell_output(const String &command, String &output)
     if (WEXITSTATUS(statusCode)) {
         return Failure;
     }
+
     return Success;
 }
 
@@ -232,72 +272,28 @@ int shell(const String &s)
 
 int shellEx(const String &s, unsigned int linesNum, unsigned int offset)
 {
-    const int ErrorCode = -1;
-    const int SuccessCode = 0;
-    const unsigned int BufferLength = 1024;
-    const char NewLines[] = "\n";
-    const unsigned int WordsToRemoveLength = 2;
-    const String WordsToRemove[WordsToRemoveLength] = {
-        "mdadm: ",
-        "mdmon: "
-    };
+    const String cmd = "export MDADM_EXPERIMENTAL=1; " + s;
+    String output;
+    int status = shell_output(cmd, output, true);
+    if (status != 0) {
+        vector<String> lines;
+        mdadmErrorLines(output, lines);
 
-    FILE *in;
-    const String cmd = "export MDADM_EXPERIMENTAL=1; " + s + " 2>&1 1>/dev/null";
-    if (!(in = popen(cmd.get(), "r"))) {
-        return ErrorCode;
-    }
-
-    String rawErrorMessage;
-    char buffer[BufferLength] = {};
-    while (fgets(buffer, BufferLength, in) != NULL) {
-        rawErrorMessage.append(buffer);
-    }
-
-    vector<String> lines;
-    unsigned int pos = 0;
-    unsigned int next = 0;
-
-    String line;
-    while (isFound(rawErrorMessage, pos, NewLines, next)) {
-        line = String(rawErrorMessage.get(pos), next - pos);
-        line.trim();
-
-        for (unsigned int i = 0; i < WordsToRemoveLength; ++i) {
-            unsigned int found = 0;
-
-            while (isFound(line, 0, WordsToRemove[i], found)) {
-                line = line.reverse_mid(line.get(found), line.get(found + WordsToRemove[i].length()));
+        String errorMessage;
+        vector<String>::size_type size = lines.size();
+        vector<String>::size_type i;
+        for (i = (linesNum + offset) > size ? size : (linesNum + offset); i > offset; --i)
+        {
+            errorMessage.append(lines[size - i]);
+            if (i > offset + 1) {
+                errorMessage.append(" ");
             }
         }
 
-        if (line != "") {
-            lines.push_back(line);
-        }
-
-        pos = next + 1;
-        line.clear();
+        setLastErrorMessage(errorMessage);
     }
 
-    String errorMessage;
-    vector<String>::size_type size = lines.size();
-    vector<String>::size_type i;
-    for (i = (linesNum + offset) > size ? size : (linesNum + offset); i > offset; --i)
-    {
-        errorMessage.append(lines[size - i]);
-        if (i > offset + 1) {
-            errorMessage.append(" ");
-        }
-    }
-
-    setLastErrorMessage(errorMessage);
-
-    int statusCode = pclose(in);
-    if (WEXITSTATUS(statusCode)) {
-        return ErrorCode;
-    }
-
-    return SuccessCode;
+    return status;
 }
 
 /* Look if process is already running

@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UTILS_H__INCLUDED__
 #define __UTILS_H__INCLUDED__
 
+#include <vector>
+
 #include "string.h"
 
 /* */
@@ -39,6 +41,8 @@ String getLastErrorMessage();
 
 void clearLastErrorMessage();
 
+void mdadmErrorLines(const String& output, std::vector<String>& lines);
+
 /* */
 int shell_cap(const String &s, String &r);
 
@@ -52,7 +56,7 @@ int shell_cap(const String &s, String &r);
 int shell_cap(const String &s, void *buf, size_t &size);
 
 /* */
-int shell_output(const String &command, String &output);
+int shell_output(const String &command, String &output, bool errorOutput = false);
 
 /* */
 int shell(const String &s);

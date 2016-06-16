@@ -130,7 +130,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     }
 
     if (params.numDisks == 0) {
-        setLastErrorMessage("Not enough disks to create volume.");
+        setLastErrorMessage("Not enough disks to create volume");
         return SSI_StatusInvalidParameter;
     }
 
@@ -196,7 +196,7 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
             case E_BUFFER_TOO_SMALL:
                 return SSI_StatusBufferTooSmall;
             case E_SYSTEM_DEVICE:
-                setLastErrorMessage("Volume with system device is not allowed.");
+                setLastErrorMessage("Volume with system device is not allowed");
                 return SSI_StatusInvalidParameter;
             default:
                 return SSI_StatusFailed;
@@ -340,7 +340,7 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
         Volume& volume = *(*iter);
 
         if (volume.getName() == name) {
-            setLastErrorMessage("Volume name already in use.");
+            setLastErrorMessage("Volume name already in use");
             return SSI_StatusInvalidString;
         }
     }

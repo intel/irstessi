@@ -24,6 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <unistd.h>
 #include <string>
 #include <cstdio>
+#include <algorithm>
 
 #include <ssi.h>
 
@@ -42,7 +43,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "block_device.h"
 #include "raid_info.h"
 
+using std::vector;
+using std::find_if;
+
 namespace {
+    vector<String>::const_iterator findErrorMessage(const vector<String>& lines, const String& message);
     SSI_RaidLevel ui2raidlevel(unsigned int level);
     SSI_StripSize ui2stripsize(unsigned int chunk);
     unsigned int stripsize2ui(SSI_StripSize chunk);
@@ -786,8 +791,37 @@ void Volume::create()
         String rwhPolicy = m_RwhPolicy == SSI_RwhDistributed ?
                 " --rwh-policy=" + rwhPolicyToString(m_RwhPolicy) : "";
 
-        if (shellEx("mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
-                  chunk + rwhPolicy + " -n" + String(m_BlockDevices.size()) + devices) != 0) {
+        String command = "mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
+                chunk + rwhPolicy + " -n" + String(m_BlockDevices.size()) + devices;
+
+        /*
+         * Two cases:
+         *     a) mdadm returns only message about insufficient size (contains "not enough space")
+         *     b) mdadm returns message about insufficient size + line about why device doesn't fit + "create aborted"
+         *
+         * Workaround: We get all error output lines from mdadm and we find the line we need.
+         *
+         * Used this workaround because we don't have better tools to get mdadm errors.
+         */
+        String output;
+        if (shell_output(command, output, true) != 0) {
+            vector<String> lines;
+            mdadmErrorLines(output, lines);
+
+            if (!lines.empty()) {
+
+                vector<String>::const_iterator found = findErrorMessage(lines, "not enough space");
+
+                if (found != lines.end()) {
+                    setLastErrorMessage(*found);
+                } else {
+                    /* We've got different error message (invalid name etc.) */
+                    setLastErrorMessage(lines.back());
+                }
+            } else {
+                setLastErrorMessage("");
+            }
+
             throw E_VOLUME_CREATE_FAILED;
         }
     } else {
@@ -895,6 +929,24 @@ namespace {
             default:
                 throw E_INVALID_STRIP_SIZE;
         }
+    }
+
+    vector<String>::const_iterator findErrorMessage(const vector<String>& lines, const String& message)
+    {
+        vector<String>::const_iterator iter, end = lines.end();
+        for (iter = lines.begin(); iter != end; ++iter)
+        {
+            const String& str = *iter;
+
+            try {
+                str.find(message);
+                break;
+            } catch (...) {
+                continue;
+            }
+        }
+
+        return iter;
     }
 }
 

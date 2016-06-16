@@ -317,7 +317,7 @@ SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 
     SSI_Status status = SSI_StatusOk;
     if (pos != npos) {
-        setLastErrorMessage(newName + " is an invalid name for an md device.");
+        setLastErrorMessage(newName + " is an invalid name for an md device");
         status =  SSI_StatusInvalidString;
     }
 

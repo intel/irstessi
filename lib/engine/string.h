@@ -397,6 +397,9 @@ public:
         }
     }
 
+    char last();
+    void pop_back();
+
 public:
     bool equal(const String &s) const {
         return this == &s || __compare(s.get()) == 0;

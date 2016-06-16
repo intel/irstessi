@@ -297,6 +297,27 @@ unsigned int String::reverse_find(const char *buf, unsigned int offset) const
 }
 
 /* */
+void String::pop_back()
+{
+    if (isEmpty()) {
+        throw E_UNDERFLOW;
+    }
+
+    m_buffer[m_size - 1] = '\0';
+    m_size--;
+}
+
+/* */
+char String::last()
+{
+    if (isEmpty()) {
+        throw E_UNDERFLOW;
+    }
+
+    return m_buffer[m_size - 1];
+}
+
+/* */
 char * String::__offset(unsigned int offset) const
 {
     return __utf8_offset(m_buffer, offset);
