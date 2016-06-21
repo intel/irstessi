@@ -389,7 +389,7 @@ void Session::__internal_attach_imsm_device(const String &path)
 /* */
 void Session::__internal_attach_imsm_array(const String &path)
 {
-    Array *pArray;
+    Array *pArray = NULL;
     try {
         pArray = new Array(path);
         pArray->addToSession(this);

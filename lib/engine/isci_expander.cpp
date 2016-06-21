@@ -63,7 +63,7 @@ ISCI_Expander::ISCI_Expander(const String &path)
             /* TODO: report read failure of attribtue. */
         }
     }
-    dlog(" sas adress %s\n%llu\n", (const char *) path, m_SASAddress);
+    dlog(" sas adress " + path + "\n" + String(m_SASAddress) + "\n");
     dir = m_Path + "/sas_expander";
     dirs = dir.dirs();
     foreach (i, dirs) {

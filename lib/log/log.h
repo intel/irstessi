@@ -39,13 +39,13 @@ enum log_level {
 };
 
 /* */
-#define log(__level, __format, ...)                             \
+#define log(__level, __message)                                 \
     do { if (log_get_level() >= (enum log_level)(__level))      \
-        __log(__level, __format, ## __VA_ARGS__);               \
+        __log(__level, __message);                              \
     } while (0)
 
-#define dlog(__format, ...)                             \
-	log(LOG_DEBUG, __format, ## __VA_ARGS__);
+#define dlog(__message)                                 \
+         log(LOG_DEBUG, __message);
 
 /* */
 void log_init(enum log_level level, const char *path);
@@ -54,8 +54,7 @@ void log_init(enum log_level level, const char *path);
 void log_fini(void);
 
 /* */
-void __log(enum log_level level, const char *format, ...)
-    __attribute__((format(printf, 2, 3)));
+void __log(enum log_level level, const char *message);
 
 /* */
 enum log_level log_get_level(void);

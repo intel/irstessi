@@ -114,9 +114,9 @@ void mdadmErrorLines(const String& output, vector<String>& lines)
 /**
  * @brief capture shell output as binary data
  *
- * @note	Function does not append trailing '\0'
+ * @note    Function does not append trailing '\0'
  *
- * @return	number of bytes read or -1 for error
+ * @return  number of bytes read or -1 for error
  */
 
 int shell_cap(const String &s, void *buf, size_t &size)
@@ -248,8 +248,14 @@ int shell(const String &s)
 
         i = open("/dev/null", O_RDWR); /* bind stdin to process */
         if (i != -1) {
-            dup(i); /* stdout */
-            dup(i); /* stderr */
+            if (dup(i) == -1) /* stdout */
+            {
+                dlog("Warning: Could not duplicate stdout.");
+            }
+            if (dup(i) == -1) /* stderr */
+            {
+                dlog("Warning: Could not duplicate stderr.");
+            }
         }
 
         execve("/bin/sh", (char **)argv, (char **)envp);

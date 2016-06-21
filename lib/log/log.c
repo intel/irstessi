@@ -72,12 +72,11 @@ enum log_level log_get_level(void) {
 }
 
 /* */
-void __log(enum log_level level, const char *format, ...) {
+void __log(enum log_level level, const char *message) {
     struct tm tm;
     struct timeval tv;
-    va_list vl;
 
-    if ((g_log_level < level) || (format == NULL) || (g_log_stream == NULL))
+    if ((g_log_level < level) || (message == NULL) || (g_log_stream == NULL))
         return;
 
     gettimeofday(&tv, 0);
@@ -86,9 +85,7 @@ void __log(enum log_level level, const char *format, ...) {
         1900 + tm.tm_year, tm.tm_mon, tm.tm_mday, tm.tm_hour, tm.tm_min,
         tm.tm_sec, (int)tv.tv_usec, getpid());
     fflush(g_log_stream);
-    va_start(vl, format);
-    vfprintf(g_log_stream, format, vl);
-    va_end(vl);
+    fputs(message, g_log_stream);
     fflush(g_log_stream);
     fprintf(g_log_stream, "\n");
     fflush(g_log_stream);

@@ -48,7 +48,7 @@ static int write_config(String file, String &config)
     try {
         attr << config;
     } catch (...) {
-        dlog("Warning: file %s could not be written", file.get());
+        dlog("Warning: file " + file + " could not be written");
         return 1;
     }
     return 0;

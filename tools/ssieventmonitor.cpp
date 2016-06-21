@@ -343,7 +343,7 @@ static int _read_mdstat(int fd)
 	if (!strncmp(line, "md", 2)) {
 	    if (strstr(line, INACTIVE_STR)) { /* possibly container */
 		char nextline[1024];
-		if (fgets(nextline, sizeof(nextline) - 1, mdstat) < 0) {
+		if (fgets(nextline, sizeof(nextline) - 1, mdstat) == NULL) {
 		    fclose(mdstat);
 		    return 1;
 		}

@@ -59,6 +59,8 @@ remove_dir src/.deps
 remove_dir src/.libs
 remove_dir tools/.deps
 remove_dir tools/.libs
+remove_dir lib/safeclib/.deps
+remove_dir lib/safeclib/.libs
 
 echo "** Removing Makefiles..."
 remove_file Makefile
@@ -89,6 +91,8 @@ remove_file contrib/Makefile
 remove_file contrib/Makefile.in
 remove_file doc/Makefile
 remove_file doc/Makefile.in
+remove_file lib/safeclib/Makefile
+remove_file lib/safeclib/Makefile.in
 
 echo "** Removing configuration files..."
 remove_dir autom4te.cache
