@@ -256,7 +256,7 @@ void File::__internal_write(char *buffer, unsigned long long size, bool append)
     } else {
         write_flags =  (O_WRONLY | O_TRUNC | O_NONBLOCK | O_CREAT);
     }
-    int fd = open(get(), write_flags);
+    int fd = open(get(), write_flags, 0660);
     if (fd < 0) {
         throw errno_to_exception_code(errno);
     }

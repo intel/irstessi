@@ -24,7 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <map>
 
-#define SSI_IDKEY_FILE "/var/run/ssi.keys"
+#define SSI_IDKEY_FILE "/var/lib/misc/irstessi.keys"
 
 /* */
 class UniqueIdManager {
