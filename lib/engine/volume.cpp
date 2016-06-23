@@ -988,6 +988,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
 
         case 1: {
             if (chunkChange) {
+                setLastErrorMessage("Strip size cannot be changed during migration from Raid 1 to Raid 0");
                 return SSI_StatusInvalidStripSize;
             }
 
