@@ -321,9 +321,16 @@ SSI_Status Volume::remove()
     if (pArray == NULL) {
         return SSI_StatusFailed;
     }
-    if (shell("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
-        pArray->removeVolume(m_Ordinal) == SSI_StatusOk) {
-
+    /* Second operation - removeVolume calls shell() and for some reason
+     * sometimes it was executed before return of first shell() call.
+     * Split of "if (shell() && removeVolume())" instruction to separated
+     * lines resolves this problem.
+     */
+    int status = shell("mdadm -S '/dev/" + m_DevName + "'");
+    if (status == SSI_StatusOk) {
+        status |= pArray->removeVolume(m_Ordinal);
+    }
+    if (status == SSI_StatusOk) {
         Container<Volume> volumes;
         pArray->getVolumes(volumes);
         if (volumes.size() > 1)
