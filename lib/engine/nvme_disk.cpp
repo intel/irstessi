@@ -121,6 +121,7 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
             break;
         }
     }
+
     // clear scsi address for nvme since it's trash
     m_SCSIAddress.host = 0;
     m_SCSIAddress.bus = 0;
@@ -166,20 +167,10 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     m_BlocksFree = m_BlocksTotal;
     m_FDx8Disk = whichFultondalex8Disk(m_SerialNum);
     m_vmdDomain = vmdDomain;
-}
 
-/* */
-void NVME_Disk::__internal_determine_disk_is_system()
-{
-    String result;
-    if (shell_cap("df /boot", result) == 0) {
-        try {
-            result.find("/dev/" + m_DevName);
-            m_IsSystem = true;
-        } catch (...) {
-            m_IsSystem = false;
-        }
-    }
+    __internal_determine_disk_state();
+    __internal_determine_disk_usage();
+    __internal_determine_disk_is_system();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

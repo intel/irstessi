@@ -77,7 +77,7 @@ public:
     }
     void setWriteCache(bool enable);
 
-private:
+protected:
     void __internal_determine_disk_usage();
     void __internal_determine_disk_state();
     void __internal_determine_disk_is_system();

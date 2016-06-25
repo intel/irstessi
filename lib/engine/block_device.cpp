@@ -158,21 +158,25 @@ void BlockDevice::__internal_determine_disk_usage()
         m_DiskUsage = SSI_DiskUsagePassThru;
         return;
     }
+
     try {
-	result.find("spare");
-	m_DiskUsage = m_pArray ? SSI_DiskUsageSpare : SSI_DiskUsagePassThruReadOnlyMount;
-	return;
+        result.find("spare");
+        m_DiskUsage = m_pArray ? SSI_DiskUsageSpare : SSI_DiskUsagePassThruReadOnlyMount;
+        return;
     } catch (...) {
+        /* it's not spared */
     }
+
     try {
-	result.find("ARRAY");
-	m_DiskUsage = m_pArray ? SSI_DiskUsageArrayMember : SSI_DiskUsageOfflineArray;
-	return;
+        result.find("ARRAY");
+        m_DiskUsage = m_pArray ? SSI_DiskUsageArrayMember : SSI_DiskUsageOfflineArray;
+        return;
     } catch (...) {
+        /* it's not in an array */
     }
+
     m_DiskUsage = SSI_DiskUsagePassThru;
 }
-
 
 /* */
 void BlockDevice::__internal_determine_disk_state()

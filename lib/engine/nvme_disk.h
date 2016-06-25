@@ -26,50 +26,47 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <fcntl.h>
 
 #define NVME_ADMIN_IDENTIFY_OPT_CODE 0x06
-#define NVME_IOCTL_ADMIN_CMD	_IOWR('N', 0x41, struct nvme_admin_cmd)
+#define NVME_IOCTL_ADMIN_CMD _IOWR('N', 0x41, struct nvme_admin_cmd)
 
 struct nvme_admin_cmd {
-	__u8	opcode;
-	__u8	flags;
-	__u16	rsvd1;
-	__u32	nsid;
-	__u32	cdw2;
-	__u32	cdw3;
-	__u64	metadata;
-	__u64	addr;
-	__u32	metadata_len;
-	__u32	data_len;
-	__u32	cdw10;
-	__u32	cdw11;
-	__u32	cdw12;
-	__u32	cdw13;
-	__u32	cdw14;
-	__u32	cdw15;
-	__u32	timeout_ms;
-	__u32	result;
+    __u8    opcode;
+    __u8    flags;
+    __u16   rsvd1;
+    __u32   nsid;
+    __u32   cdw2;
+    __u32   cdw3;
+    __u64   metadata;
+    __u64   addr;
+    __u32   metadata_len;
+    __u32   data_len;
+    __u32   cdw10;
+    __u32   cdw11;
+    __u32   cdw12;
+    __u32   cdw13;
+    __u32   cdw14;
+    __u32   cdw15;
+    __u32   timeout_ms;
+    __u32   result;
 };
 
 struct nvme_id_ctrl {
-	__u8			rsvd1[4];
-	char			sn[20];
-	char			mn[40];
-	char			fr[8];
-	__u8			rsvd2[4024];
+    __u8    rsvd1[4];
+    char    sn[20];
+    char    mn[40];
+    char    fr[8];
+    __u8    rsvd2[4024];
 };
 
 /* */
 class NVME_Disk : public BlockDevice {
 public:
-	NVME_Disk(const String &path, unsigned int vmdDomain);
+    NVME_Disk(const String &path, unsigned int vmdDomain);
 
     SSI_DiskType getDiskType() const {
         return SSI_DiskTypeVMD;
     }
 protected:
-	void identify();
-private:
-	void __internal_determine_disk_is_system();
-
+    void identify();
 };
 
 #endif /* __NVME_DISK_H__INCLUDED__ */
