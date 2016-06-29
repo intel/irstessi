@@ -403,7 +403,7 @@ SSI_Status Array::remove()
 {
     int n = 0;
     do {
-        if (shell("mdadm -S '/dev/" + m_DevName  + "'") == 0) {
+        if (shellEx("mdadm -S '/dev/" + m_DevName  + "'") == 0) {
             String devices;
             foreach (i, m_BlockDevices) {
                 devices += " '/dev/" + (*i)->getDevName() + "'";
