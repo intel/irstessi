@@ -305,7 +305,7 @@ SSI_Status Volume::rename(const String &newName)
 
     /* MDADM issue */
     /* mdadm cuts last character from 16 character-long name after successful rename */
-    if (shell("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
+    if (shellEx("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
             pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
         return pArray->assemble();
     }
@@ -448,7 +448,7 @@ SSI_Status Volume::changeRwhPolicy(SSI_RwhPolicy policy)
     if (m_RwhPolicy == policy)
         return SSI_StatusOk;
 
-    if (shell("mdadm --rwh-policy=" + rwhPolicyToString(policy) + " '/dev/" + m_DevName + "'") == 0) {
+    if (shellEx("mdadm --rwh-policy=" + rwhPolicyToString(policy) + " '/dev/" + m_DevName + "'") == 0) {
         m_RwhPolicy = policy;
         return SSI_StatusOk;
     }
@@ -983,7 +983,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
                     setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
                 }
                 return status;
-            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
+            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
                 return SSI_StatusOk;
             }
             break;
@@ -1001,7 +1001,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
             }
 
             SSI_Status status = pArray->canAddEndDevices(disks);
-            if (status == SSI_StatusOk && shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+            if (status == SSI_StatusOk && shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
                 if (disks.size() > 0) {
                     return pArray->grow(disks);
                 }
@@ -1021,7 +1021,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
             }
 
             SSI_Status status = pArray->canAddEndDevices(disks);
-            if (status == SSI_StatusOk && shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+            if (status == SSI_StatusOk && shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
                 if (disks.size() == 0 && !chunkChange) {
                     return SSI_StatusOk;
                 }
@@ -1029,7 +1029,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
                 usleep(3000000);
                 if (disks.size() > 0) {
                     return pArray->grow(disks);
-                } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
+                } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
                     return SSI_StatusOk;
                 }
             }
@@ -1046,7 +1046,7 @@ SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize
                 return SSI_StatusNotSupported;
             } else if (chunkChange) {
                 return SSI_StatusInvalidStripSize;
-            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
                 return SSI_StatusOk;
             }
             break;
@@ -1095,7 +1095,7 @@ SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSiz
         return status;
     }
 
-    if (shell("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0) {
+    if (shellEx("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0) {
         return SSI_StatusOk;
     }
 
@@ -1157,8 +1157,8 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
                 return SSI_StatusInvalidParameter;
             }
 
-            if (shell("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
-                if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
+            if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+                if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
                     return SSI_StatusOk;
                 }
             }
@@ -1181,7 +1181,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
                 /* MDADM issue
                    Not all scenarios are correctly handled by mdadm. For now, it yields undefined behavior */
                 return pArray->grow(disks);
-            } else if (shell("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
+            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
                 return SSI_StatusOk;
             }
             break;

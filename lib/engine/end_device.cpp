@@ -407,7 +407,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 SSI_Status EndDevice::locate(bool mode) const
 {
     String tmp = mode?"locate":"normal";
-    if (shell("ledctl " + tmp + "='/dev/" + m_DevName + "'") == 0)
+    if (shell_command("ledctl " + tmp + "='/dev/" + m_DevName + "'") == 0)
         return SSI_StatusOk;
     else
         return SSI_StatusFailed;

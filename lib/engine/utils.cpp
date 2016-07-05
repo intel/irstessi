@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "filesystem.h"
 #include "utils.h"
-#include "log/log.h"
+#include "../log/log.h"
 #include <fcntl.h>
 
 using std::vector;
@@ -217,6 +217,14 @@ static void close_parent_fds(void)
     closedir(dirp);
 }
 
+int shell_command(const String &cmd)
+{
+    String output;
+    int status = shell_output(cmd, output, true);
+
+    return status;
+}
+
 /*
  * This function launch a shell process that executes given 's' command.
  *
@@ -258,7 +266,7 @@ int shell(const String &s)
             }
         }
 
-        execve("/bin/sh", (char **)argv, (char **)envp);
+        execve(argv[0], (char **)argv, (char **)envp);
         /* If we're here then execve failed*/
         exit(-1);
         break;

@@ -86,7 +86,7 @@ SSI_Status BlockDevice::clearMetadata()
     if (m_DiskUsage != SSI_DiskUsageOfflineArray && m_DiskUsage != SSI_DiskUsagePassThruReadOnlyMount) {
         return SSI_StatusInvalidState;
     }
-    if (shell("mdadm --zero-superblock '/dev/" + m_DevName + "'") == 0) {
+    if (shellEx("mdadm --zero-superblock '/dev/" + m_DevName + "'") == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;

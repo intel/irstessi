@@ -18,6 +18,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __MDADM_CONFIG_H__INCLUDED__
 #define __MDADM_CONFIG_H__INCLUDED__
 
+#define MDADM_CONFIG_PATH "/etc/mdadm.conf"
+
 void check_configuration();
 void get_mdadm_version(char *buffer, size_t size);
 

@@ -43,9 +43,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "filesystem.h"
 #include "session.h"
 #include "block_device.h"
-#include "utils.h"
+#include "mdadm_config.h"
 
-#include "log/log.h"
+#include "../log/log.h"
 
 using std::numeric_limits;
 
@@ -165,7 +165,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
     this->getEndDevices(tmp,false);
     if (status == SSI_StatusOk) {
         usleep(3000000);
-        if (shell("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " +
+        if (shellEx("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " +
                   String(tmp.size() + container.size())) != 0) {
             removeSpare(addedToSpare, true);
             status = SSI_StatusFailed;
@@ -249,10 +249,10 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice, bool force)
             return SSI_StatusInvalidState;
         }
     }
-    int result = shell("mdadm '/dev/" + m_DevName + "' -r '/dev/" + pEndDevice->getDevName() + "'");
+    int result = shellEx("mdadm '/dev/" + m_DevName + "' -r '/dev/" + pEndDevice->getDevName() + "'");
     if (result == 0) {
         usleep(3000000);
-        result = shell("mdadm --zero-superblock '/dev/" + pEndDevice->getDevName() + "'");
+        result = shellEx("mdadm --zero-superblock '/dev/" + pEndDevice->getDevName() + "'");
     }
     if (result == 0) {
         return SSI_StatusOk;
@@ -280,7 +280,7 @@ SSI_Status Array::removeVolume(const unsigned int ordinal)
         return SSI_StatusOk;
     }
     usleep(3000000);
-    if (shell("mdadm --kill-subarray=" + String(ordinal) + " '/dev/" + m_DevName + "'") == 0) {
+    if (shellEx("mdadm --kill-subarray=" + String(ordinal) + " '/dev/" + m_DevName + "'") == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -327,9 +327,13 @@ SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
         }
     }
 
-    if (shell("mdadm -Ebs >> /etc/mdadm.conf") != 0) {
+    String output;
+    if (shell_output("mdadm -Ebs", output) != 0) {
         return SSI_StatusFailed;
     }
+
+    File attr = String(MDADM_CONFIG_PATH);
+    attr.write(output, true);
 
     return status;
 }
@@ -338,7 +342,7 @@ SSI_Status Array::renameVolume(const unsigned int ordinal, String newName)
 SSI_Status Array::assemble()
 {
     usleep(3000000);
-    if (shell("mdadm -I '/dev/md/" + m_Name + "'") == 0) {
+    if (shellEx("mdadm -I '/dev/md/" + m_Name + "'") == 0) {
         return SSI_StatusOk;
     }
     return SSI_StatusFailed;
@@ -409,7 +413,7 @@ SSI_Status Array::remove()
                 devices += " '/dev/" + (*i)->getDevName() + "'";
             }
             usleep(3000000);
-            if (shell("mdadm --zero-superblock" + devices) == 0) {
+            if (shellEx("mdadm --zero-superblock" + devices) == 0) {
                 return SSI_StatusOk;
             }
         }
@@ -476,8 +480,8 @@ void Array::__wait_for_container()
     i = 0;
     do {
         usleep(1000000);
-        found = (shell("ls '/dev/md/" + m_Name + "'") == 0);
-        if (!found && link && shell("ln -s '/dev/" + m_DevName + "' '/dev/md/" + m_Name + "'") == 0) {
+        found = (shell_command("ls '/dev/md/" + m_Name + "'") == 0);
+        if (!found && link && shell_command("ln -s '/dev/" + m_DevName + "' '/dev/md/" + m_Name + "'") == 0) {
             break;
         }
         i++;

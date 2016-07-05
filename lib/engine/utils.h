@@ -62,6 +62,9 @@ int shell_output(const String &command, String &output, bool errorOutput = false
 int shell(const String &s);
 
 /* */
+int shell_command(const String &cmd);
+
+/* */
 int shellEx(const String &s, unsigned int linesNum = 1, unsigned int offset = 0);
 
 /* */
