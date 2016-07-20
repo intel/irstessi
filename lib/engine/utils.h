@@ -22,7 +22,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __UTILS_H__INCLUDED__
 #define __UTILS_H__INCLUDED__
 
+#define SSI_IDKEY_FILE "/var/lib/misc/irstessi.keys"
+#define SSI_IDKEY_IDX_FILE "/var/lib/misc/irstessi.idx"
+
 #include <vector>
+#include <map>
 
 #include "string.h"
 
@@ -89,6 +93,9 @@ inline unsigned int sg_make_int(unsigned char *s) {
 }
 
 void check_dots(String &s);
+
+std::map<unsigned int, String> loadIdsFromFile();
+unsigned int loadIdIndexFromFile();
 
 #endif /* __UTILS_H__INCLUDED__ */
 

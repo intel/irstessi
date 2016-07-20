@@ -49,6 +49,7 @@ public:
 
     void add(Object *pObejct);
     void remove(Object *pObject);
+    void removeId(Object *pObject);
     void refresh();
 
     SSI_Status getSystemInfo(SSI_SystemInfo *) const;

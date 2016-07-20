@@ -42,6 +42,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 #include "block_device.h"
 #include "raid_info.h"
+#include "context_manager.h"
 
 using std::vector;
 using std::find_if;
@@ -329,12 +330,23 @@ SSI_Status Volume::remove()
     if (status == SSI_StatusOk) {
         Container<Volume> volumes;
         pArray->getVolumes(volumes);
-        if (volumes.size() > 1)
-            return SSI_StatusOk;
-        else
-            return pArray->remove();
+        if (volumes.size() > 1) {
+            status = SSI_StatusOk;
+        }
+        else {
+            status = pArray->remove();
+        }
     }
-    return SSI_StatusFailed;
+
+    // remove volume and array ID from file irstessi.keys
+    if (status == SSI_StatusOk) {
+        pContextMgr->removeId(this);
+        pContextMgr->removeId(pArray);
+        return SSI_StatusOk;
+    }
+    else {
+        return SSI_StatusFailed;
+    }
 }
 
 /* */

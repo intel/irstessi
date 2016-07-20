@@ -24,19 +24,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <map>
 
-#define SSI_IDKEY_FILE "/var/lib/misc/irstessi.keys"
-
 /* */
 class UniqueIdManager {
 private:
     std::map<unsigned int, String> m_cache;
+    unsigned int m_availableId;
 
     unsigned int findId() const;
     void add(unsigned int id, String key);
 
 public:
+    UniqueIdManager() : m_availableId(0) { }
+    ~UniqueIdManager() { }
+
     void add(Object *);
     void remove(Object *);
+    void removeId(Object *);
     void refresh();
 };
 

@@ -40,8 +40,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 unsigned int UniqueIdManager::findId() const
 {
     for(unsigned int id = 1; id <= UINT_MAX; id++) {
-        if (m_cache.find(id) == m_cache.end())
+        if (m_cache.find(id) == m_cache.end() && id >= m_availableId) {
             return id;
+        }
     }
     return 0;
 }
@@ -88,6 +89,13 @@ void UniqueIdManager::add(Object *pObject)
 
         if (!(dynamic_cast<Session *>(pObject) || dynamic_cast<Event *>(pObject) || key == "")) {
             File keyFile(String(SSI_IDKEY_FILE));
+            File idIdxFile(String(SSI_IDKEY_IDX_FILE));
+            try {
+                m_availableId = id < UINT_MAX ? id +1 : UINT_MAX;
+                idIdxFile.write(m_availableId);
+            } catch (...) {
+                dlog("failed to store id index");
+            }
             try {
                 char s[11];
                 snprintf(s, sizeof(s), "0x%x", id);
@@ -121,34 +129,64 @@ void UniqueIdManager::remove(Object *pObject)
     }
 }
 
+/* remove object Id from file*/
+void UniqueIdManager::removeId(Object *pObject)
+{
+    if (pObject == NULL)
+        throw E_NULL_POINTER;
+
+    std::map<unsigned int, String> idKeyMap = loadIdsFromFile();
+    unsigned int id = pObject->getId();
+
+    if (idKeyMap.find(id) == idKeyMap.end())
+        throw E_NOT_FOUND;
+
+    File keyFile(String(SSI_IDKEY_FILE));
+    keyFile.write("");
+    foreach (i, idKeyMap) {
+        String idkey = String((*i).first) + String(":") + (*i).second + String("\n");
+        if ((*i).first == pObject->getId() && (*i).second == pObject->getKey())
+            continue;
+        else {
+            try {
+                char s[11];
+                snprintf(s, sizeof(s), "0x%x", (*i).first);
+                idkey = String(s) + String(":") + (*i).second + String("\n");
+                keyFile.write(idkey, true);
+            } catch (...) {
+                dlog("failed to store id:key");
+            }
+        }
+    }
+}
+
 /* reload id:key file */
 void UniqueIdManager::refresh()
 {
+    // if irstessi.keys or irstessi.idx file is missing restore them using cached data
+    // note: IDs of session and events will be written to file too.
     File keyFile = String(SSI_IDKEY_FILE);
-    String keyList;
-    try {
-        keyFile >> keyList;
-        keyList += "\n";
-    } catch (...) {
-        dlog("ssi.keys file missing");
-        /* no file? that's ok */
-    }
-    /* process the list to update cache */
-    while (keyList) {
-        unsigned int id;
-        String sid = keyList.left(":");
-        String key = keyList.between(sid + ":", "\n");
-        keyList = keyList.after(key + "\n");
-        try {
-            id = (unsigned int)(sid);
-            if (id == 0 || key == "") { /* bad line  - just skip */
-                dlog("bad line");
-                continue;
+    File idIdxFile = String(SSI_IDKEY_IDX_FILE);
+    if (!keyFile.exists() || !idIdxFile.exists()) {
+        foreach (i, m_cache) {
+            try {
+                char s[11];
+                snprintf(s, sizeof(s), "0x%x", (*i).first);
+                String idkey = String(s) + String(":") + (*i).second + String("\n");
+                keyFile.write(idkey, true);
+            } catch (...) {
+                dlog("failed to store id:key");
             }
-            add(id, key);
-        } catch (...) {
-            /* just skip the line */
-            dlog(sid + " failed to convert to unsigned int");
         }
+
+        idIdxFile.write(m_cache.size() == 0 ? 0 : m_availableId);
+    }
+    else {
+        std::map<unsigned int, String> id_key_map = loadIdsFromFile();
+        foreach (i, id_key_map) {
+            add((*i).first, (*i).second);
+        }
+
+        m_availableId = loadIdIndexFromFile();
     }
 }

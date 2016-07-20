@@ -352,4 +352,54 @@ void check_dots(String &s)
     }
 }
 
+std::map<unsigned int, String> loadIdsFromFile()
+{
+    std::map<unsigned int, String> idkey;
+    File keyFile = String(SSI_IDKEY_FILE);
+    String keyList;
+    try {
+        keyFile >> keyList;
+        keyList += "\n";
+    } catch (...) {
+        dlog("ssi.keys file missing");
+        /* no file? that's ok; reset id index */
+        keyFile = String(SSI_IDKEY_IDX_FILE);
+        keyFile.write(0);
+    }
+    /* process the list to update cache */
+    while (keyList) {
+        unsigned int id;
+        String sid = keyList.left(":");
+        String key = keyList.between(sid + ":", "\n");
+        keyList = keyList.after(key + "\n");
+        try {
+            id = (unsigned int)(sid);
+            if (id == 0 || key == "") { /* bad line  - just skip */
+                dlog("bad line");
+                continue;
+            }
+            idkey.insert(std::make_pair(id, key));
+        } catch (...) {
+            /* just skip the line */
+            dlog(sid + " failed to convert to unsigned int");
+        }
+    }
+
+    return idkey;
+}
+
+unsigned int loadIdIndexFromFile()
+{
+    unsigned int id = 0;
+    File idIdxFile = String(SSI_IDKEY_IDX_FILE);
+    try {
+        idIdxFile >> id;
+    } catch (...) {
+        dlog("ssi.keys file missing");
+        /* no file? that's ok; */
+    }
+
+    return id;
+}
+
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

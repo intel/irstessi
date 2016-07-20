@@ -120,6 +120,11 @@ void ContextManager::remove(Object *pObject) {
 }
 
 /* */
+void ContextManager::removeId(Object *pObject) {
+    m_pUniqueIdMgr->removeId(pObject);
+}
+
+/* */
 void ContextManager::refresh()
 {
     m_pUniqueIdMgr->refresh();
