@@ -44,6 +44,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "block_device.h"
 #include "mdadm_config.h"
+#include "context_manager.h"
 
 #include "../log/log.h"
 
@@ -408,6 +409,7 @@ SSI_Status Array::remove()
     int n = 0;
     do {
         if (shellEx("mdadm -S '/dev/" + m_DevName  + "'") == 0) {
+            pContextMgr->removeId(this);
             String devices;
             foreach (i, m_BlockDevices) {
                 devices += " '/dev/" + (*i)->getDevName() + "'";

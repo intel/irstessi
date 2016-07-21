@@ -328,25 +328,18 @@ SSI_Status Volume::remove()
         status |= pArray->removeVolume(m_Ordinal);
     }
     if (status == SSI_StatusOk) {
+        pContextMgr->removeId(this);
         Container<Volume> volumes;
         pArray->getVolumes(volumes);
         if (volumes.size() > 1) {
-            status = SSI_StatusOk;
+            return SSI_StatusOk;
         }
         else {
-            status = pArray->remove();
+            return pArray->remove();
         }
     }
 
-    // remove volume and array ID from file irstessi.keys
-    if (status == SSI_StatusOk) {
-        pContextMgr->removeId(this);
-        pContextMgr->removeId(pArray);
-        return SSI_StatusOk;
-    }
-    else {
-        return SSI_StatusFailed;
-    }
+    return SSI_StatusFailed;
 }
 
 /* */
