@@ -139,7 +139,8 @@ void UniqueIdManager::removeId(Object *pObject)
     unsigned int id = pObject->getId();
 
     if (idKeyMap.find(id) == idKeyMap.end())
-        throw E_NOT_FOUND;
+        // nothing to remove
+        return;
 
     File keyFile(String(SSI_IDKEY_FILE));
     keyFile.write("");
