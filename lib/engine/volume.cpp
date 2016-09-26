@@ -25,6 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <string>
 #include <cstdio>
 #include <algorithm>
+#include <limits>
 
 #include <ssi.h>
 
@@ -238,6 +239,41 @@ SSI_StripSize Volume::getSsiStripSize() const
 /* */
 SSI_Status Volume::rebuild(EndDevice *pEndDevice)
 {
+    const unsigned long long volumeSize = getTotalSize();
+    unsigned long long requiredSize = std::numeric_limits<unsigned long long>::max();
+    switch (m_RaidLevel) {
+    case 1:
+    {
+        requiredSize = volumeSize;
+        break;
+    }
+    case 5:
+    {
+        Container<EndDevice> container;
+        getEndDevices(container, true);
+        if (container.size() == 0) {
+            return SSI_StatusInvalidParameter;
+        }
+        requiredSize = volumeSize/container.size();
+        break;
+    }
+    case 10:
+    {
+        requiredSize = volumeSize / 2;
+        break;
+    }
+    case 0:
+    default:
+        return SSI_StatusInvalidParameter;
+    }
+
+    if ((pEndDevice)->getTotalSize() < requiredSize) {
+        String errorMessage = "For RAID " + String(m_RaidLevel) +
+                              " minimum size is: " + String(requiredSize) +
+                              " and an actual size of the disk is: " + String(pEndDevice->getTotalSize());
+        setLastErrorMessage(errorMessage);
+        return SSI_StatusInvalidParameter;
+    }
     Array *pArray = dynamic_cast<Array *>(m_pParent);
     if (pArray == NULL) {
         return SSI_StatusFailed;
@@ -252,34 +288,35 @@ SSI_Status Volume::expand(unsigned long long newSize)
     if (m_State != SSI_VolumeStateNormal)
         return SSI_StatusInvalidState;
     /* calculate size depending on raid level */
-    switch(m_RaidLevel) {
+    switch (m_RaidLevel) {
     case 0:
         return SSI_StatusNotSupported;
-    case 1:
-        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2)
-        {
-            return SSI_StatusInvalidSize;
-        }
-        break;
-    case 10:
-        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2)
-        {
-            return SSI_StatusInvalidSize;
-        }
 
-        newSize /= 2;
+    case 1:
+        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2) {
+            return SSI_StatusInvalidSize;
+        }
         break;
+
     case 5:
-        if(m_BlockDevices.size() == 1) {
+        if (m_BlockDevices.size() == 1) {
             return SSI_StatusNotSupported;
         }
-        if (newSize && newSize < m_ComponentSize * (m_BlockDevices.size() - 1))
-        {
+        if (newSize && newSize < m_ComponentSize * (m_BlockDevices.size() - 1)) {
             return SSI_StatusInvalidSize;
         }
 
         newSize /= (m_BlockDevices.size() - 1);
         break;
+
+    case 10:
+        if (newSize && newSize < m_ComponentSize * m_BlockDevices.size() / 2) {
+            return SSI_StatusInvalidSize;
+        }
+
+        newSize /= 2;
+        break;
+
     default:
         return SSI_StatusNotSupported;
     }

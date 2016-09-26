@@ -46,7 +46,7 @@ public:
 
 public:
     SSI_Status writeStorageArea(void *pBuffer, unsigned int bufferSize);
-    SSI_Status  readStorageArea(void *pBuffer, unsigned int bufferSize);
+    SSI_Status readStorageArea(void *pBuffer, unsigned int bufferSize);
 
     // RaidDevice
 
