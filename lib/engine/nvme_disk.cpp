@@ -170,10 +170,18 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     }
 
     /* TODO: Requires testing on non-intel devices */
+    String vendorId;
     try {
         attr = "/sys/class/block/" + m_DevName + "/device/device/vendor";
-        attr >> m_VendorId;
+        attr >> vendorId;
     } catch (...) {
+    }
+
+    try {
+        unsigned int pos = vendorId.find("0x");
+        m_VendorId = vendorId.right(pos + sizeof("0x") - 1);
+    } catch (...) {
+        m_VendorId = vendorId;
     }
 
     m_BlocksFree = m_BlocksTotal;

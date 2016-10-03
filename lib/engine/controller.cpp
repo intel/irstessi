@@ -99,6 +99,7 @@ Controller::Controller(const String &path)
     }
     struct orom_info_ext *pInfo_ext = orom_get(m_PciDeviceId);
     struct orom_info *pInfo = &pInfo_ext->data;
+
     if (pInfo != NULL) {
         m_PrebootMgrVersion =
             String(pInfo->prod_ver.major) + String(".") +
@@ -113,23 +114,6 @@ Controller::Controller(const String &path)
         m_PhyLocate = pInfo->f_led_locate;
         m_DiskUnlock = pInfo->c_hdd_passwd;
         m_PatrolReadSupport = pInfo->f_read_patrol;
-
-        const u_int32_t NoKey = 0;
-        const u_int32_t StandardKey = 1;
-        const u_int32_t PremiumKey = 2;
-
-        switch (pInfo->f_sku_mode) {
-            case NoKey:
-                m_hardwareMode = SSI_HardwareKey3story;
-
-            case StandardKey:
-                m_hardwareMode = SSI_HardwareKeyVROCStandard;
-
-            case PremiumKey:
-                m_hardwareMode = SSI_HardwareKeyVROCPremium;
-        }
-
-        m_supportsTpv = pInfo->f_tpv == 1;
     }
 }
 

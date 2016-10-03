@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -11,9 +10,6 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-
-
 
 #if (HAVE_CONFIG_H == 1)
 #include <config.h>
@@ -37,7 +33,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 
 /* */
-EventManager::EventManager()
+EventManager::EventManager():
+    m_NotInitialized(true)
 {
 }
 
@@ -47,40 +44,48 @@ EventManager::~EventManager()
     foreach (i, m_Events) {
         pContextMgr->remove(*i);
     }
+
+    stopEventMonitor();
 }
 
 /* */
-int EventManager::startEventMonitor(void)
+void EventManager::startEventMonitor()
 {
     pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
 
-    if (pid <= 0)
-	return shell_command("ssieventmonitor --daemonise");
-    else
-	return 1;
+    if (pid <= 0) { /* not found or invalid pid file */
+        int ret = shell_command("ssieventmonitor --daemonise");
+        if (ret == 0) {
+            m_NotInitialized = false;
+        }
+    }
 }
 
 /* */
-int EventManager::stopEventMonitor(void)
+void EventManager::stopEventMonitor()
 {
-   pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
-   if (pid <= 0) /* not found or invalid pid file */
-       return 0;
+    pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
 
-   return kill(pid, SIGTERM);
+    if (pid > 0) { /* pid file found */
+        kill(pid, SIGTERM);
+    }
 }
+
 /* */
 unsigned int EventManager::registerEvent()
 {
     Event *pEvent;
     unsigned int eventId;
-    if (m_Events.size() == MAX_EVENT_HANDLES)
+    if (m_Events.size() == MAX_EVENT_HANDLES) {
         return SSI_NULL_HANDLE;
+    }
+
     try {
         pEvent = new Event();
     } catch (...) {
         return SSI_NULL_HANDLE; /* Out of memory */
     }
+
     try {
         pContextMgr->add(pEvent);
         m_Events.add(pEvent);
@@ -88,17 +93,19 @@ unsigned int EventManager::registerEvent()
         delete pEvent;
         return SSI_NULL_HANDLE; /* Out of resources */
     }
+
     try {
         pEvent->registerEvent();
         eventId = pEvent->getId();
     } catch (...) {
         unregisterEvent(pEvent->getId()); /* failed to create semaphore*/
-	return SSI_NULL_HANDLE;
+        return SSI_NULL_HANDLE;
     }
-    /* everything went OK, so start event trigger */
-    if (m_Events.size() != 0) {
-	startEventMonitor();
+
+    if (m_NotInitialized) {
+        startEventMonitor();
     }
+
     return eventId;
 }
 
@@ -108,6 +115,7 @@ SSI_Status EventManager::unregisterEvent(unsigned int id)
     if (id == 0) {
         return SSI_StatusInvalidHandle;
     }
+
     Event *pEvent;
     try {
         pEvent = m_Events.remove(id);
@@ -115,15 +123,12 @@ SSI_Status EventManager::unregisterEvent(unsigned int id)
     } catch (...) {
         return SSI_StatusInvalidHandle;
     }
-    /* everything went OK, so stop event trigger */
-    if (m_Events.size() == 0) {
-	stopEventMonitor();
-    }
+
     return SSI_StatusOk;
 }
 
 /* */
-Event * EventManager::getEvent(unsigned int id) const
+Event *EventManager::getEvent(unsigned int id) const
 {
     return m_Events.find(id);
 }

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -20,7 +20,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #define MDADM_CONFIG_PATH "/etc/mdadm.conf"
 
+void configuration_init();
 void check_configuration();
+void configuration_fini();
 void get_mdadm_version(char *buffer, size_t size);
 
 #endif /* __MDADM_CONFIG_H__INCLUDED__ */

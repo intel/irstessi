@@ -55,6 +55,31 @@ VMD::VMD(const String &path)
     m_Name = "VMD";
     m_DomainCount = 0;
     m_EndDevicesCount = 0;
+
+    struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
+    if (pInfo_ext != NULL) {
+        orom_info *pInfo = &pInfo_ext->data;
+
+        const u_int32_t NoKey = 0;
+        const u_int32_t StandardKey = 1;
+        const u_int32_t PremiumKey = 2;
+
+        switch (pInfo->f_sku_mode) {
+            case NoKey:
+                m_hardwareMode = SSI_HardwareKey3story;
+                break;
+
+            case StandardKey:
+                m_hardwareMode = SSI_HardwareKeyVROCStandard;
+                break;
+
+            case PremiumKey:
+                m_hardwareMode = SSI_HardwareKeyVROCPremium;
+                break;
+        }
+
+        m_supportsTpv = pInfo->f_tpv == 1;
+    }
 }
 
 /* */
