@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -126,7 +126,9 @@ struct orom_info {
             __u32 f_rhoi:1;
             __u32 f_read_patrol:1;
             __u32 f_hardware_xor:1;
-            __u32 f_reserved:24;
+            __u32 f_sku_mode:2;
+            __u32 f_tpv:1;
+            __u32 f_reserved:21;
         };
     };
 } __attribute__((packed));

@@ -494,6 +494,23 @@ typedef struct _SSI_Address
 } SSI_Address;
 
 /**
+ * @enum    SSI_HardwareKeyType
+ *
+ * @brief   Values that represent SKU modes in SSI.
+**/
+typedef enum _SSI_HardwareKeyType
+{
+    /** Unknown SKU mode */
+    SSI_Unknown_SKU = 0,
+    /** VMD 3-story SKU */
+    SSI_HardwareKey3story = 1,
+    /** VROC Standard SKU */
+    SSI_HardwareKeyVROCStandard = 2,
+    /** VROC Premium SKU */
+    SSI_HardwareKeyVROCPremium = 3
+} SSI_HardwareKeyType;
+
+/**
  * @struct  SSI_SystemInfo
  *
  * @brief   Structure defines overall library, driver info.
@@ -659,6 +676,10 @@ typedef struct _SSI_ControllerInfo
     SSI_Bool rohiSupport;
     /** If true, Rebuild on hot insert is enabled for this controller */
     SSI_Bool rohiEnabled;
+    /** type of sku mode */
+    SSI_HardwareKeyType hardwareSkuMode;
+    /** If true, 3rd Party Vendor disks are supported */
+    SSI_Bool supportsTPV;
 } SSI_ControllerInfo;
 
 /**
@@ -880,6 +901,12 @@ typedef enum _SSI_DiskState
     SSI_DiskStateNormal              = 6,
     /** Security is enabled (unable to read disk) */
     SSI_DiskStateLocked              = 7,
+    /** Disk is manually set to offline using user tools */
+    SSI_DiskStateManualOffline       = 8,
+    /** Disk is not supported */
+    SSI_DiskStateIncompatible        = 9,
+    /** Disk is not supported */
+    SSI_DiskStateUnsupported         = 10
 } SSI_DiskState;
 
 /**
@@ -937,6 +964,8 @@ typedef struct _SSI_EndDeviceInfo
     /** Associated storage pool this device */
     SSI_Uint32 storagePool;
 
+    /** Vendor Id reported by device */
+    SSI_Char vendorId[SSI_PRODUCT_ID_LENGTH];
     /** Serial number reported by device */
     SSI_Char serialNo[SSI_END_DEVICE_SERIALNO_LENGTH];
     /** Model number of device */
@@ -977,8 +1006,10 @@ typedef struct _SSI_EndDeviceInfo
     SSI_Bool Isx8A;
     /** Fultondale x8 disk */
     SSI_Bool Isx8B;
-    /** VMD domain index, if enddevice is attached to VMD controller */
+    /** VMD Domains Number */
     SSI_Uint32 vmdDomain;
+    /** Intel NVMe drive */
+    SSI_Bool IsIntelNVMe;
 } SSI_EndDeviceInfo;
 
 /**

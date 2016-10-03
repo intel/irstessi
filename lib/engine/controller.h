@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -115,6 +115,9 @@ protected:
     bool m_PatrolReadSupport;
     bool m_ROHISupport;
 
+    SSI_HardwareKeyType m_hardwareMode;
+    bool m_supportsTpv;
+
     virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeUnknown;
     }
@@ -130,6 +133,11 @@ public:
     Controller * getController() const {
         return const_cast<Controller *>(this);
     }
+
+    SSI_HardwareKeyType getHardwareMode() const {
+        return m_hardwareMode;
+    }
+
     SSI_Status makeSpare(EndDevice *pEndDevice);
     void getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container);
 };

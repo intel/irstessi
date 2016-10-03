@@ -37,6 +37,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "end_device.h"
 #include "block_device.h"
 #include "nvme_disk.h"
+#include "controller.h"
 
 extern "C" {
 #include "lib/safeclib/safe_mem_lib.h"
@@ -65,7 +66,7 @@ namespace {
         return 0;
     }
 
-    template< typename T>
+    template <typename T>
     void from_hex(const String& value, T& result)
     {
         unsigned int x;
@@ -80,7 +81,7 @@ void NVME_Disk::identify()
     struct nvme_admin_cmd cmd;
     struct nvme_id_ctrl ptr;
 
-    int fd=0;
+    int fd = 0;
     memset_s(&cmd, sizeof(cmd), 0);
     cmd.opcode = NVME_ADMIN_IDENTIFY_OPT_CODE;
     cmd.nsid = 0;
@@ -88,9 +89,11 @@ void NVME_Disk::identify()
     cmd.data_len = 4096;
     cmd.cdw10 = 1;
     fd = open("/dev/" + m_DevName, O_RDONLY);
-    if(fd < 0)
+    if (fd < 0) {
         return;
-    if (!ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd)){
+    }
+
+    if (!ioctl(fd, NVME_IOCTL_ADMIN_CMD, &cmd)) {
         char sn[sizeof(ptr.sn) + 1] = { 0 };
         char mn[sizeof(ptr.mn) + 1] = { 0 };
         char fr[sizeof(ptr.fr) + 1] = { 0 };
@@ -110,19 +113,21 @@ void NVME_Disk::identify()
 NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     : BlockDevice(path)
 {
+    const String IntelVendorTag = "0x8086";
+
     Directory dir("/sys/class/nvme");
     CanonicalPath temp;
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
         temp = *(*i) + "device";
         if (temp == m_Path) {
-            //FIXME: search for other NVMe namespaces
+            /* FIXME: search for other NVMe namespaces */
             m_DevName = (*i)->reverse_after("/") + "n1";
             break;
         }
     }
 
-    // clear scsi address for nvme since it's trash
+    /* clear scsi address for nvme since it's trash */
     m_SCSIAddress.host = 0;
     m_SCSIAddress.bus = 0;
     m_SCSIAddress.target = 0;
@@ -164,9 +169,20 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     } catch (...) {
     }
 
+    /* TODO: Requires testing on non-intel devices */
+    try {
+        attr = "/sys/class/block/" + m_DevName + "/device/device/vendor";
+        attr >> m_VendorId;
+    } catch (...) {
+    }
+
     m_BlocksFree = m_BlocksTotal;
     m_FDx8Disk = whichFultondalex8Disk(m_SerialNum);
     m_vmdDomain = vmdDomain;
+
+    if (m_VendorId == IntelVendorTag) {
+        m_isIntelNvme = true;
+    }
 
     __internal_determine_disk_state();
     __internal_determine_disk_usage();

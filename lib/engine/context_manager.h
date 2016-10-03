@@ -59,7 +59,7 @@ private:
     SessionManager *m_pSessionMgr;
     EventManager *m_pEventMgr;
     UniqueIdManager *m_pUniqueIdMgr;
-    void operator = (const ContextManager&) { };
+    void operator = (const ContextManager&) {}
 };
 
 /* */

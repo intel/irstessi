@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -67,7 +67,9 @@ Controller::Controller(const String &path)
       m_PhyLocate(false),
       m_DiskUnlock(false),
       m_PatrolReadSupport(false),
-      m_ROHISupport(false)
+      m_ROHISupport(false),
+      m_hardwareMode(SSI_Unknown_SKU),
+      m_supportsTpv(false)
 {
     File attr;
     struct PCIHeader pciInfo;
@@ -111,6 +113,23 @@ Controller::Controller(const String &path)
         m_PhyLocate = pInfo->f_led_locate;
         m_DiskUnlock = pInfo->c_hdd_passwd;
         m_PatrolReadSupport = pInfo->f_read_patrol;
+
+        const u_int32_t NoKey = 0;
+        const u_int32_t StandardKey = 1;
+        const u_int32_t PremiumKey = 2;
+
+        switch (pInfo->f_sku_mode) {
+            case NoKey:
+                m_hardwareMode = SSI_HardwareKey3story;
+
+            case StandardKey:
+                m_hardwareMode = SSI_HardwareKeyVROCStandard;
+
+            case PremiumKey:
+                m_hardwareMode = SSI_HardwareKeyVROCPremium;
+        }
+
+        m_supportsTpv = pInfo->f_tpv == 1;
     }
 }
 
@@ -186,6 +205,9 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
         m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
     pInfo->rohiEnabled = SSI_FALSE;
     pInfo->rohiSupport = m_ROHISupport ? SSI_TRUE : SSI_FALSE;
+
+    pInfo->hardwareSkuMode = m_hardwareMode;
+    pInfo->supportsTPV = m_supportsTpv ? SSI_TRUE : SSI_FALSE;
 
     return SSI_StatusOk;
 }

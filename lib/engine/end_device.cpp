@@ -116,6 +116,7 @@ EndDevice::EndDevice(const EndDevice &endDevice)
 /* */
 EndDevice::EndDevice(const String &path)
     : StorageDevice(path),
+      m_VendorId(""),
       m_SerialNum(""),
       m_pPhy(NULL),
       m_pPort(NULL),
@@ -133,7 +134,8 @@ EndDevice::EndDevice(const String &path)
       m_systemIoBusNumer(0),
       m_PCISlotNumber(0),
       m_FDx8Disk(0),
-      m_vmdDomain(0)
+      m_vmdDomain(0),
+      m_isIntelNvme(false)
 {
     m_pPhy = new Phy(path, 0, this);
     m_pPort = new RemotePort(path);
@@ -218,8 +220,7 @@ EndDevice::EndDevice(const String &path)
         attr >> m_BlocksTotal;
         m_BlocksTotal /= (m_LogicalSectorSize / DEFAULT_SECTOR_SIZE);
         m_TotalSize = (unsigned long long) m_BlocksTotal * m_LogicalSectorSize;
-    }
-    catch(...) {
+    } catch (...) {
     }
 
     getAtaDiskInfo("/dev/"+ m_DevName, m_Model, m_SerialNum, m_Firmware);
@@ -231,13 +232,15 @@ EndDevice::EndDevice(const String &path)
     if (fd >= 0) {
         struct hd_driveid id;
         if (ioctl(fd, HDIO_GET_IDENTITY, &id) >= 0) {
-        if (m_SerialNum.isEmpty()) {
-        m_SerialNum.assign(reinterpret_cast<char *>(id.serial_no), sizeof(id.serial_no));
-        m_SerialNum.trim();
-        }
+            if (m_SerialNum.isEmpty()) {
+                m_SerialNum.assign(reinterpret_cast<char*>(id.serial_no), sizeof(id.serial_no));
+                m_SerialNum.trim();
+            }
+
             if ((id.command_set_1 & id.cfs_enable_1) != 0) {
                 m_WriteCachePolicy = SSI_WriteCachePolicyOn;
             }
+
             hdioNotSupported = false;
         }
         close(fd);
@@ -335,12 +338,14 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     } else {
         pInfo->controllerHandle = SSI_NULL_HANDLE;
     }
+
     RaidInfo *pRaidInfo = getRaidInfo();
     if (pRaidInfo != NULL) {
         pInfo->raidInfoHandle = pRaidInfo->getId();
     } else {
         pInfo->raidInfoHandle = SSI_NULL_HANDLE;
     }
+
     pInfo->storagePool = getStoragePoolId();
     Array *pArray = getArray();
     if (pArray != NULL) {
@@ -348,6 +353,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     } else {
         pInfo->arrayHandle = SSI_NULL_HANDLE;
     }
+
     Enclosure *pEnclosure = getEnclosure();
     if (pEnclosure != NULL) {
         pInfo->enclosureHandle = pEnclosure->getId();
@@ -363,6 +369,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
         pInfo->slotAddress.sasAddress = 0;
     }
 
+    m_VendorId.get(pInfo->vendorId, sizeof(pInfo->vendorId));
     m_SerialNum.get(pInfo->serialNo, sizeof(pInfo->serialNo));
     m_Model.get(pInfo->model, sizeof(pInfo->model));
     m_Firmware.get(pInfo->firmware, sizeof(pInfo->firmware));
@@ -382,7 +389,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
         pInfo->systemDisk = SSI_FALSE;
     }
     pInfo->slotNumber = getSlotNumber();
-    pInfo->locateLEDSupport = SSI_TRUE;     //Like in Windows SSI. If disk is connected to Intel controller it should be true and all detected controllers are Intel's.
+    pInfo->locateLEDSupport = SSI_TRUE;     /* Like in Windows SSI. If disk is connected to Intel controller it should be true and all detected controllers are Intel's. */
     pInfo->isPreBootVisible = pEnclosure ? SSI_FALSE : SSI_TRUE;
     pInfo->ledState = m_ledState;
     pInfo->systemIoBusNumber = m_systemIoBusNumer;
@@ -399,6 +406,8 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 
     /* VMD domain */
     pInfo->vmdDomain = getVmdDomain();
+
+    pInfo->IsIntelNVMe = m_isIntelNvme ? SSI_TRUE : SSI_FALSE;
 
     return SSI_StatusOk;
 }

@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -76,13 +76,13 @@ void NVME::getAddress(SSI_Address &address) const
 
 RaidInfo *NVME::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
-	foreach(i,RaidInfos){
-		if ((*i)->getControllerType() == SSI_ControllerTypeNVME) {
-			m_pRaidInfo = (*i);
-			(*i)->attachController(this);
-			return NULL;
-		}
-	}
+    foreach (i, RaidInfos) {
+        if ((*i)->getControllerType() == SSI_ControllerTypeNVME) {
+            m_pRaidInfo = (*i);
+            (*i)->attachController(this);
+            return NULL;
+        }
+    }
     m_pRaidInfo = new NVME_RaidInfo(this);
     return m_pRaidInfo;
 }

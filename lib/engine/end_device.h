@@ -73,6 +73,7 @@ public:
     // EndDevice
 
 protected:
+    String m_VendorId;
     String m_SerialNum;
     String m_SgName;
     Phy *m_pPhy;
@@ -94,6 +95,7 @@ protected:
     unsigned long long m_PCISlotNumber;
     unsigned int m_FDx8Disk;
     unsigned int m_vmdDomain;
+    bool m_isIntelNvme;
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
@@ -113,6 +115,10 @@ public:
 
     unsigned int getPhysicalSectorSize() const {
         return m_PhysicalSectorSize;
+    }
+
+    String getVendorId() const {
+        return m_VendorId;
     }
 
     String getSerialNum() const {
