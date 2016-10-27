@@ -28,9 +28,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "object.h"
 #include "session.h"
-#include "unique_id_manager.h"
+#include "handle_manager.h"
 #include "session_manager.h"
-#include "context_manager.h"
 #include "utils.h"
 
 /* */
@@ -41,49 +40,50 @@ SessionManager::SessionManager()
 /* */
 SessionManager::~SessionManager()
 {
-    foreach (i, m_Sessions)
-        pContextMgr->remove(*i);
+    for (HandleManager::iterator iter = m_sessions.begin(); iter != m_sessions.end(); ++iter) {
+        delete iter->second;
+    }
 }
 
 /* */
-Session * SessionManager::getSession(unsigned int id)
+Session* SessionManager::getSession(SSI_Handle handle) const
 {
-    return m_Sessions.find(id);
+    return const_cast<Session*>(static_cast<const Session*>(m_sessions.at(handle)));
 }
 
 /* */
-unsigned int SessionManager::openSession()
+SSI_Handle SessionManager::openSession()
 {
     Session *pSession;
+
     try {
         pSession = new Session();
     } catch (...) {
-        return 0; /* Out of memory, no more sessions allowed. */
+        return SSI_NULL_HANDLE;
     }
-    try {
-        pContextMgr->add(pSession);
-        m_Sessions.add(pSession);
-        return pSession->getId();
-    } catch (...) {
+
+    if (!m_sessions.insert(pSession).second) { /* Out of resources */
         delete pSession;
-        return 0; /* Out of resources, no more sessions allowed. */
+        return SSI_NULL_HANDLE;
     }
+
+    return pSession->getHandle();
 }
 
 /* */
-SSI_Status SessionManager::closeSession(unsigned int id)
+SSI_Status SessionManager::closeSession(SSI_Handle handle)
 {
-    if (id == 0) {
+    if (handle == SSI_NULL_HANDLE) {
         return SSI_StatusInvalidParameter;
     }
-    Session *pSession;
-    try {
-        pSession = m_Sessions.remove(id);
-        pContextMgr->remove(pSession);
-        delete pSession;
-    } catch (...) {
-        return SSI_StatusInvalidParameter;
+
+    Object *pSession = m_sessions.remove(handle);
+
+    if (pSession == NULL) {
+        return SSI_StatusInvalidHandle;
     }
+
+    delete pSession;
     return SSI_StatusOk;
 }
 

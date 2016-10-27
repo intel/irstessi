@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "templates.h"
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Phy> &container)
+static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Phy> &container)
 {
     pScopeObject->getPhys(container);
 }

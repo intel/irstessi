@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -50,39 +50,47 @@ Phy::~Phy()
 {
 }
 
+String Phy::getId() const
+{
+    return "ph:" + m_pParent->getPartId() + "/" + String(m_Number);
+}
+
 /* */
 SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
 {
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->phyHandle = pInfo->uniqueId = getId();
+    pInfo->phyHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
     pInfo->protocol = m_Protocol;
     if (m_pPort != NULL) {
-        pInfo->associatedPort = m_pPort->getId();
+        pInfo->associatedPort = m_pPort->getHandle();
     } else {
         pInfo->associatedPort = SSI_NULL_HANDLE;
     }
 
-    if (dynamic_cast<Controller *>(m_pParent))
+    if (dynamic_cast<Controller *>(m_pParent)) {
         pInfo->deviceType = SSI_DeviceTypeController;
-    else if (dynamic_cast<EndDevice *>(m_pParent))
+    } else if (dynamic_cast<EndDevice *>(m_pParent)) {
         pInfo->deviceType = SSI_DeviceTypeEndDevice;
-    else if (dynamic_cast<RoutingDevice *>(m_pParent))
+    } else if (dynamic_cast<RoutingDevice *>(m_pParent)) {
         pInfo->deviceType = SSI_DeviceTypeRoutingDevice;
-    else
+    } else {
         pInfo->deviceType = SSI_DeviceTypeUnknown;
+    }
 
-    pInfo->deviceHandle = m_pParent->getId();
+    pInfo->deviceHandle = m_pParent->getHandle();
     pInfo->isExternal = SSI_FALSE;
     pInfo->hotPlugCap = SSI_FALSE;
 
-    if (dynamic_cast<EndDevice *>(m_pParent))
+    if (dynamic_cast<EndDevice *>(m_pParent)) {
         fetchSpeeds(pInfo);
-    else
+    } else {
         setSpeeds(pInfo);
+    }
 
     pInfo->countsValid = SSI_FALSE;
     return SSI_StatusOk;
@@ -106,8 +114,9 @@ void Phy::fetchSpeeds(SSI_PhyInfo *pInfo) const
         if (pPort != NULL) {
             Container<Phy> container;
             pPort->getPhys(container);
-            foreach (i, container)
+            foreach (i, container) {
                 (*i)->setSpeeds(pInfo);
+            }
         }
     }
 }
@@ -269,12 +278,6 @@ bool Phy::operator ==(const Object &object) const
     const Phy *pPhy = dynamic_cast<const Phy *>(&object);
     return pPhy != NULL &&
         *m_pParent == *pPhy->m_pParent && m_Number == pPhy->m_Number;
-}
-
-/* */
-String Phy::getKey() const
-{
-    return m_pParent->getKey() + String(m_Number);
 }
 
 /* */

@@ -52,6 +52,8 @@ libengine_la_SOURCES =          \
         exception.h             \
         filesystem.cpp          \
         filesystem.h            \
+        handle_manager.cpp      \
+        handle_manager.h        \
         isci.cpp                \
         isci.h                  \
         isci_cdrom.cpp          \
@@ -114,8 +116,6 @@ libengine_la_SOURCES =          \
         stream_device.h         \
         string.cpp              \
         string.h                \
-        unique_id_manager.cpp   \
-        unique_id_manager.h     \
         utils.cpp               \
         utils.h                 \
         volume.cpp              \

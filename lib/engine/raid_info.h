@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -38,9 +38,8 @@ public:
     // Object
 
 public:
-	String getKey() const {
-        return m_OromDevId;
-	}
+    virtual String getId() const;
+
     // ScopeObject
 
 public:
@@ -53,11 +52,11 @@ public:
     // RaidInfo
 
 public:
-    Container<Controller> m_Controllers;
+    Controller* m_Controller;
     unsigned int m_OromDevId;
     struct orom_info * m_pInfo;
     void attachController(Controller *pController) {
-        m_Controllers.add(pController);
+        m_Controller = pController;
     }
     void addToSession(Session *pSession);
 

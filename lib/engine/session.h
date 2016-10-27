@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -38,6 +38,7 @@ class Enclosure;
 class Phy;
 class Controller;
 class RaidInfo;
+class StorageObject;
 
 /* */
 class Session : public ScopeObject {
@@ -94,21 +95,20 @@ private:
     void __internal_attach_imsm_device(const String &path);
 
 public:
-    ScopeObject * getObject(unsigned int id);
-    StorageDevice * getDevice(unsigned int id) const;
-    EndDevice * getEndDevice(unsigned int id) const;
-    Array * getArray(unsigned int id) const;
-    RoutingDevice * getRoutingDevice(unsigned int id) const;
-    Enclosure * getEnclosure(unsigned int id) const;
-    Phy * getPhy(unsigned int id) const;
-    Volume * getVolume(unsigned int id) const;
-    Port * getPort(unsigned int id) const;
-    Controller * getController(unsigned int id) const;
-    RaidInfo * getRaidInfo(unsigned int id) const;
+    ScopeObject * getObject(SSI_Handle handle);
+    StorageDevice * getDevice(SSI_Handle handle) const;
+    EndDevice * getEndDevice(SSI_Handle handle) const;
+    Array * getArray(SSI_Handle handle) const;
+    RoutingDevice * getRoutingDevice(SSI_Handle handle) const;
+    Enclosure * getEnclosure(SSI_Handle handle) const;
+    Phy * getPhy(SSI_Handle handle) const;
+    Volume * getVolume(SSI_Handle handle) const;
+    Port * getPort(SSI_Handle handle) const;
+    Controller * getController(SSI_Handle handle) const;
+    RaidInfo * getRaidInfo(SSI_Handle handle) const;
 
 public:
     bool operator ==(const Object &object) const;
-    String getKey() const;
 
     void addEndDevice(EndDevice *pEndDevice);
     void addArray(Array *pArray);

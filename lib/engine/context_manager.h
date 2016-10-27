@@ -22,15 +22,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __CONTEXT_H__INCLUDED__
 #define __CONTEXT_H__INCLUDED__
 
-// Forward declarations
-class SessionManager;
-class EventManager;
-class UniqueIdManager;
-
-// Forward declarations
-class Object;
-class Event;
-class Session;
+#include "handle_manager.h"
+#include "event_manager.h"
+#include "session_manager.h"
 
 /* */
 class ContextManager {
@@ -39,26 +33,24 @@ public:
     ~ContextManager();
 
 public:
-    SSI_Status closeSession(unsigned int id);
-    unsigned int openSession();
-    Session * getSession(unsigned int id) const;
+    SSI_Status closeSession(SSI_Handle handle);
+    SSI_Handle openSession();
+    Session * getSession(SSI_Handle handle) const;
 
-    SSI_Status unregisterEvent(unsigned int id);
-    unsigned int registerEvent();
-    Event * getEvent(unsigned int id) const;
+    SSI_Status unregisterEvent(SSI_Handle handle);
+    SSI_Handle registerEvent();
+    Event * getEvent(SSI_Handle handle) const;
 
-    void add(Object *pObejct);
+    bool add(Object *pObejct);
     void remove(Object *pObject);
-    void removeId(Object *pObject);
-    void refresh();
 
     SSI_Status getSystemInfo(SSI_SystemInfo *) const;
 
 private:
-    ContextManager(const ContextManager& contextManager) { /* do not create copies */ }
-    SessionManager *m_pSessionMgr;
-    EventManager *m_pEventMgr;
-    UniqueIdManager *m_pUniqueIdMgr;
+    ContextManager(const ContextManager&) { /* do not create copies */ }
+    SessionManager m_SessionMgr;
+    EventManager m_EventMgr;
+    HandleManager m_HandleMgr;
     void operator = (const ContextManager&) {}
 };
 

@@ -38,7 +38,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "templates.h"
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Array> &container)
+static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Array> &container)
 {
     pScopeObject->getArrays(container);
 }
@@ -49,22 +49,19 @@ static Array * getItem(Session *pSession, SSI_Handle handle)
 }
 
 /* */
-SSI_Status SsiGetArrayHandles(SSI_Handle session, SSI_ScopeType scopeType,
-    SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
+SSI_Status SsiGetArrayHandles(SSI_Handle session, SSI_ScopeType scopeType, SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
 {
     return SsiGetHandles(session, scopeType, scopeHandle, handleList, handleCount, getItems);
 }
 
 /* */
-SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle,
-    SSI_ArrayInfo *arrayInfo)
+SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle, SSI_ArrayInfo *arrayInfo)
 {
     return SsiGetInfo(session, arrayHandle, arrayInfo, getItem);
 }
 
 /* */
-SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
-    SSI_Uint32 diskHandleCount)
+SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, SSI_Uint32 diskHandleCount)
 {
     TemporarySession session;
     if (!session.isValid()) {
@@ -77,7 +74,11 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     }
 
     Container<Volume> volumes;
-    pArray->getVolumes(volumes);
+    try {
+        pArray->getVolumes(volumes);
+    } catch (...) {
+        return SSI_StatusInsufficientResources;
+    }
 
     bool isRaid0 = true;
     foreach (iter, volumes) {
@@ -86,9 +87,9 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
         SSI_RaidLevel raid = volume.getSsiRaidLevel();
         if (raid == SSI_Raid1 || raid == SSI_Raid10) {
             return SSI_StatusInvalidRaidLevel;
-        } else if (raid != SSI_Raid0) {
-            isRaid0 = false;
         }
+
+        isRaid0 = (raid == SSI_Raid0);
     }
 
     if (diskHandles == NULL) {
@@ -100,35 +101,41 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
     }
 
     Container<EndDevice> enddevices;
-    pArray->getEndDevices(enddevices, true);
+    try {
+        pArray->getEndDevices(enddevices, true);
+    } catch (...) {
+        return SSI_StatusInsufficientResources;
+    }
 
     if (enddevices.empty()) {
         return SSI_StatusInternalError;
     }
 
     unsigned int blockSize = enddevices.front()->getLogicalSectorSize();
-    try {
-        Container<EndDevice> container;
-        for (unsigned int i = 0; i < diskHandleCount; i++) {
-            EndDevice *pEndDevice = session->getEndDevice(diskHandles[i]);
-            if (pEndDevice == NULL) {
-                return SSI_StatusInvalidHandle;
-            }
-
-            if (!isRaid0 && pEndDevice->isFultondalex8()) {
-                return SSI_StatusNotSupported;
-            }
-
-            if (pEndDevice->getLogicalSectorSize() != blockSize) {
-                return SSI_StatusNotSupported;
-            }
-
-            container.add(pEndDevice);
+    Container<EndDevice> container;
+    for (unsigned int i = 0; i < diskHandleCount; i++) {
+        EndDevice *pEndDevice = session->getEndDevice(diskHandles[i]);
+        if (pEndDevice == NULL) {
+            return SSI_StatusInvalidHandle;
         }
 
+        if (!isRaid0 && pEndDevice->isFultondalex8()) {
+            return SSI_StatusNotSupported;
+        }
+
+        if (pEndDevice->getLogicalSectorSize() != blockSize) {
+            return SSI_StatusNotSupported;
+        }
+
+        if (SSI_Status status = container.add(pEndDevice)) {
+            return status;
+        }
+    }
+
+    try {
         return pArray->grow(container);
     } catch (...) {
-        return SSI_StatusBufferTooSmall;
+        return SSI_StatusInternalError;
     }
 }
 

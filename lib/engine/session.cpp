@@ -46,6 +46,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "routing_device.h"
 #include "raid_info.h"
+#include "handle_manager.h"
 #include "session_manager.h"
 #include "ahci.h"
 #include "isci.h"
@@ -63,7 +64,6 @@ Session::Session()
     Directory dir;
     std::list<Directory *> dirs;
     dlog("Open session");
-    pContextMgr->refresh();
     dir = "/sys/bus/pci/drivers/ahci";
     dirs = dir.dirs();
     foreach (i, dirs) {
@@ -158,44 +158,38 @@ bool Session::operator ==(const Object &object) const
 }
 
 /* */
-String Session::getKey() const
+ScopeObject * Session::getObject(SSI_Handle handle)
 {
-    return (unsigned long long)(this);
-}
-
-/* */
-ScopeObject * Session::getObject(unsigned int id)
-{
-    if (id == 0)
+    if (handle == SSI_NULL_HANDLE)
         return this;
 
     ScopeObject *pObject;
     try {
-        pObject = m_EndDevices.find(id);
+        pObject = m_EndDevices.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_Arrays.find(id);
+        pObject = m_Arrays.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_Enclosures.find(id);
+        pObject = m_Enclosures.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_Phys.find(id);
+        pObject = m_Phys.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_Volumes.find(id);
+        pObject = m_Volumes.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_Ports.find(id);
+        pObject = m_Ports.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_RoutingDevices.find(id);
+        pObject = m_RoutingDevices.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_RaidInfo.find(id);
+        pObject = m_RaidInfo.find(handle);
         if (pObject)
             return pObject;
-        pObject = m_Controllers.find(id);
+        pObject = m_Controllers.find(handle);
         if (pObject)
             return pObject;
     } catch (...) {
@@ -206,77 +200,80 @@ ScopeObject * Session::getObject(unsigned int id)
 }
 
 /* */
-RaidInfo * Session::getRaidInfo(unsigned int id) const
+RaidInfo * Session::getRaidInfo(SSI_Handle handle) const
 {
-    return m_RaidInfo.find(id);
+    return m_RaidInfo.find(handle);
 }
 
 /* */
-Array * Session::getArray(unsigned int id) const
+Array * Session::getArray(SSI_Handle handle) const
 {
-    return m_Arrays.find(id);
+    return m_Arrays.find(handle);
 }
 
 /* */
-Controller * Session::getController(unsigned int id) const
+Controller * Session::getController(SSI_Handle handle) const
 {
-    return m_Controllers.find(id);
+    return m_Controllers.find(handle);
 }
 
 /* */
-StorageDevice * Session::getDevice(unsigned int id) const
+StorageDevice * Session::getDevice(SSI_Handle handle) const
 {
     StorageDevice *pResult;
 
-    pResult = m_Arrays.find(id);
-    if (pResult)
+    pResult = m_Arrays.find(handle);
+    if (pResult) {
         return pResult;
+    }
 
-    pResult = m_EndDevices.find(id);
-    if (pResult)
+    pResult = m_EndDevices.find(handle);
+    if (pResult) {
         return pResult;
+    }
 
-    pResult = m_Volumes.find(id);
-    if (pResult)
+    pResult = m_Volumes.find(handle);
+    if (pResult) {
         return pResult;
+    }
 
     return pResult;
 }
 
 /* */
-Phy * Session::getPhy(unsigned int id) const
+Phy * Session::getPhy(SSI_Handle handle) const
 {
-    return m_Phys.find(id);
+    return m_Phys.find(handle);
 }
 
 /* */
-Port * Session::getPort(unsigned int id) const
+Port * Session::getPort(SSI_Handle handle) const
 {
-    return m_Ports.find(id);
+    return m_Ports.find(handle);
 }
 
 /* */
-RoutingDevice * Session::getRoutingDevice(unsigned int id) const
+RoutingDevice * Session::getRoutingDevice(SSI_Handle handle) const
 {
-    return m_RoutingDevices.find(id);
+    return m_RoutingDevices.find(handle);
 }
 
 /* */
-Volume * Session::getVolume(unsigned int id) const
+Volume * Session::getVolume(SSI_Handle handle) const
 {
-    return m_Volumes.find(id);
+    return m_Volumes.find(handle);
 }
 
 /* */
-Enclosure * Session::getEnclosure(unsigned int id) const
+Enclosure * Session::getEnclosure(SSI_Handle handle) const
 {
-    return m_Enclosures.find(id);
+    return m_Enclosures.find(handle);
 }
 
 /* */
-EndDevice * Session::getEndDevice(unsigned int id) const
+EndDevice * Session::getEndDevice(SSI_Handle handle) const
 {
-    return m_EndDevices.find(id);
+    return m_EndDevices.find(handle);
 }
 
 /* */

@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -21,9 +21,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #ifndef __UTILS_H__INCLUDED__
 #define __UTILS_H__INCLUDED__
-
-#define SSI_IDKEY_FILE "/var/lib/misc/irstessi.keys"
-#define SSI_IDKEY_IDX_FILE "/var/lib/misc/irstessi.idx"
 
 #include <vector>
 #include <map>
@@ -93,9 +90,6 @@ inline unsigned int sg_make_int(unsigned char *s) {
 }
 
 void check_dots(String &s);
-
-std::map<unsigned int, String> loadIdsFromFile();
-unsigned int loadIdIndexFromFile();
 
 #endif /* __UTILS_H__INCLUDED__ */
 

@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -44,7 +44,7 @@ SSI_Status Container::getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize)
         status = SSI_StatusBufferTooSmall;
     } else {
         for (Iterator<Object *> i = first(); *i != 0; ++i, ++pBuffer) {
-            *pBuffer = (*i)->getId();
+            *pBuffer = (*i)->getHandle();
         }
     }
     *bufferSize = m_Count;
@@ -52,19 +52,19 @@ SSI_Status Container::getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize)
 }
 
 /* */
-Object * Container::find(unsigned int id) const
+Object * Container::find(SSI_Handle handle) const
 {
     Iterator<Object *> i;
-    for (i = first(); *i != 0 && (*i)->getId() != id; ++i) {
+    for (i = first(); *i != 0 && (*i)->getHandle() != handle; ++i) {
     }
     return *i;
 }
 
 /* */
-Object * Container::remove(unsigned int id)
+Object * Container::remove(SSI_Handle)
 {
     Iterator<Object *> i;
-    for (i = first(); *i != 0 && (*i)->getId() != id; ++i) {
+    for (i = first(); *i != 0 && (*i)->getHandle() != handle; ++i) {
     }
     Object *pObject = *i;
     if (pObject) {

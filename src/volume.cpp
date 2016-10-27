@@ -42,7 +42,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 
 namespace {
-    void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Volume> &container)
+    void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Volume> &container)
     {
         pScopeObject->getVolumes(container);
     }
@@ -54,15 +54,13 @@ namespace {
 }
 
 /* */
-SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType,
-                               SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
+SSI_Status SsiGetVolumeHandles(SSI_Handle session, SSI_ScopeType scopeType, SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount)
 {
     return SsiGetHandles(session, scopeType, scopeHandle, handleList, handleCount, getItems);
 }
 
 /* */
-SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle,
-                            SSI_VolumeInfo *volumeInfo)
+SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle, SSI_VolumeInfo *volumeInfo)
 {
     return SsiGetInfo(session, volumeHandle, volumeInfo, getItem);
 }
@@ -360,8 +358,7 @@ SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 }
 
 /* */
-SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle,
-                                   SSI_VolumeCachePolicy policy)
+SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle, SSI_VolumeCachePolicy policy)
 {
     Volume *pVolume = NULL;
     if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {

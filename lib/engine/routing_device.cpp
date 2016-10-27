@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -47,6 +47,16 @@ RoutingDevice::RoutingDevice(const String &path)
 /* */
 RoutingDevice::~RoutingDevice()
 {
+}
+
+String RoutingDevice::getId() const
+{
+    return "ro:" + getPartId();
+}
+
+String RoutingDevice::getPartId() const
+{
+    return m_ComponentId;
 }
 
 /* */
@@ -99,8 +109,9 @@ void RoutingDevice::getRoutingDevices(Container<RoutingDevice> &container, bool 
 void RoutingDevice::getEnclosures(Container<Enclosure> &container, bool all) const
 {
     Controller *pController = getController();
-    if (pController)
+    if (pController) {
         pController->getEnclosures(const_cast<RoutingDevice *>(this), container);
+    }
 }
 
 /* */
@@ -115,13 +126,14 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->routingDeviceHandle = pInfo->uniqueId = getId();
+    pInfo->routingDeviceHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     pInfo->routingDeviceType = getRoutingDeviceType();
     getAddress(pInfo->routingDeviceAddress);
 
     Enclosure *pEnclosure = getEnclosure();
     if (pEnclosure != NULL) {
-        pInfo->enclosureHandle = pEnclosure->getId();
+        pInfo->enclosureHandle = pEnclosure->getHandle();
     } else {
         pInfo->enclosureHandle = SSI_NULL_HANDLE;
     }

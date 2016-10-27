@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -32,11 +32,8 @@ public:
     bool operator ==(const Object &object) const {
         return &object == this;
     }
-    String getKey() const {
-        return (unsigned long long)(this);
-    }
     SSI_Status wait(unsigned int timeout);
-    void registerEvent();
+    bool registerEvent();
 
 protected:
     int m_semId;

@@ -42,17 +42,17 @@ SSI_Status SsiSessionOpen(SSI_Handle *pSession)
     if (pSession == NULL) {
         return SSI_StatusInvalidParameter;
     }
+
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    try {
-        *pSession = pContextMgr->openSession();
-        if (*pSession != 0) {
-            return SSI_StatusOk;
-        }
-    } catch (...) {
-        // Intentionally left blank
+
+    *pSession = pContextMgr->openSession();
+
+    if (*pSession != SSI_NULL_HANDLE) {
+        return SSI_StatusOk;
     }
+
     return SSI_StatusInsufficientResources;
 }
 
@@ -62,11 +62,8 @@ SSI_Status SsiSessionClose(SSI_Handle session)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    try {
-        return pContextMgr->closeSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
+
+    return pContextMgr->closeSession(session);
 }
 
 SSI_Status getSession(SSI_Handle session, Session **pSession)
@@ -74,15 +71,13 @@ SSI_Status getSession(SSI_Handle session, Session **pSession)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    try {
-        *pSession = pContextMgr->getSession(session);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
+
+    *pSession = pContextMgr->getSession(session);
+
     if (*pSession == NULL) {
-        return session == SSI_NULL_HANDLE
-                ? SSI_StatusFailed : SSI_StatusInvalidSession;
+        return session == SSI_NULL_HANDLE ? SSI_StatusFailed : SSI_StatusInvalidSession;
     }
+
     return SSI_StatusOk;
 }
 
@@ -92,7 +87,13 @@ SSI_Status SsiGetLastErrorMessage(SSI_Char *destination, SSI_Uint32 *num)
         return SSI_StatusInvalidParameter;
     }
 
-    String source = getLastErrorMessage();
+    String source;
+    try {
+        source = getLastErrorMessage();
+    } catch (...) {
+        return SSI_StatusInsufficientResources;
+    }
+
     if (source.isEmpty()) {
         *num = 0;
         return SSI_StatusOk;

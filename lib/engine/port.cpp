@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -48,28 +48,35 @@ Port::~Port()
 {
 }
 
+String Port::getId() const
+{
+    return "po:" + m_pParent->getPartId() + "/" + String(getHandle()); //TODO: Some kind of stable id
+}
+
 /* */
 SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
 {
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->portHandle = pInfo->uniqueId = getId();
+    pInfo->portHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     m_pParent->getAddress(pInfo->portAddress);
     pInfo->numPhys = m_Phys.size();
 
-    if (dynamic_cast<Controller *>(m_pParent))
+    if (dynamic_cast<Controller *>(m_pParent)) {
         pInfo->localDeviceType = SSI_DeviceTypeController;
-    else if (dynamic_cast<EndDevice *>(m_pParent))
+    } else if (dynamic_cast<EndDevice *>(m_pParent)) {
         pInfo->localDeviceType = SSI_DeviceTypeEndDevice;
-    else if (dynamic_cast<RoutingDevice *>(m_pParent))
+    } else if (dynamic_cast<RoutingDevice *>(m_pParent)) {
         pInfo->localDeviceType = SSI_DeviceTypeRoutingDevice;
-    else
+    } else {
         pInfo->localDeviceType = SSI_DeviceTypeUnknown;
+    }
 
-    pInfo->localDeviceHandle = m_pParent->getId();
+    pInfo->localDeviceHandle = m_pParent->getHandle();
     if (m_pRemotePort != NULL) {
-        pInfo->connectedToPort = m_pRemotePort->getId();
+        pInfo->connectedToPort = m_pRemotePort->getHandle();
     } else {
         pInfo->connectedToPort = SSI_NULL_HANDLE;
     }
@@ -93,12 +100,6 @@ bool Port::operator ==(const Object &object) const
     const Port *pPort = dynamic_cast<const Port *>(&object);
     return pPort != NULL &&
         *m_pParent == *pPort->m_pParent && m_Path == pPort->m_Path;
-}
-
-/* */
-String Port::getKey() const
-{
-    return m_pParent->getKey() + m_Path;
 }
 
 /* */

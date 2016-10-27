@@ -36,16 +36,14 @@ class Enclosure;
 class Controller : public StorageObject {
 public:
     Controller(const String &path);
-    virtual ~Controller();
 
     // Object
 
 public:
-    bool operator ==(const Object &object) const;
+    virtual String getId() const;
+    virtual String getPartId() const;
 
-    String getKey() const {
-        return m_Path;
-    }
+    bool operator ==(const Object &object) const;
 
     // ScopeObject
 
@@ -132,6 +130,14 @@ public:
     }
     Controller * getController() const {
         return const_cast<Controller *>(this);
+    }
+
+    unsigned short getPciVendorId() const {
+        return m_PciVendorId;
+    }
+
+    unsigned short getPciDeviceId() const {
+        return m_PciDeviceId;
     }
 
     SSI_HardwareKeyType getHardwareMode() const {

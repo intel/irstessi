@@ -33,7 +33,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "templates.h"
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Controller> &container)
+static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Controller> &container)
 {
     pScopeObject->getControllers(container);
 }
@@ -69,7 +69,7 @@ SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
 }
 
 /* */
-SSI_Status SsiROHISetState(SSI_Handle controllerHandle, SSI_Bool enable)
+SSI_Status SsiROHISetState(SSI_Handle, SSI_Bool)
 {
     return SSI_StatusNotSupported;
 }

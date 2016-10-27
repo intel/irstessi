@@ -39,6 +39,7 @@ SSI_Status SsiGetSystemInfo(SSI_SystemInfo *systemInfo)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
+
     try {
         return pContextMgr->getSystemInfo(systemInfo);
     } catch (...) {
@@ -56,18 +57,17 @@ SSI_Status SsiRescan(void)
 }
 
 /* */
-SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize cacheSize)
+SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize)
 {
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    (void)cacheSize;
+
     return SSI_StatusNotSupported;
 }
 
 /* */
-SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
-    SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
+SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle, SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
     TemporarySession session;
     if (!session.isValid()) {
@@ -87,24 +87,23 @@ SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle,
 }
 
 /* */
-SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle,
-    SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
+SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle, SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-        TemporarySession session;
-        if (!session.isValid()) {
-            return SSI_StatusNotInitialized;
-        }
+    TemporarySession session;
+    if (!session.isValid()) {
+        return SSI_StatusNotInitialized;
+    }
 
-        if (storageArea != SSI_StorageAreaCim) {
-            return SSI_StatusInvalidParameter;
-        }
+    if (storageArea != SSI_StorageAreaCim) {
+        return SSI_StatusInvalidParameter;
+    }
 
-        StorageDevice *pDevice = session->getDevice(deviceHandle);
-        if (pDevice == NULL) {
-            return SSI_StatusInvalidHandle;
-        }
+    StorageDevice *pDevice = session->getDevice(deviceHandle);
+    if (pDevice == NULL) {
+        return SSI_StatusInvalidHandle;
+    }
 
-        return pDevice->writeStorageArea(buffer, bufferLen);
+    return pDevice->writeStorageArea(buffer, bufferLen);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

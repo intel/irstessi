@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -36,18 +36,18 @@ SSI_Status SsiGetEventHandle(SSI_Handle *eventHandle)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
+
     if (eventHandle == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    try {
-        *eventHandle = pContextMgr->registerEvent();
-        if (*eventHandle) {
-            return SSI_StatusOk;
-        }
+
+    *eventHandle = pContextMgr->registerEvent();
+
+    if (*eventHandle == SSI_NULL_HANDLE) {
         return SSI_StatusInsufficientResources;
-    } catch (...) {
-        return SSI_StatusFailed;
     }
+
+    return SSI_StatusOk;
 }
 
 /* */
@@ -56,11 +56,8 @@ SSI_Status SsiFreeEventHandle(SSI_Handle eventHandle)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    try {
-        return pContextMgr->unregisterEvent(eventHandle);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
+
+    return pContextMgr->unregisterEvent(eventHandle);
 }
 
 /* */
@@ -69,15 +66,13 @@ SSI_Status SsiEventWait(SSI_Uint32 timeout, SSI_Handle eventHandle)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    Event *pEvent;
-    try {
-        pEvent = pContextMgr->getEvent(eventHandle);
-    } catch (...) {
-        return SSI_StatusFailed;
-    }
+
+    Event *pEvent = pContextMgr->getEvent(eventHandle);
+
     if (pEvent == NULL) {
         return SSI_StatusInvalidHandle;
     }
+
     return pEvent->wait(timeout);
 }
 

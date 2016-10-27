@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -32,6 +32,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "container.h"
 #include "string.h"
 #include "object.h"
+#include "handle_manager.h"
 #include "event_manager.h"
 #include "event.h"
 
@@ -45,8 +46,9 @@ Event::Event()
 Event::~Event()
 {
     /* delete semaphore */
-    if(semctl(m_semId, 0, IPC_RMID) < 0)
+    if (semctl(m_semId, 0, IPC_RMID) < 0) {
         dlog("Failed to delete semaphore");
+    }
 }
 
 /* */
@@ -76,19 +78,21 @@ SSI_Status Event::wait(unsigned int timeout)
     return SSI_StatusOk;
 }
 
-void Event::registerEvent()
+bool Event::registerEvent()
 {
     /* create semaphore */
     key_t key = ftok(KEY_GEN_PATH, KEY_GEN_NUM);
 
     if (key == (key_t)-1) {
         dlog("ftok() failed");
-        throw E_NOT_AVAILABLE;
+        return false;
     }
 
     m_semId = semget(key, 1, IPC_CREAT | 0600);
     if (m_semId == -1) {
         dlog("semget() failed");
-        throw E_NOT_AVAILABLE;
+        return false;
     }
+
+    return true;
 }

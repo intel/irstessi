@@ -24,6 +24,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 // forward declaration
 class Session;
+class HandleManager;
 
 /* */
 class SessionManager {
@@ -32,14 +33,14 @@ public:
     ~SessionManager();
 
 private:
-    SessionManager(const SessionManager& sessionMgr) { /* do not create copies */ }
-    Container<Session> m_Sessions;
-    void operator = (const SessionManager&) { }
+    SessionManager(const SessionManager&) { /* do not create copies */ }
+    HandleManager m_sessions;
+    void operator = (const SessionManager&) {}
 
 public:
-    Session * getSession(unsigned int id);
-    unsigned int openSession();
-    SSI_Status closeSession(unsigned int id);
+    Session* getSession(SSI_Handle handle) const;
+    SSI_Handle openSession();
+    SSI_Status closeSession(SSI_Handle handle);
 };
 
 #endif /* __SESSION_MANAGER_H__INCLUDED__ */

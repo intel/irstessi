@@ -38,17 +38,21 @@ SSI_Status SsiInitialize(void)
     if (getuid() != 0) {
         return SSI_StatusInsufficientPrivileges;
     }
+
     if (pContextMgr != NULL) {
         return SSI_StatusDuplicate;
     }
+
     log_init(LOG_NORMAL, "/var/log/ssi.log");
     orom_init();
     configuration_init();
+
     try {
         pContextMgr = new ContextManager();
     } catch (...) {
         return SSI_StatusInsufficientResources;
     }
+
     return SSI_StatusOk;
 }
 
@@ -58,15 +62,14 @@ SSI_Status SsiFinalize(void)
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
-    try {
-        delete pContextMgr;
-    } catch (...) {
-        // intentionally left blank
-    }
+
+    delete pContextMgr;
+    pContextMgr = NULL;
+
     orom_fini();
     efi_fini();
     configuration_fini();
-    pContextMgr = NULL;
     log_fini();
+
     return SSI_StatusOk;
 }

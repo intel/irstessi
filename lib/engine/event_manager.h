@@ -22,6 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 // forward declaration
 class Event;
+class HandleManager;
 
 /* */
 class EventManager {
@@ -29,15 +30,15 @@ public:
     EventManager();
     ~EventManager();
 
-    unsigned int registerEvent();
-    SSI_Status unregisterEvent(unsigned int id);
-    Event * getEvent(unsigned int id) const;
+    SSI_Handle registerEvent();
+    SSI_Status unregisterEvent(SSI_Handle handle);
+    Event * getEvent(SSI_Handle handle) const;
 
 private:
     void startEventMonitor();
     void stopEventMonitor();
-    Container<Event> m_Events;
-    bool m_NotInitialized;
+    HandleManager m_events;
+    bool m_notInitialized;
 };
 
 #endif /* __EVENT_MANAGER_H__INCLUDED__ */

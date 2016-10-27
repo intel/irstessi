@@ -322,26 +322,37 @@ EndDevice::~EndDevice()
     }
 }
 
+String EndDevice::getId() const
+{
+    return "ed:" + getPartId();
+}
+
+String EndDevice::getPartId() const
+{
+    return m_SerialNum;
+}
+
 /* */
 SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 {
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->endDeviceHandle = pInfo->uniqueId = getId();
+    pInfo->endDeviceHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     getAddress(pInfo->endDeviceAddress);
     pInfo->deviceType = getDeviceType();
 
     Controller *pController = getController();
     if (pController != NULL) {
-        pInfo->controllerHandle = pController->getId();
+        pInfo->controllerHandle = pController->getHandle();
     } else {
         pInfo->controllerHandle = SSI_NULL_HANDLE;
     }
 
     RaidInfo *pRaidInfo = getRaidInfo();
     if (pRaidInfo != NULL) {
-        pInfo->raidInfoHandle = pRaidInfo->getId();
+        pInfo->raidInfoHandle = pRaidInfo->getHandle();
     } else {
         pInfo->raidInfoHandle = SSI_NULL_HANDLE;
     }
@@ -349,16 +360,15 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->storagePool = getStoragePoolId();
     Array *pArray = getArray();
     if (pArray != NULL) {
-        pInfo->arrayHandle = pArray->getId();
+        pInfo->arrayHandle = pArray->getHandle();
     } else {
         pInfo->arrayHandle = SSI_NULL_HANDLE;
     }
 
     Enclosure *pEnclosure = getEnclosure();
     if (pEnclosure != NULL) {
-        pInfo->enclosureHandle = pEnclosure->getId();
-        pEnclosure->getSlotAddress(pInfo->slotAddress,
-            getSlotNumber());
+        pInfo->enclosureHandle = pEnclosure->getHandle();
+        pEnclosure->getSlotAddress(pInfo->slotAddress, getSlotNumber());
     } else {
         pInfo->enclosureHandle = SSI_NULL_HANDLE;
         pInfo->slotAddress.scsiAddress.host = 0;
@@ -383,11 +393,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->blocksFree = m_BlocksFree;
 
     pInfo->writeCachePolicy = m_WriteCachePolicy;
-    if (isSystemDisk()) {
-        pInfo->systemDisk = SSI_TRUE;
-    } else {
-        pInfo->systemDisk = SSI_FALSE;
-    }
+    pInfo->systemDisk = isSystemDisk() ? SSI_TRUE : SSI_FALSE;
     pInfo->slotNumber = getSlotNumber();
     pInfo->locateLEDSupport = SSI_TRUE;     /* Like in Windows SSI. If disk is connected to Intel controller it should be true and all detected controllers are Intel's. */
     pInfo->isPreBootVisible = pEnclosure ? SSI_FALSE : SSI_TRUE;
@@ -416,10 +422,11 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 SSI_Status EndDevice::locate(bool mode) const
 {
     String tmp = mode?"locate":"normal";
-    if (shell_command("ledctl " + tmp + "='/dev/" + m_DevName + "'") == 0)
+    if (shell_command("ledctl " + tmp + "='/dev/" + m_DevName + "'") == 0) {
         return SSI_StatusOk;
-    else
+    } else {
         return SSI_StatusFailed;
+    }
 }
 
 
@@ -431,8 +438,10 @@ RaidInfo * EndDevice::getRaidInfo() const
 
 unsigned int EndDevice::getSlotNumber() const
 {
-    if (m_pEnclosure == NULL)
+    if (m_pEnclosure == NULL) {
         return -1U;
+    }
+
     return m_pEnclosure->getSlotNumber(m_SASAddress);
 }
 
@@ -443,10 +452,7 @@ void EndDevice::getAddress(SSI_Address &address) const
     address.sasAddress = m_SASAddress;
     address.bdfAddress = m_BDFAddress;
     address.sasAddressPresent = m_SASAddress ? SSI_TRUE : SSI_FALSE;
-    address.bdfAddressPresent = SSI_TRUE;
-    // if bus, device and function are 0 it's very likely that address in not valid
-    if (m_BDFAddress.bus == 0 && m_BDFAddress.device == 0 && m_BDFAddress.device == 0)
-       address.bdfAddressPresent = SSI_FALSE;
+    address.bdfAddressPresent = m_BDFAddress.bus != 0 || m_BDFAddress.device != 0;
 }
 
 
@@ -465,14 +471,9 @@ void EndDevice::getPorts(Container<Port> &container) const
 }
 
 /* */
-SSI_Status EndDevice::passthroughCmd(void *pInfo, void *pData, unsigned int dataSize,
-    SSI_DataDirection dir)
+SSI_Status EndDevice::passthroughCmd(void *, void *, unsigned int, SSI_DataDirection)
 {
-    (void)pInfo;
-    (void)pData;
-    (void)dataSize;
-    (void)dir;
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */
@@ -488,12 +489,6 @@ bool EndDevice::operator ==(const Object &object) const
 {
     return typeid(*this) == typeid(object) &&
         static_cast<const EndDevice *>(&object)->getSerialNum() == m_SerialNum;
-}
-
-/* */
-String EndDevice::getKey() const
-{
-    return m_SerialNum;
 }
 
 /* */

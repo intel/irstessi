@@ -1,4 +1,3 @@
-
 /*
 Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
@@ -11,9 +10,6 @@ Redistribution and use in source and binary forms, with or without modification,
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-
-
-
 
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
@@ -118,8 +114,14 @@ Controller::Controller(const String &path)
 }
 
 /* */
-Controller::~Controller()
+String Controller::getId() const
 {
+    return "co:" + getPartId();
+}
+
+String Controller::getPartId() const
+{
+    return String(m_PciDeviceId);
 }
 
 /* */
@@ -134,23 +136,22 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->controllerHandle = pInfo->uniqueId = getId();
+    pInfo->controllerHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     getAddress(pInfo->controllerAddress);
 
     m_Name.get(pInfo->controllerName, sizeof(pInfo->controllerName));
 
     pInfo->controllerType = getControllerType();
     if (m_pRaidInfo != NULL) {
-        pInfo->raidInfoHandle = m_pRaidInfo->getId();
+        pInfo->raidInfoHandle = m_pRaidInfo->getHandle();
     } else {
         pInfo->raidInfoHandle = SSI_NULL_HANDLE;
     }
 
-    m_DriverVersion.get(pInfo->driverVer,
-        sizeof(pInfo->driverVer));
+    m_DriverVersion.get(pInfo->driverVer, sizeof(pInfo->driverVer));
 
-    m_PrebootMgrVersion.get(pInfo->prebootManagerVer,
-        sizeof(pInfo->prebootManagerVer));
+    m_PrebootMgrVersion.get(pInfo->prebootManagerVer, sizeof(pInfo->prebootManagerVer));
 
     pInfo->hardwareVer.vendorId = m_PciVendorId;
     pInfo->hardwareVer.deviceId = m_PciDeviceId;
@@ -159,22 +160,14 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     pInfo->hardwareVer.subClassCode = m_SubClassCode;
     pInfo->hardwareVer.subVendorId = m_SubVendorId;
 
-    pInfo->prebootManagerLoaded =
-        m_PrebootMgrVersion ? SSI_TRUE : SSI_FALSE;
-    pInfo->twoTbVolumePrebootSupport =
-        m_twoTbVolumePrebootSupported ? SSI_TRUE : SSI_FALSE;
-    pInfo->twoTbDiskPrebootSupport =
-        m_twoTbDiskPrebootSupported ? SSI_TRUE : SSI_FALSE;
-    pInfo->disableESataSpanning =
-        m_ESATASpanning ? SSI_TRUE : SSI_FALSE;
-    pInfo->xorSupported =
-        m_HWXORSupported ? SSI_TRUE : SSI_FALSE;
-    pInfo->nvsramSupported =
-        m_NVSRAMSupported ? SSI_FALSE : SSI_FALSE;
-    pInfo->phyLocateSupport =
-        m_PhyLocate ? SSI_TRUE : SSI_FALSE;
-    pInfo->diskUnlockSupport =
-        m_DiskUnlock ? SSI_TRUE : SSI_FALSE;
+    pInfo->prebootManagerLoaded = m_PrebootMgrVersion ? SSI_TRUE : SSI_FALSE;
+    pInfo->twoTbVolumePrebootSupport = m_twoTbVolumePrebootSupported ? SSI_TRUE : SSI_FALSE;
+    pInfo->twoTbDiskPrebootSupport = m_twoTbDiskPrebootSupported ? SSI_TRUE : SSI_FALSE;
+    pInfo->disableESataSpanning = m_ESATASpanning ? SSI_TRUE : SSI_FALSE;
+    pInfo->xorSupported = m_HWXORSupported ? SSI_TRUE : SSI_FALSE;
+    pInfo->nvsramSupported = m_NVSRAMSupported ? SSI_FALSE : SSI_FALSE;
+    pInfo->phyLocateSupport = m_PhyLocate ? SSI_TRUE : SSI_FALSE;
+    pInfo->diskUnlockSupport = m_DiskUnlock ? SSI_TRUE : SSI_FALSE;
     pInfo->assignStoragePoolSupport = SSI_FALSE;
     pInfo->markAsNormalSupport = SSI_FALSE;
     pInfo->volumeDeleteSupport = SSI_TRUE;
@@ -185,8 +178,7 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     pInfo->volumeCancelVerifySupport = SSI_TRUE;
     pInfo->markAsSpareSupport = SSI_TRUE;
     pInfo->readPatrolEnabled = SSI_TRUE;
-    pInfo->readPatrolSupport =
-        m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
+    pInfo->readPatrolSupport = m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
     pInfo->rohiEnabled = SSI_FALSE;
     pInfo->rohiSupport = m_ROHISupport ? SSI_TRUE : SSI_FALSE;
 
@@ -281,9 +273,8 @@ void Controller::getVolumes(Container<Volume> &container) const
 }
 
 /* */
-SSI_Status Controller::readPatrolSetState(bool enable)
+SSI_Status Controller::readPatrolSetState(bool)
 {
-    (void)enable;
     return SSI_StatusNotSupported;
 }
 
@@ -323,8 +314,9 @@ void Controller::attachPort(Port *pPort)
 void Controller::attachVolume(Volume *pVolume)
 {
     foreach (i, m_Volumes) {
-        if (*i == pVolume)
+        if (*i == pVolume) {
             return;
+        }
     }
     m_Volumes.add(pVolume);
 }
@@ -339,8 +331,9 @@ void Controller::attachPhy(Phy *pPhy)
 void Controller::attachArray(Array *pArray)
 {
     foreach (i, m_Arrays) {
-        if (*i == pArray)
+        if (*i == pArray) {
             return;
+        }
     }
     m_Arrays.add(pArray);
 }
@@ -348,7 +341,7 @@ void Controller::attachArray(Array *pArray)
 /* */
 void Controller::attachEnclosure(Enclosure *pEnclosure)
 {
-    foreach (i, m_Enclosures_Direct)
+    foreach (i, m_Enclosures_Direct) {
         if (*pEnclosure == **i) {
             RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(pEnclosure->getParent());
             (*i)->attachRoutingDevice(pRoutingDevice);
@@ -356,6 +349,7 @@ void Controller::attachEnclosure(Enclosure *pEnclosure)
             delete pEnclosure;
             return;
         }
+    }
     m_Enclosures_Direct.add(pEnclosure);
 }
 
@@ -363,8 +357,9 @@ void Controller::attachEnclosure(Enclosure *pEnclosure)
 void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container)
 {
     foreach (i, m_Enclosures_Direct) {
-        if (pRoutingDevice->getEnclosure() != *i && (*i)->attachedTo(pRoutingDevice))
+        if (pRoutingDevice->getEnclosure() != *i && (*i)->attachedTo(pRoutingDevice)) {
             container.add(*i);
+        }
     }
 }
 

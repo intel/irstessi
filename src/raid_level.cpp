@@ -39,23 +39,23 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 
 /* */
-SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle,
-    SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)
+SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle, SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)
 {
     Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession))
+    if (SSI_Status status = getSession(session, &pSession)) {
         return status;
+    }
 
     RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
     if (pRaidInfo == NULL) {
         return SSI_StatusInvalidHandle;
     }
+
     return pRaidInfo->getRaidLevelInfo(raidLevel, raidLevelInfo);
 }
 
 /* */
-SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
-    SSI_RaidLevelModifyParams params)
+SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle, SSI_RaidLevelModifyParams params)
 {
     TemporarySession session;
     if (!session.isValid()) {
@@ -71,26 +71,24 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle,
         return SSI_StatusInvalidParameter;
     }
 
-    try {
-        Container<EndDevice> container;
-        for (unsigned int i = 0; i < params.diskHandleCount; i++) {
-            EndDevice *pEndDevice = session->getEndDevice(params.diskHandles[i]);
-            if (pEndDevice == NULL) {
-                return SSI_StatusInvalidHandle;
-            }
+    Container<EndDevice> container;
 
-            if (pVolume->getLogicalSectorSize() != pEndDevice->getLogicalSectorSize()) {
-                return SSI_StatusNotSupported;
-            }
-
-            container.add(pEndDevice);
+    for (unsigned int i = 0; i < params.diskHandleCount; i++) {
+        EndDevice *pEndDevice = session->getEndDevice(params.diskHandles[i]);
+        if (pEndDevice == NULL) {
+            return SSI_StatusInvalidHandle;
         }
 
-        return pVolume->modify(params.newStripSize, params.newRaidLevel,
-            params.newSizeInBytes, container);
-    } catch (...) {
-        return SSI_StatusBufferTooSmall;
+        if (pVolume->getLogicalSectorSize() != pEndDevice->getLogicalSectorSize()) {
+            return SSI_StatusNotSupported;
+        }
+
+        if (SSI_Status status = container.add(pEndDevice)) {
+            return status;
+        }
     }
+
+    return pVolume->modify(params.newStripSize, params.newRaidLevel, params.newSizeInBytes, container);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

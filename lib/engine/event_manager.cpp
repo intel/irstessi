@@ -27,22 +27,26 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "object.h"
 #include "event.h"
-#include "unique_id_manager.h"
+#include "handle_manager.h"
 #include "event_manager.h"
-#include "context_manager.h"
 #include "utils.h"
+
+using std::nothrow;
 
 /* */
 EventManager::EventManager():
-    m_NotInitialized(true)
+    m_notInitialized(true)
 {
 }
 
 /* */
 EventManager::~EventManager()
 {
-    foreach (i, m_Events) {
-        pContextMgr->remove(*i);
+    /* unregisterEvent invalidates iterator - foreach loop is forbidden */
+    HandleManager::iterator iter = m_events.begin();
+    while (iter != m_events.end()) {
+        unregisterEvent(iter->first);
+        iter = m_events.begin();
     }
 
     stopEventMonitor();
@@ -53,10 +57,10 @@ void EventManager::startEventMonitor()
 {
     pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
 
-    if (pid <= 0) { /* not found or invalid pid file */
+    if (pid <= 0) { /* Not found or invalid pid file */
         int ret = shell_command("ssieventmonitor --daemonise");
         if (ret == 0) {
-            m_NotInitialized = false;
+            m_notInitialized = false;
         }
     }
 }
@@ -66,71 +70,64 @@ void EventManager::stopEventMonitor()
 {
     pid_t pid = readPidFile("/var/run/ssieventmonitor.pid", "ssieventmonitor");
 
-    if (pid > 0) { /* pid file found */
+    if (pid > 0) { /* Pid file found */
         kill(pid, SIGTERM);
     }
 }
 
 /* */
-unsigned int EventManager::registerEvent()
+SSI_Handle EventManager::registerEvent()
 {
-    Event *pEvent;
-    unsigned int eventId;
-    if (m_Events.size() == MAX_EVENT_HANDLES) {
+    SSI_Handle eventHandle;
+    if (m_events.size() == MAX_EVENT_HANDLES) {
         return SSI_NULL_HANDLE;
     }
 
-    try {
-        pEvent = new Event();
-    } catch (...) {
+    Event *pEvent = new(nothrow) Event();
+    if (pEvent == NULL) {
         return SSI_NULL_HANDLE; /* Out of memory */
     }
 
-    try {
-        pContextMgr->add(pEvent);
-        m_Events.add(pEvent);
-    } catch (...) {
+    if (!m_events.insert(pEvent).second) {
         delete pEvent;
         return SSI_NULL_HANDLE; /* Out of resources */
     }
 
-    try {
-        pEvent->registerEvent();
-        eventId = pEvent->getId();
-    } catch (...) {
-        unregisterEvent(pEvent->getId()); /* failed to create semaphore*/
+    if (pEvent->registerEvent()) {
+        eventHandle = pEvent->getHandle();
+    } else {
+        unregisterEvent(pEvent->getHandle()); /* Failed to create semaphore */
         return SSI_NULL_HANDLE;
     }
 
-    if (m_NotInitialized) {
+    if (m_notInitialized) {
         startEventMonitor();
     }
 
-    return eventId;
+    return eventHandle;
 }
 
 /* */
-SSI_Status EventManager::unregisterEvent(unsigned int id)
+SSI_Status EventManager::unregisterEvent(SSI_Handle handle)
 {
-    if (id == 0) {
+    if (handle == SSI_NULL_HANDLE) {
+        return SSI_StatusInvalidParameter;
+    }
+
+    Object *pEvent = m_events.remove(handle);
+
+    if (pEvent == NULL) {
         return SSI_StatusInvalidHandle;
     }
 
-    Event *pEvent;
-    try {
-        pEvent = m_Events.remove(id);
-        pContextMgr->remove(pEvent);
-    } catch (...) {
-        return SSI_StatusInvalidHandle;
-    }
-
+    delete pEvent;
     return SSI_StatusOk;
 }
 
 /* */
-Event *EventManager::getEvent(unsigned int id) const
+Event *EventManager::getEvent(SSI_Handle handle) const
 {
-    return m_Events.find(id);
+    return const_cast<Event*>(static_cast<const Event*>(m_events.at(handle)));
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -219,6 +219,12 @@ Volume::~Volume()
 }
 
 /* */
+String Volume::getId() const
+{
+    return "vo:" + m_Name;
+}
+
+/* */
 SSI_Status Volume::initialize()
 {
     return SSI_StatusNotSupported;
@@ -365,7 +371,7 @@ SSI_Status Volume::remove()
         status |= pArray->removeVolume(m_Ordinal);
     }
     if (status == SSI_StatusOk) {
-        pContextMgr->removeId(this);
+        pContextMgr->remove(this);
         Container<Volume> volumes;
         pArray->getVolumes(volumes);
         if (volumes.size() > 1) {
@@ -503,8 +509,9 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->volumeHandle = pInfo->uniqueId = getId();
-    pInfo->arrayHandle = m_pParent->getId();
+    pInfo->volumeHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
+    pInfo->arrayHandle = m_pParent->getHandle();
     pInfo->arrayOrdinal = m_Ordinal;
     m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));
     pInfo->raidLevel = ui2raidlevel(m_RaidLevel);
@@ -531,34 +538,18 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
 }
 
 /* */
-SSI_Status Volume::setCachePolicy(bool cacheOff)
+SSI_Status Volume::setCachePolicy(bool)
 {
-    (void)cacheOff;
-    return SSI_StatusOk;
-}
-
-/* */
-SSI_Status Volume::writeStorageArea(void *pBuffer, unsigned int bufferSize)
-{
-    (void)bufferSize;
-    (void)pBuffer;
-    return SSI_StatusOk;
-}
-
-/* */
-SSI_Status Volume::readStorageArea(void *pBuffer, unsigned int bufferSize)
-{
-    (void)bufferSize;
-    (void)pBuffer;
-    return SSI_StatusOk;
+    return SSI_StatusNotSupported;
 }
 
 /* */
 void Volume::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
 {
     container.clear();
-    foreach (i, m_BlockDevices)
+    foreach (i, m_BlockDevices) {
         container.add(*i);
+    }
 }
 
 /* */
@@ -596,21 +587,21 @@ void Volume::setSourceDisk(EndDevice *pEndDevice)
 void Volume::setRaidLevel(SSI_RaidLevel raidLevel)
 {
     switch (raidLevel) {
-    case SSI_Raid0:
-        m_RaidLevel = 0;
-        break;
-    case SSI_Raid1:
-        m_RaidLevel = 1;
-        break;
-    case SSI_Raid10:
-        m_RaidLevel = 10;
-        break;
-    case SSI_Raid5:
-        m_RaidLevel = 5;
-        break;
-    case SSI_Raid6: /* not supported */
-    default:
-        throw E_INVALID_RAID_LEVEL;
+        case SSI_Raid0:
+            m_RaidLevel = 0;
+            break;
+        case SSI_Raid1:
+            m_RaidLevel = 1;
+            break;
+        case SSI_Raid10:
+            m_RaidLevel = 10;
+            break;
+        case SSI_Raid5:
+            m_RaidLevel = 5;
+            break;
+        case SSI_Raid6: /* not supported */
+        default:
+            throw E_INVALID_RAID_LEVEL;
     }
 }
 
@@ -618,17 +609,13 @@ unsigned int Volume::getRaidLevel(const String& raidLevel)
 {
     if (raidLevel == "raid0") {
         return 0;
-    } else
-    if (raidLevel == "raid1") {
+    } else if (raidLevel == "raid1") {
         return 1;
-    } else
-    if (raidLevel == "raid10") {
+    } else if (raidLevel == "raid10") {
         return 10;
-    } else
-    if (raidLevel == "raid5") {
+    } else if (raidLevel == "raid5") {
         return 5;
-    } else
-    if (raidLevel == "raid6") {
+    } else if (raidLevel == "raid6") {
         return 6;
     } else {
         return -1U;
@@ -637,12 +624,13 @@ unsigned int Volume::getRaidLevel(const String& raidLevel)
 
 void Volume::setRwhPolicy(SSI_RwhPolicy policy)
 {
-    if (policy == SSI_RwhOff || policy == SSI_RwhDistributed)
+    if (policy == SSI_RwhOff || policy == SSI_RwhDistributed) {
         m_RwhPolicy = policy;
-    else if (policy == SSI_RwhJournalingDrive)
+    } else if (policy == SSI_RwhJournalingDrive) {
         throw E_NOT_SUPPORTED;
-    else
+    } else {
         throw E_INVALID_OBJECT;
+    }
 }
 
 String Volume::getMdadmAttribute(const String &attribute)
@@ -653,12 +641,12 @@ String Volume::getMdadmAttribute(const String &attribute)
     char buffer[128];
     std::string line = "";
     while (!feof(pipe)) {
-        if (fgets(buffer, 128, pipe) != NULL)
+        if (fgets(buffer, 128, pipe) != NULL) {
             line += buffer;
+        }
     }
     pclose(pipe);
-    if(line.find(static_cast<const char*>(attribute)) != std::string::npos)
-    {
+    if(line.find(static_cast<const char*>(attribute)) != std::string::npos) {
         const unsigned int trimStart = line.find(static_cast<const char*>(attribute))+attribute.length() + 3;
         const unsigned int trimEnd = line.find_last_not_of("\n\t ");
         const unsigned int trimRange = trimEnd - trimStart + 1;
@@ -680,9 +668,7 @@ unsigned int Volume::getPercentageStatus(const String &attribute)
             return 0;
         }
         res = static_cast<unsigned int>(static_cast<unsigned long long>(res) * 0xFFFFFFFF / 100);
-    }
-    catch(...)
-    {
+    } catch(...) {
         res = 0;
     }
     return res;
@@ -697,8 +683,7 @@ unsigned int Volume::getMigrationTargetLevel()
 {
     String newLevel = getMdadmAttribute("New Level");
     unsigned int newRaidLevel = getRaidLevel(newLevel);
-    if(newRaidLevel != -1U)
-    {
+    if (newRaidLevel != -1U) {
         return newRaidLevel;
     }
     return m_RaidLevel;
@@ -711,26 +696,28 @@ unsigned int Volume::getVerificationProgress()
 
 SSI_RwhPolicy Volume::parseRwhPolicy(const String& policy) const
 {
-    if (policy == rwhPolicyToString(SSI_RwhOff))
+    if (policy == rwhPolicyToString(SSI_RwhOff)) {
         return SSI_RwhOff;
-    else if (policy == rwhPolicyToString(SSI_RwhDistributed))
+    } else if (policy == rwhPolicyToString(SSI_RwhDistributed)) {
         return SSI_RwhDistributed;
-    else if (policy == rwhPolicyToString(SSI_RwhJournalingDrive))
+    } else if (policy == rwhPolicyToString(SSI_RwhJournalingDrive)) {
         return SSI_RwhJournalingDrive;
-    else
+    } else {
         return SSI_RwhInvalid;
+    }
 }
 
 String Volume::rwhPolicyToString(SSI_RwhPolicy policy) const
 {
-    if (policy == SSI_RwhOff)
+    if (policy == SSI_RwhOff) {
         return "off";
-    else if (policy == SSI_RwhDistributed)
+    } else if (policy == SSI_RwhDistributed) {
         return "ppl-distributed";
-    else if (policy == SSI_RwhJournalingDrive)
+    } else if (policy == SSI_RwhJournalingDrive) {
         return "ppl-journal";
-    else
+    } else {
         throw E_NOT_SUPPORTED;
+    }
 }
 
 /* Convert total Volume size to component size and set it */
@@ -763,21 +750,21 @@ void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long 
 
     unsigned long long divider = 1;
     switch (level) {
-    case SSI_Raid0:
-        divider = diskCount;
-        break;
-    case SSI_Raid1:
-        divider = 1;
-        break;
-    case SSI_Raid10:
-        divider = 2;
-        break;
-    case SSI_Raid5:
-        divider = diskCount - 1;
-        break;
-    case SSI_Raid6: /* not supported */
-    default:
-        throw E_INVALID_RAID_LEVEL;
+        case SSI_Raid0:
+            divider = diskCount;
+            break;
+        case SSI_Raid1:
+            divider = 1;
+            break;
+        case SSI_Raid10:
+            divider = 2;
+            break;
+        case SSI_Raid5:
+            divider = diskCount - 1;
+            break;
+        case SSI_Raid6: /* not supported */
+        default:
+            throw E_INVALID_RAID_LEVEL;
     }
     m_ComponentSize = volumeSize / divider;
 }
@@ -792,9 +779,10 @@ void Volume::__wait_for_volume()
 {
     int j = 0;
     Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (!pArray)
+    if (!pArray) {
         return;
-    while (getKey() == "" && j < 10) {
+    }
+    while (m_Uuid == "" && j < 10) {
         pArray->update();
         update();
         usleep(3000000);

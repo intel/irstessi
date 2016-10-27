@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -32,51 +32,70 @@ class Container {
 public:
     SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize) {
         SSI_Status status = SSI_StatusOk;
+
         if (bufferSize == NULL) {
             return SSI_StatusInvalidParameter;
         }
+
         if (*bufferSize && pBuffer == NULL) {
             return SSI_StatusInvalidParameter;
         }
+
         if (*bufferSize < m_list.size()) {
             *bufferSize = m_list.size();
             status = SSI_StatusBufferTooSmall;
         } else {
             foreach (i, m_list) {
-                *pBuffer = (*i)->getId();
+                *pBuffer = (*i)->getHandle();
                 pBuffer++;
             }
         }
+
         *bufferSize = m_list.size();
         return status;
     }
 
-    T * remove(unsigned int id) {
-        T *pObject = find(id);
+    T * remove(SSI_Handle handle) {
+        T *pObject = find(handle);
 
         if (pObject) {
             m_list.remove(pObject);
         }
+
         return pObject;
     }
 
-    T * find(unsigned int id) const {
+    T * find(SSI_Handle handle) const {
         foreach (i, m_list) {
-            if ((*i)->getId() == id)
+            if ((*i)->getHandle() == handle) {
                 return *i;
+            }
         }
+
         return NULL;
     }
 
-    void add(T * const &data) {
-        m_list.push_back(data);
+    SSI_Status add(T * const &data) {
+        try {
+            m_list.push_back(data);
+        } catch (...) {
+            return SSI_StatusInsufficientResources;
+        }
+
+        return SSI_StatusOk;
     }
 
-    void add(Container<T> const &c) {
-        m_list.insert(m_list.end(), c.m_list.begin(), c.m_list.end());
+    SSI_Status add(Container<T> const &c) {
+        try {
+            m_list.insert(m_list.end(), c.m_list.begin(), c.m_list.end());
+        } catch (...) {
+            return SSI_StatusInsufficientResources;
+        }
+
+        return SSI_StatusOk;
     }
 
-    int size() const {
+    size_t size() const {
         return m_list.size();
     }
 

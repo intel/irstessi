@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -43,6 +43,14 @@ public:
         assign(value);
     }
     String(char value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(long value)
+        : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
+        assign(value);
+    }
+    String(unsigned long value)
         : m_buffer(0), m_length(0), m_size(0), m_capacity(0) {
         assign(value);
     }
@@ -91,6 +99,12 @@ public:
     String & operator = (long long value) {
         assign(value); return *this;
     }
+    String & operator = (unsigned long value) {
+        assign(value); return *this;
+    }
+    String & operator = (long value) {
+        assign(value); return *this;
+    }
     String & operator = (unsigned int value) {
         assign(value); return *this;
     }
@@ -121,6 +135,12 @@ public:
         append(value); return *this;
     }
     String & operator += (long long value) {
+        append(value); return *this;
+    }
+    String & operator += (unsigned long value) {
+        append(value); return *this;
+    }
+    String & operator += (long value) {
         append(value); return *this;
     }
     String & operator += (unsigned int value) {
@@ -219,6 +239,12 @@ public:
     void assign(unsigned int value) {
         assign(static_cast<unsigned long long>(value));
     }
+    void assign(unsigned long value) {
+        assign(static_cast<unsigned long long>(value));
+    }
+    void assign(long value) {
+        assign(static_cast<unsigned long long>(value));
+    }
     void assign(short value) {
         assign(static_cast<long long>(value));
     }
@@ -235,6 +261,12 @@ public:
         append(String(value));
     }
     void append(long long value) {
+        append(String(value));
+    }
+    void append(unsigned long value) {
+        append(String(value));
+    }
+    void append(long value) {
         append(String(value));
     }
     void append(unsigned int value) {

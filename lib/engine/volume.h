@@ -31,6 +31,8 @@ public:
     Volume(const String &path, unsigned int orginal);
     ~Volume();
 
+    virtual String getId() const;
+
     // ScopeObject
 
 public:
@@ -41,12 +43,6 @@ public:
 public:
     void attachEndDevice(EndDevice *pEndDevice);
     void addToSession(Session *pSession);
-
-    // StorageDevice
-
-public:
-    SSI_Status writeStorageArea(void *pBuffer, unsigned int bufferSize);
-    SSI_Status readStorageArea(void *pBuffer, unsigned int bufferSize);
 
     // RaidDevice
 

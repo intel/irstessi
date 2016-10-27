@@ -113,7 +113,7 @@ void NVME_Disk::identify()
 NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     : BlockDevice(path)
 {
-    const String IntelVendorTag = "0x8086";
+    const String IntelVendorTag = "8086";
 
     Directory dir("/sys/class/nvme");
     CanonicalPath temp;

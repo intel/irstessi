@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -51,7 +51,7 @@ AHCI_RaidInfo::AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo, unsigned int 
 bool AHCI_RaidInfo::operator ==(const Object &object) const {
     return typeid(*this) == typeid(object) &&
             static_cast<const RaidInfo *>(&object)->getControllerType() == SSI_ControllerTypeAHCI &&
-            object.getKey() == this->getKey();
+            object.getHandle() == this->getHandle();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

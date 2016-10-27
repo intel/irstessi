@@ -31,27 +31,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "object.h"
 #include "session.h"
 #include "event.h"
+#include "handle_manager.h"
 #include "context_manager.h"
 #include "event_manager.h"
-#include "unique_id_manager.h"
 #include "session_manager.h"
 #include "mdadm_config.h"
 
 /* */
 ContextManager::ContextManager()
-    : m_pSessionMgr(NULL), m_pEventMgr(NULL), m_pUniqueIdMgr(NULL)
 {
-    m_pUniqueIdMgr = new UniqueIdManager;
-    m_pEventMgr = new EventManager;
-    m_pSessionMgr = new SessionManager;
 }
 
 /* */
 ContextManager::~ContextManager()
 {
-    delete m_pSessionMgr;
-    delete m_pEventMgr;
-    delete m_pUniqueIdMgr;
 }
 
 /* */
@@ -60,13 +53,15 @@ SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
+
     pInfo->interfaceVersionMajor = 1;
     pInfo->interfaceVersionMinor = 0;
     String ver = String(SSI_LIBRARY_VERSION);
     ver.get(pInfo->libraryVersion, sizeof(pInfo->libraryVersion));
     size_t offset = ver.length() + 1;
-    if (offset < sizeof(pInfo->libraryVersion))
+    if (offset < sizeof(pInfo->libraryVersion)) {
         get_mdadm_version(pInfo->libraryVersion + offset, sizeof(pInfo->libraryVersion) - offset);
+    }
     pInfo->maxSessions = -1U;
     pInfo->setVolCacheSizeSupport = SSI_FALSE;
     pInfo->passthroughCommandSupport = SSI_FALSE;
@@ -75,59 +70,48 @@ SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
 }
 
 /* */
-Session * ContextManager::getSession(unsigned int id) const
+Session * ContextManager::getSession(SSI_Handle handle) const
 {
-    return m_pSessionMgr->getSession(id);
+    return m_SessionMgr.getSession(handle);
 }
 
 /* */
-unsigned int ContextManager::openSession()
+SSI_Handle ContextManager::openSession()
 {
-    return m_pSessionMgr->openSession();
+    return m_SessionMgr.openSession();
 }
 
-SSI_Status ContextManager::closeSession(unsigned int id)
+SSI_Status ContextManager::closeSession(SSI_Handle handle)
 {
-    return m_pSessionMgr->closeSession(id);
-}
-
-/* */
-Event * ContextManager::getEvent(unsigned int id) const
-{
-    return m_pEventMgr->getEvent(id);
+    return m_SessionMgr.closeSession(handle);
 }
 
 /* */
-unsigned int ContextManager::registerEvent()
+Event * ContextManager::getEvent(SSI_Handle handle) const
 {
-    return m_pEventMgr->registerEvent();
+    return m_EventMgr.getEvent(handle);
 }
 
 /* */
-SSI_Status ContextManager::unregisterEvent(unsigned int id)
+SSI_Handle ContextManager::registerEvent()
 {
-    return m_pEventMgr->unregisterEvent(id);
+    return m_EventMgr.registerEvent();
 }
 
 /* */
-void ContextManager::add(Object *pObject) {
-    m_pUniqueIdMgr->add(pObject);
+SSI_Status ContextManager::unregisterEvent(SSI_Handle handle)
+{
+    return m_EventMgr.unregisterEvent(handle);
+}
+
+/* */
+bool ContextManager::add(Object *pObject) {
+    return m_HandleMgr.insert(pObject).second;
 }
 
 /* */
 void ContextManager::remove(Object *pObject) {
-    m_pUniqueIdMgr->remove(pObject);
-}
-
-/* */
-void ContextManager::removeId(Object *pObject) {
-    m_pUniqueIdMgr->removeId(pObject);
-}
-
-/* */
-void ContextManager::refresh()
-{
-    m_pUniqueIdMgr->refresh();
+    m_HandleMgr.remove(pObject);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

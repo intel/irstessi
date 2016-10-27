@@ -31,13 +31,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "string.h"
 #include "object.h"
 #include "raid_info.h"
+#include "controller.h"
 #include "session.h"
 #include "utils.h"
 
 /* */
 void RaidInfo::getControllers(Container<Controller> &container) const
 {
-    container = m_Controllers;
+    container.clear();
+    container.add(m_Controller);
 }
 
 /* */
@@ -47,12 +49,19 @@ void RaidInfo::addToSession(Session *pSession)
 }
 
 /* */
+String RaidInfo::getId() const
+{
+    return "ra:" + m_Controller->getPartId();
+}
+
+/* */
 SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
 {
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->raidHandle = pInfo->uniqueId = getId();
+    pInfo->raidHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     pInfo->maxDisksPerArray = m_pInfo->dpa;
     pInfo->maxRaidDisksSupported = m_pInfo->tds;
     pInfo->maxVolumesPerHba = m_pInfo->vphba;
@@ -65,7 +74,6 @@ SSI_Status RaidInfo::getInfo(SSI_RaidInfo *pInfo) const
 
     return SSI_StatusOk;
 }
-
 
 /* */
 SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const

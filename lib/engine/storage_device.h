@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -44,7 +44,7 @@ public:
     virtual SSI_Status writeStorageArea(void *, unsigned int) {
         return SSI_StatusNotSupported;
     }
-    virtual SSI_Status readStorageArea(void *,  unsigned int) {
+    virtual SSI_Status readStorageArea(void *, unsigned int) {
         return SSI_StatusNotSupported;
     }
 };

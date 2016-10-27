@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -55,16 +55,19 @@ Enclosure::Enclosure(const String &path)
         attr >> m_VendorId;
     } catch (...) {
     }
+
     try {
         attr = m_Path + "/model";
         attr >> m_ProductId;
     } catch (...) {
     }
+
     try {
         attr = m_Path + "/rev";
         attr >> m_Rev;
     } catch (...) {
     }
+
     Directory dir = m_Path + "/enclosure";
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
@@ -84,16 +87,23 @@ Enclosure::Enclosure(const String &path)
     }
     const String command2 = "sg_ses -p 0xa /dev/" + m_SgName;
     shell_cap(command2, sbuffer);
-    if (sbuffer)
+    if (sbuffer) {
         __get_slot_info(sbuffer);
-
+    }
 }
 
 /* */
 Enclosure::~Enclosure()
 {
-    foreach (i, m_Slots)
+    foreach (i, m_Slots) {
         delete *i;
+    }
+}
+
+/* */
+String Enclosure::getId() const
+{
+    return "en:" + String(m_LogicalId);
 }
 
 /* */
@@ -108,8 +118,9 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->enclosureHandle = pInfo->uniqueId = getId();
-    pInfo->enclosureKey = (getId() & 0x0fffffff);
+    pInfo->enclosureHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
+    pInfo->enclosureKey = (getHandle() & 0x0fffffff);
     foreach (i, m_RoutingDevices) {
         StorageObject *parent = (*i)->getParent();
         if (parent && dynamic_cast<Controller *>(parent)) {
@@ -148,12 +159,6 @@ bool Enclosure::operator ==(const Object &object) const
 }
 
 /* */
-String Enclosure::getKey() const
-{
-    return m_LogicalId;
-}
-
-/* */
 void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 {
     m_EndDevices.add(pEndDevice);
@@ -188,17 +193,17 @@ void Enclosure::addToSession(Session *pSession)
 /* */
 unsigned int Enclosure::getSlotNumber(unsigned long long sasAddress) const
 {
-    foreach (i, m_Slots)
-        if ((*i)->sasAddress == sasAddress)
+    foreach (i, m_Slots) {
+        if ((*i)->sasAddress == sasAddress) {
             return (*i)->slotNumber;
+        }
+    }
     return -1U;
 }
 
 /* */
-void Enclosure::getSlotAddress(SSI_Address &address, unsigned int number)
+void Enclosure::getSlotAddress(SSI_Address &, unsigned int)
 {
-    (void)address;
-    (void)number;
 }
 
 /* */
@@ -224,10 +229,11 @@ void Enclosure::__get_slot_info(String &buffer)
             tmp = info.reverse_after("SAS address:");
             tmp = tmp.left("\n");
             pSlot->sasAddress = tmp;
-            if (pSlot->sasAddress != 0)
+            if (pSlot->sasAddress != 0) {
                 m_Slots.add(pSlot);
-            else
+            } else {
                 delete pSlot;
+            }
         }
         right = offset?right.get(offset+13):"";
     }
@@ -236,9 +242,11 @@ void Enclosure::__get_slot_info(String &buffer)
 /* */
 bool Enclosure::attachedTo(StorageObject *pObject) const
 {
-    foreach (i, m_RoutingDevices)
-        if ((*i)->getParent() == pObject)
+    foreach (i, m_RoutingDevices) {
+        if ((*i)->getParent() == pObject) {
             return true;
+        }
+    }
     return false;
 }
 

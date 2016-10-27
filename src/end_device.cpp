@@ -169,8 +169,7 @@ SSI_Status SsiPassthroughCommand(SSI_Handle deviceHandle, void *cmdInfoUnit,
         return status;
     }
 
-    return pEndDevice->passthroughCmd(cmdInfoUnit, dataBuffer, dataBufferLen,
-        dataDirection);
+    return pEndDevice->passthroughCmd(cmdInfoUnit, dataBuffer, dataBufferLen, dataDirection);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

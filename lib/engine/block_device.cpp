@@ -106,22 +106,6 @@ SSI_Status BlockDevice::markAsNormal()
 }
 
 /* */
-SSI_Status BlockDevice::readStorageArea(void *pBuffer, unsigned int bufferSize)
-{
-    (void)bufferSize;
-    (void)pBuffer;
-    return SSI_StatusOk;
-}
-
-/* */
-SSI_Status BlockDevice::writeStorageArea(void *pBuffer, unsigned int bufferSize)
-{
-    (void)bufferSize;
-    (void)pBuffer;
-    return SSI_StatusOk;
-}
-
-/* */
 void BlockDevice::attachArray(Array *pArray)
 {
     if (pArray == NULL) {

@@ -45,7 +45,8 @@ public:
     // Object
 
 public:
-    String getKey() const;
+    virtual String getId() const;
+    virtual String getPartId() const;
 
     // ScopeObject
 
@@ -63,12 +64,6 @@ public:
     void attachVolume(Volume *pVolume);
     void attachEndDevice(EndDevice *pEndDevice);
     void addToSession(Session *pSession);
-
-    // StorageDevice
-
-public:
-    SSI_Status  readStorageArea(void *buffer, unsigned int size);
-    SSI_Status writeStorageArea(void *buffer, unsigned int size);
 
     // RaidDevice
 

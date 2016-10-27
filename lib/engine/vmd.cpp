@@ -52,7 +52,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 VMD::VMD(const String &path)
     : Controller(path)
 {
-    m_Name = "VMD";
+    m_Name = "VMD Controller";
     m_DomainCount = 0;
     m_EndDevicesCount = 0;
 

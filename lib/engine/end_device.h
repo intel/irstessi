@@ -48,7 +48,8 @@ private:
 
 public:
     bool operator ==(const Object &object) const;
-    String getKey() const;
+    virtual String getId() const;
+    virtual String getPartId() const;
 
     // ScopeObject
 
@@ -185,8 +186,7 @@ public:
     virtual SSI_EndDeviceType getDeviceType() const {
         return SSI_EndDeviceTypeNonStorage;
     }
-    virtual SSI_Status passthroughCmd(void *pInfo, void *pData, unsigned int dataSize,
-        SSI_DataDirection dir);
+    virtual SSI_Status passthroughCmd(void *pInfo, void *pData, unsigned int dataSize, SSI_DataDirection dir);
     virtual SSI_Status makeSpare() {
         return SSI_StatusInvalidState;
     }

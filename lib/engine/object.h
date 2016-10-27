@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -22,6 +22,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #ifndef __OBJECT_H__INCLUDED__
 #define __OBJECT_H__INCLUDED__
 
+#include "string.h"
+
 // Forward declaration
 class Session;
 class RoutingDevice;
@@ -37,33 +39,33 @@ class Array;
 /* */
 class Object {
 public:
-    Object(const Object &object)
-        : m_Id(object.m_Id) {
+    Object(): m_handle(SSI_NULL_HANDLE) {
     }
-    Object()
-        : m_Id(0) {
-    }
+
     virtual ~Object() {
     }
 
 public:
-    unsigned int getId() const {
-        return m_Id;
+    SSI_Handle getHandle() const {
+        return m_handle;
+    }
+    virtual String getId() const {
+        return "";
     }
 
-    void setId(unsigned int id) {
-        m_Id = id;
-    }
-
-    virtual String getKey() const {
+    virtual String getPartId() const {
         return "";
     }
 
     virtual bool operator ==(const Object &object) const = 0;
 
-protected:
-    unsigned int m_Id;
+    void setHandle(SSI_Handle handle) {
+        m_handle = handle;
+    }
+
 private:
+    SSI_Handle m_handle;
+
     void operator =(const Object&) {}
 };
 

@@ -201,6 +201,13 @@ static const SSI_Uint32 SSI_INVALID_SLOTNUMBER = 0xFFFFFFFF;
 #define SSI_DEFAULT_STORAGE_POOL 0
 
 /**
+* @def    SSI_UNIQUE_ID_LENGTH
+*
+* @brief    Ssi default unique id length.
+**/
+#define SSI_UNIQUE_ID_LENGTH 40
+
+/**
  * @enum    SSI_Status
  *
  * @brief   Values that represent SSI_Status.
@@ -540,8 +547,8 @@ typedef struct _SSI_RaidInfo
 {
     /** Handle to the Raid Information structure represented by this table */
     SSI_Handle raidHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "ra:" + controller.deviceId */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Maximum disks allowed per array */
     SSI_Uint32 maxDisksPerArray;
     /** Maximum disks allowed to be used as array members */
@@ -611,8 +618,8 @@ typedef struct _SSI_ControllerInfo
 {
     /** handle to controller */
     SSI_Handle controllerHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "co:" + hardwareVer.deviceId */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** address of controller */
     SSI_Address controllerAddress;
     /** name of controller */
@@ -729,8 +736,8 @@ typedef struct _SSI_PhyInfo
 {
     /** Handle to phy */
     SSI_Handle phyHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "ph:" + device uniqueId + "/" + phyNumber */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Phy's address */
     SSI_Address phyAddress;
     /** Indicates which phy on the parent device this represents */
@@ -797,8 +804,8 @@ typedef struct _SSI_PortInfo
 {
     /** Port Handle */
     SSI_Handle portHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "po:" + localDevice id + "/" + handle */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Port Address */
     SSI_Address portAddress;
     /** Width of the port defined by the number of phys - x1, x2 or x4 */
@@ -820,8 +827,8 @@ typedef struct _SSI_EnclosureInfo
 {
     /** Enclosure Handle */
     SSI_Handle enclosureHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "en:" + logicalId */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Unique Key for enclosure lookups */
     SSI_Uint32 enclosureKey;
     /** Vendor identification string */
@@ -943,8 +950,8 @@ typedef struct _SSI_EndDeviceInfo
 {
     /** End device handle */
     SSI_Handle endDeviceHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "ed:" + serialNo */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Address of end device */
     SSI_Address endDeviceAddress;
     /** Type of end device */
@@ -1051,8 +1058,8 @@ typedef struct _SSI_RoutingDeviceInfo
 {
     /** Handle to routing device */
     SSI_Handle routingDeviceHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "ro:" + componentId */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Address of routing device */
     SSI_Address routingDeviceAddress;
     /** Type of routing device */
@@ -1107,8 +1114,8 @@ typedef struct _SSI_ArrayInfo
 {
     /** Handle to Array */
     SSI_Handle arrayHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "ar:" + name */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Array name */
     SSI_Char name[SSI_ARRAY_NAME_LENGTH];
     /** State of array */
@@ -1165,8 +1172,8 @@ typedef struct _SSI_VolumeInfo
 {
     /** Volume handle */
     SSI_Handle volumeHandle;
-    /** Unique Id for object */
-    SSI_Uint32 uniqueId;
+    /** Unique Id equal to "vo:" + volumeName */
+    SSI_Char uniqueId[SSI_UNIQUE_ID_LENGTH];
     /** Array handle */
     SSI_Handle arrayHandle;
     /** Ordinal number (index) of volume in array */

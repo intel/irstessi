@@ -97,10 +97,12 @@ Array::~Array()
 {
 }
 
-/* */
-String Array::getKey() const {
-    /* TODO this must change as all containers without volumes have uuid 0 */
-    return m_Uuid;
+String Array::getId() const {
+    return "ar:" + getPartId();
+}
+
+String Array::getPartId() const {
+    return m_Name;
 }
 
 /* */
@@ -166,8 +168,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
     this->getEndDevices(tmp,false);
     if (status == SSI_StatusOk) {
         usleep(3000000);
-        if (shellEx("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " +
-                  String(tmp.size() + container.size())) != 0) {
+        if (shellEx("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " + String(tmp.size() + container.size())) != 0) {
             removeSpare(addedToSpare, true);
             status = SSI_StatusFailed;
         }
@@ -181,7 +182,8 @@ SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
-    pInfo->arrayHandle = pInfo->uniqueId = getId();
+    pInfo->arrayHandle = getHandle();
+    getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     m_Name.get(pInfo->name, sizeof(pInfo->name));
     if (m_Busy) {
         pInfo->state = SSI_ArrayStateBusy;
@@ -366,22 +368,6 @@ void Array::getVolumes(Container<Volume> &container) const
 }
 
 /* */
-SSI_Status Array::readStorageArea(void *pBuffer, unsigned int bufferSize)
-{
-    (void)bufferSize;
-    (void)pBuffer;
-    return SSI_StatusOk;
-}
-
-/* */
-SSI_Status Array::writeStorageArea(void *pBuffer, unsigned int bufferSize)
-{
-    (void)bufferSize;
-    (void)pBuffer;
-    return SSI_StatusOk;
-}
-
-/* */
 void Array::addToSession(Session *pSession)
 {
     RaidDevice::addToSession(pSession);
@@ -409,7 +395,7 @@ SSI_Status Array::remove()
     int n = 0;
     do {
         if (shellEx("mdadm -S '/dev/" + m_DevName  + "'") == 0) {
-            pContextMgr->removeId(this);
+            pContextMgr->remove(this);
             String devices;
             foreach (i, m_BlockDevices) {
                 devices += " '/dev/" + (*i)->getDevName() + "'";
@@ -469,7 +455,7 @@ void Array::__wait_for_container()
     /* first find out what dev name was assigned */
     do {
         update();
-        if (getKey() == "") {
+        if (m_Uuid == "") {
             usleep(1000000);
             i++;
         } else {

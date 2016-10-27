@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -39,9 +39,6 @@ public:
 
 public:
     bool operator ==(const Object &object) const;
-    virtual String getKey() const {
-        return m_Uuid;
-    }
     // StorageObject
 
 public:
