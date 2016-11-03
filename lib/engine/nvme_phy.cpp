@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -12,44 +11,19 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/stat.h>
+#include <log/log.h>
 
-#include <ssi.h>
-
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "raid_info.h"
-#include "controller.h"
-#include "phy.h"
-#include "session.h"
-#include "port.h"
-#include "storage_device.h"
-#include "end_device.h"
-#include "nondisk_device.h"
-#include "block_device.h"
-#include "multimedia_device.h"
-#include "stream_device.h"
-#include "routing_device.h"
 #include "nvme_phy.h"
 #include "nvme_port.h"
 #include "nvme_disk.h"
-#include "utils.h"
-
-#include "log/log.h"
 
 /* */
 #define EM_MSG_WAIT     1500
@@ -58,8 +32,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 NVME_Phy::NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, StorageObject *pParent)
     : Phy(path, number, pParent)
 {
-	m_Protocol = SSI_PhyProtocolNVME;
-	m_VmdDomain = vmdDomain;
+    m_Protocol = SSI_PhyProtocolNVME;
+    m_VmdDomain = vmdDomain;
 }
 
 /* */

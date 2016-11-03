@@ -107,12 +107,14 @@ libengine_la_SOURCES =          \
         remote_port.h           \
         routing_device.cpp      \
         routing_device.h        \
+        scope_object.h          \
         session.cpp             \
         session.h               \
         session_manager.cpp     \
         session_manager.h       \
         storage_device.cpp      \
         storage_device.h        \
+        storage_object.h        \
         stream_device.h         \
         string.cpp              \
         string.h                \

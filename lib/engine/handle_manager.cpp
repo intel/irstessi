@@ -16,14 +16,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 #include <limits>
-#include <features.h>
 #include <cstdlib>
 
-#include <ssi.h>
-
-#include "exception.h"
-#include "container.h"
-#include "object.h"
 #include "handle_manager.h"
 
 using std::pair;

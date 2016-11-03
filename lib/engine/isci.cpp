@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -12,38 +11,20 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
-
 #include <unistd.h>
 #include <asm/types.h>
-
-#include <ssi.h>
 #include <orom/orom.h>
 #include <efi/efi.h>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "controller.h"
 #include "isci.h"
-#include "raid_info.h"
-#include "phy.h"
-#include "session.h"
-#include "enclosure.h"
+#include "filesystem.h"
 #include "isci_phy.h"
 #include "port.h"
-#include "pci_header.h"
 #include "isci_raid_info.h"
-#include "utils.h"
 
 /* */
 ISCI::ISCI(const String &path)
@@ -63,7 +44,7 @@ void ISCI::discover()
         try {
             attr = *(*i) + "scsi_host" + (*i)->reverse_after("/") + "isci_id";
             attr >> number;
-        } catch (Exception) {
+        } catch (...) {
             /* TODO: report read failure of attribtue. */
         }
         Directory phys(*(*i), "phy");
@@ -72,7 +53,7 @@ void ISCI::discover()
         foreach (j, phys_dirs) {
             Phy *pPhy = new ISCI_Phy(*(*j), number++, this);
             attachPhy(pPhy);
-		}
+        }
     }
     foreach (i, m_Phys)
         (*i)->discover();
@@ -115,26 +96,26 @@ void ISCI::setAddress(SSI_Address &address)
 
 RaidInfo *ISCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
-	/* first try EFI, if its failed - try legacy OROM */
+    /* first try EFI, if its failed - try legacy OROM */
 
     struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
     if (pInfo_ext == NULL) {
         pInfo_ext = orom_get(m_PciDeviceId);
     }
 
-	if (pInfo_ext != NULL) {
-		orom_info *pInfo = &pInfo_ext->data;
-		foreach(i,RaidInfos){
-			if ((*i)->getControllerType() == SSI_ControllerTypeSCU &&
-			   (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
-				m_pRaidInfo = (*i);
-				(*i)->attachController(this);
-				return NULL;
-			}
-		}
-		m_pRaidInfo = new ISCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
-		return m_pRaidInfo;
-	}
+    if (pInfo_ext != NULL) {
+        orom_info *pInfo = &pInfo_ext->data;
+        foreach(i,RaidInfos){
+            if ((*i)->getControllerType() == SSI_ControllerTypeSCU &&
+               (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
+                m_pRaidInfo = (*i);
+                (*i)->attachController(this);
+                return NULL;
+            }
+        }
+        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
+        return m_pRaidInfo;
+    }
     return NULL;
 }
 

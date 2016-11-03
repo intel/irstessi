@@ -1,4 +1,3 @@
-
 /*
 Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
@@ -12,31 +11,13 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
-#include <cstddef>
-
-#include <ssi.h>
-
-#include <engine/exception.h>
-#include <engine/container.h>
-#include <engine/string.h>
-#include <engine/object.h>
-#include <engine/storage_device.h>
-#include <engine/raid_device.h>
-#include <engine/volume.h>
-#include <engine/end_device.h>
-#include <engine/session.h>
-#include <engine/raid_info.h>
-#include <engine/context_manager.h>
-
 #include "templates.h"
+#include <engine/raid_info.h>
+#include <engine/volume.h>
 
 /* */
 SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle, SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)

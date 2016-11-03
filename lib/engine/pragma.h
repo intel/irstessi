@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -13,3 +13,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 */
 
 
+#ifndef __PRAGMA_H__INCLUDED__
+#define __PRAGMA_H__INCLUDED__
+
+#include <features.h>
+
+#if __GNUC_PREREQ(3, 4)
+#define SSI_HAS_PRAGMA_ONCE
+#endif /* __GNUC_PREREQ */
+
+#ifdef SSI_HAS_PRAGMA_ONCE
+#pragma once
+#endif /* SSI_HAS_PRAGMA ONCE */
+
+#endif /* __PRAGMA_H__INCLUDED__ */
+
+/* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

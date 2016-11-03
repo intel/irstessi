@@ -15,19 +15,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
-
-#include <ssi.h>
 #include <cstdio>
 #include <sys/types.h>
 #include <csignal>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "object.h"
-#include "event.h"
-#include "handle_manager.h"
 #include "event_manager.h"
 #include "utils.h"
 

@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2015, Intel Corporation
+Copyright (c) 2015 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -12,47 +11,28 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <asm/types.h>
 #include <sys/stat.h>
 #include <vector>
-
-#include <ssi.h>
 #include <orom/orom.h>
 #include <efi/efi.h>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "raid_info.h"
-#include "controller.h"
-#include "phy.h"
-#include "session.h"
-#include "nvme.h"
-#include "pci_header.h"
-#include "nvme_phy.h"
-#include "nvme_raid_info.h"
-#include "utils.h"
 #include "vmd.h"
+#include "nvme_phy.h"
 #include "vmd_raid_info.h"
 
 /* */
 VMD::VMD(const String &path)
     : Controller(path)
 {
-    m_Name = "VMD Controller";
+    m_Name = "Intel(R) VROC";
     m_DomainCount = 0;
     m_EndDevicesCount = 0;
 
@@ -67,14 +47,17 @@ VMD::VMD(const String &path)
         switch (pInfo->f_sku_mode) {
             case NoKey:
                 m_hardwareMode = SSI_HardwareKey3story;
+                m_Name += " (not activated)";
                 break;
 
             case StandardKey:
                 m_hardwareMode = SSI_HardwareKeyVROCStandard;
+                m_Name += " (Standard)";
                 break;
 
             case PremiumKey:
                 m_hardwareMode = SSI_HardwareKeyVROCPremium;
+                m_Name += " (Premium)";
                 break;
         }
 

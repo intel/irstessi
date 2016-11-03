@@ -15,17 +15,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <cstddef>
-
-#include <ssi.h>
 #include <log/log.h>
 
-#include "exception.h"
-#include "container.h"
+#include "mdadm_config.h"
 #include "filesystem.h"
 #include "utils.h"
-#include "mdadm_config.h"
 
 namespace {
     const char mdadmMonitorPid[] = "/var/run/mdadm/autorebuild.pid";

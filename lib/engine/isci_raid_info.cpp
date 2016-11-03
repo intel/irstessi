@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -16,24 +15,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <asm/types.h>
 #include <cstddef>
 #include <typeinfo>
-
-#include <ssi.h>
 #include <orom/orom.h>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "controller.h"
-#include "isci.h"
-#include "raid_info.h"
 #include "isci_raid_info.h"
-#include "utils.h"
 
 /* */
 ISCI_RaidInfo::ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo, unsigned int orom_dev_id)

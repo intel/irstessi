@@ -1,4 +1,3 @@
-
 /*
 Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
@@ -12,50 +11,30 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
-
-#include <features.h>
 
 #include <dirent.h>
 #include <sys/types.h>
 #include <cstdlib>
 #include <set>
-
-#include <ssi.h>
 #include <log/log.h>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "storage_device.h"
-#include "raid_device.h"
-#include "array.h"
-#include "end_device.h"
-#include "volume.h"
-#include "controller.h"
 #include "session.h"
-#include "phy.h"
-#include "enclosure.h"
-#include "port.h"
-#include "routing_device.h"
-#include "raid_info.h"
-#include "handle_manager.h"
-#include "session_manager.h"
+#include "filesystem.h"
 #include "ahci.h"
 #include "isci.h"
-#include "nvme.h"
 #include "vmd.h"
+#include "raid_info.h"
 #include "context_manager.h"
-#include "array.h"
+#include "end_device.h"
+#include "enclosure.h"
+#include "routing_device.h"
+#include "phy.h"
+#include "port.h"
 #include "volume.h"
-#include "utils.h"
+#include "array.h"
 #include "mdadm_config.h"
 
 /* */

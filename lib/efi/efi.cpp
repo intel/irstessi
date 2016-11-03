@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -12,30 +11,24 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if (HAVE_CONFIG_H == 1)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
-
-#include <features.h>
 
 #include <asm/types.h>
 #include <cstdio>
 #include <fcntl.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <orom/orom.h>
+#include <log/log.h>
 
-#include "include/ssi.h"
-#include "lib/engine/exception.h"
-#include "lib/engine/container.h"
-#include "lib/engine/string.h"
-#include "lib/efi/efi.h"
-#include "lib/orom/orom.h"
-#include "lib/engine/filesystem.h"
-#include "lib/log/log.h"
-#include "lib/engine/utils.h"
+#include <engine/container.h>
+#include <engine/string.h>
+#include <engine/filesystem.h>
+#include <engine/utils.h>
+
+#include "efi.h"
 
 /* */
 struct node {
@@ -87,29 +80,29 @@ struct orom_info *__read_efi_var(String var_name)
 
     guid2str(buf, VENDOR_GUID);
 
-	snprintf(var_path, PATH_MAX, "%s/%s-%s", EFIVARS_DIR, (const char*) var_name, guid2str(buf, VENDOR_GUID));
+    snprintf(var_path, PATH_MAX, "%s/%s-%s", EFIVARS_DIR, (const char*) var_name, guid2str(buf, VENDOR_GUID));
 
-	fd = open(var_path, O_RDONLY);
-	if (fd < 0)
-		return NULL;
+    fd = open(var_path, O_RDONLY);
+    if (fd < 0)
+        return NULL;
 
-	/* read the variable attributes and ignore it */
-	n = read(fd, buf, sizeof(__u32));
-	if (n < 0) {
-		close(fd);
-		return NULL;
-	}
+    /* read the variable attributes and ignore it */
+    n = read(fd, buf, sizeof(__u32));
+    if (n < 0) {
+        close(fd);
+        return NULL;
+    }
 
-	/* read the variable data */
+    /* read the variable data */
     data = new struct orom_info;
-	n = read(fd, data, var_size);
-	close(fd);
-	if (n < var_size) {
-		delete data;
-		return NULL;
-	}
+    n = read(fd, data, var_size);
+    close(fd);
+    if (n < var_size) {
+        delete data;
+        return NULL;
+    }
 
-	return data;
+    return data;
 }
 
 /* */

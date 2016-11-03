@@ -15,33 +15,21 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <asm/types.h>
 #include <cstddef>
 #include <typeinfo>
-
-#include <ssi.h>
 #include <orom/orom.h>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "object.h"
-#include "raid_info.h"
 #include "controller.h"
-#include "storage_device.h"
-#include "raid_device.h"
-#include "end_device.h"
-#include "routing_device.h"
-#include "phy.h"
-#include "volume.h"
-#include "port.h"
-#include "enclosure.h"
-#include "array.h"
-#include "session.h"
 #include "filesystem.h"
 #include "pci_header.h"
-#include "utils.h"
+#include "raid_info.h"
+#include "array.h"
+#include "enclosure.h"
+#include "routing_device.h"
+#include "session.h"
+#include "port.h"
+#include "phy.h"
 
 /* */
 Controller::Controller(const String &path)

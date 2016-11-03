@@ -15,18 +15,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <cstdlib>
 #include <sys/types.h>
 #include <unistd.h>
 #include <asm/types.h>
-
-#include <ssi.h>
-
-#include <engine/context_manager.h>
 #include <log/log.h>
 #include <orom/orom.h>
 #include <efi/efi.h>
+
+#include <engine/context_manager.h>
 #include <engine/mdadm_config.h>
 
 /* */

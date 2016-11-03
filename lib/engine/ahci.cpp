@@ -19,7 +19,6 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <dirent.h>
 #include <sys/types.h>
 #include <unistd.h>
@@ -27,24 +26,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <sys/stat.h>
 #include <vector>
 
-#include <ssi.h>
 #include <orom/orom.h>
 #include <efi/efi.h>
 
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "raid_info.h"
-#include "controller.h"
-#include "phy.h"
-#include "session.h"
 #include "ahci.h"
-#include "pci_header.h"
+
+#include "filesystem.h"
 #include "ahci_phy.h"
 #include "ahci_raid_info.h"
-#include "utils.h"
 
 /* */
 AHCI::AHCI(const String &path)
@@ -103,27 +92,27 @@ void AHCI::getAddress(SSI_Address &address) const
 
 RaidInfo *AHCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
-	/* first try EFI, if its failed - try legacy OROM */
-	if (((m_ClassId << 16) | (m_SubClassCode << 8) | m_prgIface )== PCI_CLASS_RAID_CNTRL) {
-		struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
-		if (pInfo_ext == NULL) {
-			pInfo_ext = orom_get(m_PciDeviceId);
-		}
+    /* first try EFI, if its failed - try legacy OROM */
+    if (((m_ClassId << 16) | (m_SubClassCode << 8) | m_prgIface )== PCI_CLASS_RAID_CNTRL) {
+        struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
+        if (pInfo_ext == NULL) {
+            pInfo_ext = orom_get(m_PciDeviceId);
+        }
 
-		if (pInfo_ext != NULL) {
-			orom_info *pInfo = &pInfo_ext->data;
-			foreach(i,RaidInfos){
-				if ((*i)->getControllerType() == SSI_ControllerTypeAHCI &&
-				   (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
-					m_pRaidInfo = (*i);
-					(*i)->attachController(this);
-					return NULL;
-				}
-			}
-			m_pRaidInfo = new AHCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
-			return m_pRaidInfo;
-		}
-	}
+        if (pInfo_ext != NULL) {
+            orom_info *pInfo = &pInfo_ext->data;
+            foreach(i,RaidInfos){
+                if ((*i)->getControllerType() == SSI_ControllerTypeAHCI &&
+                   (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
+                    m_pRaidInfo = (*i);
+                    (*i)->attachController(this);
+                    return NULL;
+                }
+            }
+            m_pRaidInfo = new AHCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
+            return m_pRaidInfo;
+        }
+    }
     return NULL;
 }
 

@@ -1,6 +1,5 @@
-
 /*
-Copyright (c) 2011, Intel Corporation
+Copyright (c) 2011 - 2016, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -12,36 +11,21 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-
-
-
 #if defined(HAVE_CONFIG_H)
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#include <features.h>
 #include <asm/types.h>
 #include <cstddef>
 #include <typeinfo>
 #include <string.h>
-
-#include <ssi.h>
 #include <orom/orom.h>
-
-#include "exception.h"
-#include "container.h"
-#include "string.h"
-#include "filesystem.h"
-#include "object.h"
-#include "controller.h"
-#include "nvme.h"
-#include "raid_info.h"
-#include "nvme_raid_info.h"
-#include "utils.h"
 
 extern "C" {
 #include "lib/safeclib/safe_mem_lib.h"
 }
+
+#include "nvme_raid_info.h"
 
 /* */
 NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
@@ -49,35 +33,35 @@ NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
 {
     attachController(pNVME);
 
-	memset_s(&orom_nvme, sizeof(orom_info), 0);
+    memset_s(&orom_nvme, sizeof(orom_info), 0);
 
-	m_OromDevId = -2;
+    m_OromDevId = -2;
 
-	//Supported Raid Levels
-	orom_nvme.rlc0 = 1;
-	orom_nvme.rlc1 = 1;
-	orom_nvme.rlc10 = 1;
-	orom_nvme.rlc5 = 1;
+    //Supported Raid Levels
+    orom_nvme.rlc0 = 1;
+    orom_nvme.rlc1 = 1;
+    orom_nvme.rlc10 = 1;
+    orom_nvme.rlc5 = 1;
 
-	//Supported Strip Size
-	orom_nvme.chk4k = 1;
-	orom_nvme.chk8k = 1;
-	orom_nvme.chk16k = 1;
-	orom_nvme.chk32k = 1;
-	orom_nvme.chk64k = 1;
-	orom_nvme.chk128k = 1;
+    //Supported Strip Size
+    orom_nvme.chk4k = 1;
+    orom_nvme.chk8k = 1;
+    orom_nvme.chk16k = 1;
+    orom_nvme.chk32k = 1;
+    orom_nvme.chk64k = 1;
+    orom_nvme.chk128k = 1;
 
-	//Supported Amount of disks/volumens
-	orom_nvme.tds = 12;
-	orom_nvme.dpa = 12;
-	orom_nvme.vphba = 4;
-	orom_nvme.vpa = 2;
+    //Supported Amount of disks/volumens
+    orom_nvme.tds = 12;
+    orom_nvme.dpa = 12;
+    orom_nvme.vphba = 4;
+    orom_nvme.vpa = 2;
 
-	//supported Attr
-	orom_nvme.a_2tb_disk = 1;
-	orom_nvme.a_2tb_vol = 1;
+    //supported Attr
+    orom_nvme.a_2tb_disk = 1;
+    orom_nvme.a_2tb_vol = 1;
 
-	//supported features
+    //supported features
 }
 
 bool NVME_RaidInfo::operator ==(const Object &object) const {
