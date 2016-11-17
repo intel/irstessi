@@ -51,8 +51,14 @@ SSI_Status BlockDevice::unlock(SSI_DiskUnlockInfo *pInfo)
 SSI_Status BlockDevice::makeSpare()
 {
     Controller *pController = getController();
-    if (pController == NULL)
-           return SSI_StatusFailed;
+    if (pController == NULL) {
+        return SSI_StatusFailed;
+    }
+
+    if (getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
+        return SSI_StatusNotSupported;
+    }
+
     return pController->makeSpare(this);
 }
 

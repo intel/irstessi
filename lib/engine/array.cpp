@@ -95,6 +95,7 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
         if (pBlockDevice == NULL) {
             return SSI_StatusInvalidState;
         }
+
         if (pBlockDevice->getArray() == this &&
            pBlockDevice->getDiskUsage() == SSI_DiskUsageSpare) {
             /* TODO: log that the given end device is already a component of this array. */
@@ -109,6 +110,7 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
         if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
             return SSI_StatusInvalidState;
         }
+
         endDevices += " '/dev/" + pBlockDevice->getDevName() + "'";
         count++;
     }
@@ -128,10 +130,11 @@ SSI_Status Array::addSpare(EndDevice *pEndDevice)
 {
     Container<EndDevice> container;
     if (pEndDevice == NULL) {
-            return SSI_StatusInvalidHandle;
+        return SSI_StatusInvalidHandle;
     }
+
     container.add(pEndDevice);
-    return this->addSpare(container);
+    return addSpare(container);
 }
 
 /* */

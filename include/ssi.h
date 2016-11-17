@@ -1796,6 +1796,30 @@ SSI_API SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlo
 SSI_API SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 storagePool);
 
 /**
+* @fn    SSI_API SSI_Status SsiDiskSetSmartEvent(SSI_Handle diskHandle, SSI_Handle arrayHandle)
+*
+* @brief    Sets a simulated SMART event on the specified disk.
+*
+* @param    diskHandle    Handle of the disk.
+*
+* @return    #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidState, #SSI_StatusInvalidHandle,
+* @return  #SSI_StatusFailed, #SSI_StatusNotSupported .
+**/
+SSI_API SSI_Status SsiDiskSetSmartEvent(SSI_Handle diskHandle);
+
+/**
+* @fn    SSI_API SSI_Status SsiDiskResetSmartEvent(SSI_Handle diskHandle, SSI_Handle arrayHandle)
+*
+* @brief    Clears a SMART event on the specified disk.
+*
+* @param    diskHandle    Handle of the disk.
+*
+* @return    #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidState, #SSI_StatusInvalidHandle,
+* @return  #SSI_StatusFailed, #SSI_StatusNotSupported .
+**/
+SSI_API SSI_Status SsiDiskResetSmartEvent(SSI_Handle diskHandle);
+
+/**
  * @fn  SSI_API SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
  *
  * @brief   Marks a failed volume as healthy
