@@ -25,11 +25,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstdlib>
 #include <fcntl.h>
 #include <log/log.h>
+#include <sstream>
 
 #include "utils.h"
 #include "filesystem.h"
 
 using std::vector;
+using std::istringstream;
+using std::hex;
 
 namespace {
     String SSI_STDERRMessage;
@@ -46,6 +49,7 @@ namespace {
     }
 }
 
+/* */
 void setLastErrorMessage(const String &ErrorMessage)
 {
     SSI_STDERRMessage = ErrorMessage;
@@ -60,16 +64,19 @@ void setLastErrorMessage(const String &ErrorMessage)
     }
 }
 
+/* */
 String getLastErrorMessage()
 {
     return SSI_STDERRMessage;
 }
 
+/* */
 void clearLastErrorMessage()
 {
     SSI_STDERRMessage.clear();
 }
 
+/* */
 void mdadmErrorLines(const String& output, vector<String>& lines)
 {
     const char NewLines[] = "\n";
@@ -102,6 +109,56 @@ void mdadmErrorLines(const String& output, vector<String>& lines)
         pos = next + 1;
         line.clear();
     }
+}
+
+/* */
+void parse_pci_address(const String& path, SSI_Address& address)
+{
+    try {
+        String addr = path.right(path.reverse_find("/") + 1);
+
+        unsigned int first = addr.find(":");
+        String domain = addr.left(first);
+        addr = addr.right(first + 1);
+
+        unsigned int second = addr.find(":");
+        String bus = addr.left(second);
+        addr = addr.right(second + 1);
+
+        unsigned int dot = addr.find(".");
+        String device = addr.left(dot);
+
+        String function = addr.right(dot + 1);
+
+        address.bdfAddressPresent = SSI_TRUE;
+        address.bdfAddress.domain = from_hex(domain);
+        address.bdfAddress.bus = from_hex(bus);
+        address.bdfAddress.device = from_hex(device);
+        address.bdfAddress.function = from_hex(function);
+    } catch (...) {
+        address.bdfAddressPresent = SSI_FALSE;
+        address.bdfAddress.domain = 0;
+        address.bdfAddress.bus = 0;
+        address.bdfAddress.device = 0;
+        address.bdfAddress.function = 0;
+    }
+
+    address.scsiAddress.host = 0;
+    address.scsiAddress.bus = 0;
+    address.scsiAddress.target = 0;
+    address.scsiAddress.lun = 0;
+    address.sasAddressPresent = SSI_FALSE;
+    address.sasAddress = 0ULL;
+}
+
+/* */
+unsigned int from_hex(const String& hexNumber)
+{
+    istringstream sin(static_cast<const char*>(hexNumber));
+
+    unsigned int ret = 0;
+    sin >> hex >> ret;
+    return ret;
 }
 
 /**

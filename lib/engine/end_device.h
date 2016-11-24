@@ -179,10 +179,6 @@ public:
         return SSI_StatusInvalidState;
     }
 
-    virtual SSI_Status setSmartEvent() {
-        return SSI_StatusNotSupported;
-    }
-
     virtual SSI_Status resetSmartEvent() {
         return SSI_StatusNotSupported;
     }

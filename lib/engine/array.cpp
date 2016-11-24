@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <log/log.h>
 
 #include "array.h"
+#include "controller.h"
 #include "volume.h"
 #include "mdadm_config.h"
 #include "context_manager.h"
@@ -222,26 +223,41 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice, bool force)
         if (pEndDevice->getArray() != this) {
             return SSI_StatusInvalidState;
         }
+
         const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
         if (pBlockDevice == NULL) {
             return SSI_StatusInvalidState;
         }
+
+        Controller* pController = pBlockDevice->getController();
+        if (pController == NULL) {
+            return SSI_StatusInvalidState;
+        }
+
         if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
             return SSI_StatusInvalidState;
         }
+
         SSI_DiskState state = pBlockDevice->getDiskState();
         if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
             return SSI_StatusInvalidState;
         }
+
+        if (pBlockDevice->getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
+            return SSI_StatusInvalidState;
+        }
     }
+
     int result = shellEx("mdadm '/dev/" + m_DevName + "' -r '/dev/" + pEndDevice->getDevName() + "'");
     if (result == 0) {
         usleep(3000000);
         result = shellEx("mdadm --zero-superblock '/dev/" + pEndDevice->getDevName() + "'");
     }
+
     if (result == 0) {
         return SSI_StatusOk;
     }
+
     return SSI_StatusFailed;
 }
 
@@ -501,8 +517,8 @@ void Array::__internal_determine_total_and_free_size()
 {
     u_int64_t raidSectorSize = DEFAULT_SECTOR_SIZE;
     unsigned long long int totalSize = -1ULL;
-    for (Iterator<BlockDevice *> i = m_BlockDevices; *i != 0; ++i) {
-        totalSize = min(totalSize, (*i)->getTotalSize());
+    foreach (i, m_BlockDevices) {
+        totalSize = ssi_min(totalSize, (*i)->getTotalSize());
     }
     m_TotalSize = (totalSize * m_BlockDevices);
     unsigned long long occupiedSize = 0;

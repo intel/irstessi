@@ -985,14 +985,16 @@ typedef struct _SSI_EndDeviceInfo
     SSI_DiskState state;
     /** (RAID) Usage of device */
     SSI_DiskUsage usage;
-    /** Size of storage device in Bytes */
+    /** Size of storage device in bytes */
     SSI_Uint64 totalSize;
-    /** Size of the storage device in blocks */
-    SSI_Uint64 blockSize;
+    /** Logical size of the storage device in bytes */
+    SSI_Uint64 logicalSize;
+    /** Physical size of the storage device in bytes */
+    SSI_Uint64 physicalSize;
     /** Total blocks of storage device in bytes */
     SSI_Uint64 blocksTotal;
-    /** Total blocks free in the storage device in bytes */
-    SSI_Uint64 blocksFree;
+    /** Free size in the storage device in bytes */
+    SSI_Uint64 freeSize;
     /** Write cache policy */
     SSI_WriteCachePolicy writeCachePolicy;
     /** If true, disk contains files that the system requires to boot */
@@ -1794,18 +1796,6 @@ SSI_API SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlo
  * @return  #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusFailed, #SSI_StatusNotSupported.
 **/
 SSI_API SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 storagePool);
-
-/**
-* @fn    SSI_API SSI_Status SsiDiskSetSmartEvent(SSI_Handle diskHandle, SSI_Handle arrayHandle)
-*
-* @brief    Sets a simulated SMART event on the specified disk.
-*
-* @param    diskHandle    Handle of the disk.
-*
-* @return    #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidState, #SSI_StatusInvalidHandle,
-* @return  #SSI_StatusFailed, #SSI_StatusNotSupported .
-**/
-SSI_API SSI_Status SsiDiskSetSmartEvent(SSI_Handle diskHandle);
 
 /**
 * @fn    SSI_API SSI_Status SsiDiskResetSmartEvent(SSI_Handle diskHandle, SSI_Handle arrayHandle)

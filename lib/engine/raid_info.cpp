@@ -75,7 +75,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
     switch (raidLevel) {
         case SSI_Raid0:
             pInfo->supported = m_pInfo->rlc0?SSI_TRUE:SSI_FALSE;
-            pInfo->minDisks = min(1, m_pInfo->tds);
+            pInfo->minDisks = ssi_min(1, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid10 | SSI_Raid5);
             pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid10 | SSI_Raid5);
@@ -84,8 +84,8 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
         case SSI_Raid1:
             pInfo->supported = m_pInfo->rlc1?SSI_TRUE:SSI_FALSE;
-            pInfo->minDisks = min(2, m_pInfo->tds);
-            pInfo->maxDisks = min(2, m_pInfo->tds);
+            pInfo->minDisks = ssi_min(2, m_pInfo->tds);
+            pInfo->maxDisks = ssi_min(2, m_pInfo->tds);
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0);
             pInfo->migrDiskAdd = SSI_RaidInvalid;
             pInfo->evenDiskCount = SSI_TRUE;
@@ -93,8 +93,8 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
         case SSI_Raid10:
             pInfo->supported = m_pInfo->rlc10?SSI_TRUE:SSI_FALSE;
-            pInfo->minDisks = min(4, m_pInfo->tds);
-            pInfo->maxDisks = min(4, m_pInfo->tds);
+            pInfo->minDisks = ssi_min(4, m_pInfo->tds);
+            pInfo->maxDisks = ssi_min(4, m_pInfo->tds);
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0);
             pInfo->migrDiskAdd = SSI_RaidInvalid;
             pInfo->evenDiskCount = SSI_TRUE;
@@ -102,7 +102,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
         case SSI_Raid5:
             pInfo->supported = m_pInfo->rlc5?SSI_TRUE:SSI_FALSE;
-            pInfo->minDisks = min(3, m_pInfo->tds);
+            pInfo->minDisks = ssi_min(3, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
             pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid5);
             pInfo->migrDiskAdd = SSI_RaidInvalid;
@@ -111,7 +111,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
         case SSI_Raid6:
             pInfo->supported = m_pInfo->rlc6?SSI_TRUE:SSI_FALSE;
-            pInfo->minDisks = min(4, m_pInfo->tds);
+            pInfo->minDisks = ssi_min(4, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
             pInfo->migrSupport = SSI_RaidInvalid;
             pInfo->migrDiskAdd = SSI_RaidInvalid;

@@ -17,6 +17,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <vector>
 #include <map>
 
+#include "ssi.h"
 #include "string.h"
 
 #ifdef SSI_HAS_PRAGMA_ONCE
@@ -24,7 +25,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 /* */
-#define min(__a, __b) \
+#define ssi_min(__a, __b) \
     ({ typeof(__a) a = __a; \
        typeof(__b) b = __b; \
        a < b ? a : b; })
@@ -34,11 +35,20 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 void setLastErrorMessage(const String &ErrorMessage);
 
+/* */
 String getLastErrorMessage();
 
+/* */
 void clearLastErrorMessage();
 
+/* */
 void mdadmErrorLines(const String& output, std::vector<String>& lines);
+
+/* */
+void parse_pci_address(const String& addr, SSI_Address& address);
+
+/* */
+unsigned int from_hex(const String& hexNumber);
 
 /* */
 int shell_cap(const String &s, String &r);

@@ -143,17 +143,6 @@ SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 poolId)
 }
 
 /* */
-SSI_Status SsiDiskSetSmartEvent(SSI_Handle diskHandle)
-{
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
-        return status;
-    }
-
-    return pEndDevice->setSmartEvent();
-}
-
-/* */
 SSI_Status SsiDiskResetSmartEvent(SSI_Handle diskHandle)
 {
     EndDevice *pEndDevice = NULL;

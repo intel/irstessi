@@ -370,9 +370,10 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->state = getDiskState();
     pInfo->usage = getDiskUsage();
     pInfo->totalSize = m_TotalSize;
-    pInfo->blockSize = m_LogicalSectorSize;
+    pInfo->logicalSize = m_LogicalSectorSize;
+    pInfo->physicalSize = m_PhysicalSectorSize;
     pInfo->blocksTotal = m_BlocksTotal;
-    pInfo->blocksFree = m_BlocksFree;
+    pInfo->freeSize = m_BlocksFree * m_LogicalSectorSize;
 
     pInfo->writeCachePolicy = m_WriteCachePolicy;
     pInfo->systemDisk = isSystemDisk() ? SSI_TRUE : SSI_FALSE;
@@ -410,7 +411,6 @@ SSI_Status EndDevice::locate(bool mode) const
         return SSI_StatusFailed;
     }
 }
-
 
 /* */
 RaidInfo * EndDevice::getRaidInfo() const
@@ -509,7 +509,7 @@ void EndDevice::determineBlocksFree(Array *pArray)
                 stripSize = (*volume)->getStripSize();
                 volumeCount++;
                 foreach (endDevice2, endDevices) {
-                    totalBlocks = min(totalBlocks, (*endDevice2)->getTotalSize() / raidSectorSize);
+                    totalBlocks = ssi_min(totalBlocks, (*endDevice2)->getTotalSize() / raidSectorSize);
                 }
                 break;
             }

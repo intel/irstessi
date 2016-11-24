@@ -90,17 +90,7 @@ void VMD::discover(const String &path)
 /* */
 void VMD::getAddress(SSI_Address &address) const
 {
-    address.scsiAddress.host = 0;
-    address.scsiAddress.bus = 0;
-    address.scsiAddress.target = 0;
-    address.scsiAddress.lun = 0;
-    address.sasAddressPresent = SSI_FALSE;
-    address.sasAddress = 0ULL;
-    address.bdfAddressPresent = SSI_FALSE;
-    address.bdfAddress.domain = 0;
-    address.bdfAddress.bus = 0;
-    address.bdfAddress.device = 0;
-    address.bdfAddress.function = 0;
+    parse_pci_address(m_Path, address);
 }
 
 RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
