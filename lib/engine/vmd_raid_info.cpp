@@ -23,8 +23,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "vmd_raid_info.h"
 
+using boost::shared_ptr;
+
 /* */
-VMD_RaidInfo::VMD_RaidInfo(VMD *pVMD, struct orom_info *pInfo, unsigned int orom_dev_id)
+VMD_RaidInfo::VMD_RaidInfo(const shared_ptr<VMD>& pVMD, struct orom_info *pInfo, unsigned int orom_dev_id)
     : RaidInfo(pInfo)
 {
     attachController(pVMD);

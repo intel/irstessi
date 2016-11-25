@@ -19,12 +19,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/array.h>
 #include <engine/volume.h>
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Array> &container)
+using boost::shared_ptr;
+
+static void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType, Container<Array> &container)
 {
     pScopeObject->getArrays(container);
 }
 
-static Array * getItem(Session *pSession, SSI_Handle handle)
+static shared_ptr<Array> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
 {
     return pSession->getArray(handle);
 }
@@ -44,13 +46,13 @@ SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle, SSI_Array
 /* */
 SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, SSI_Uint32 diskHandleCount)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
-    Array *pArray = getItem(session.get(), arrayHandle);
-    if (pArray == NULL) {
+    shared_ptr<Array> pArray = getItem(pSession, arrayHandle);
+    if (!pArray) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -95,8 +97,8 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, S
     unsigned int blockSize = enddevices.front()->getLogicalSectorSize();
     Container<EndDevice> container;
     for (unsigned int i = 0; i < diskHandleCount; i++) {
-        EndDevice *pEndDevice = session->getEndDevice(diskHandles[i]);
-        if (pEndDevice == NULL) {
+        shared_ptr<EndDevice> pEndDevice = pSession->getEndDevice(diskHandles[i]);
+        if (!pEndDevice) {
             return SSI_StatusInvalidHandle;
         }
 
@@ -121,12 +123,16 @@ SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, S
 }
 
 /* */
-SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle,
-    SSI_Bool cacheEnable)
+SSI_Status SsiArraySetWriteCacheState(SSI_Handle arrayHandle, SSI_Bool cacheEnable)
 {
-    Array *pArray = NULL;
-    if (SSI_Status status = SsiGetItem(arrayHandle, &pArray, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Array> pArray = getItem(pSession, arrayHandle);
+    if (!pArray) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pArray->setWriteCacheState(cacheEnable == SSI_TRUE);

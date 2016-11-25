@@ -15,22 +15,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __ROUTING_DEVICE_H__INCLUDED__
 
 #include "storage_object.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class RoutingDevice : public StorageObject {
+class RoutingDevice : public StorageObject, public boost::enable_shared_from_this<RoutingDevice> {
  public:
     RoutingDevice(const String &path);
-    virtual ~RoutingDevice();
 
     // Object
 
  public:
 
-    bool operator ==(const Object &) const {
+    virtual bool operator ==(const Object &) const {
         return false;
     }
     virtual String getId() const;
@@ -40,27 +40,29 @@ class RoutingDevice : public StorageObject {
 
  public:
     virtual void getPhys(Container<Phy> &) const;
-    void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
-    void getPorts(Container<Port> &) const;
-    void getEndDevices(Container<EndDevice> &, bool all) const;
-    void getEnclosures(Container<Enclosure> &, bool all) const;
+    virtual void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
+    virtual void getPorts(Container<Port> &) const;
+    virtual void getEndDevices(Container<EndDevice> &, bool all) const;
+    virtual void getEnclosures(Container<Enclosure> &, bool all) const;
 
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRoutingDevice;
     }
+
+    virtual void discover();
 
     // StorageObject
 
 public:
-    void attachEndDevice(EndDevice *pEndDevice);
-    void attachVolume(Volume *pVolume);
-    void attachPhy(Phy *pPhy);
-    void attachRoutingDevice(RoutingDevice *pRoutingDevice);
-    void attachEnclosure(Enclosure *pEnclosure);
-    void attachPort(Port *pPort);
-    void attachArray(Array *pArray);
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>& pEndDevice);
+    virtual void attachVolume(const boost::shared_ptr<Volume>& pVolume);
+    virtual void attachPhy(const boost::shared_ptr<Phy>& pPhy);
+    virtual void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>& pRoutingDevice);
+    virtual void attachEnclosure(const boost::shared_ptr<Enclosure>& pEnclosure);
+    virtual void attachPort(const boost::shared_ptr<Port>& pPort);
+    virtual void attachArray(const boost::shared_ptr<Array>& pArray);
 
-    virtual void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
 
     // RoutingDevice
 
@@ -71,8 +73,8 @@ protected:
     Container<Port> m_Ports;
     Container<RoutingDevice> m_RoutingDevices;
     Container<RoutingDevice> m_RoutingDevices_Direct;
-    Enclosure *m_pEnclosure;
-    Port *m_pSubtractivePort;
+    boost::weak_ptr<Enclosure> m_pEnclosure;
+    boost::shared_ptr<Port> m_pSubtractivePort;
     String m_ProductId;
     String m_Vendor;
     String m_ProductRev;
@@ -81,16 +83,16 @@ protected:
     String m_ComponentRev;
 
 public:
-    virtual Enclosure * getEnclosure() const {
-        return m_pEnclosure;
+    virtual boost::shared_ptr<Enclosure> getEnclosure() const {
+        return m_pEnclosure.lock();
     }
-    virtual void setEnclosure(Enclosure *pEnclosure) {
+    virtual void setEnclosure(const boost::shared_ptr<Enclosure>& pEnclosure) {
         m_pEnclosure = pEnclosure;
     }
-    Port * getSubtractivePort() const {
+    boost::shared_ptr<Port> getSubtractivePort() const {
         return m_pSubtractivePort;
     }
-    void setSubtractivePort(Port *pPort) {
+    void setSubtractivePort(boost::shared_ptr<Port>& pPort) {
         if (pPort != m_pSubtractivePort) {
             m_pSubtractivePort = pPort;
         }
@@ -104,9 +106,13 @@ public:
     virtual unsigned int getNumberOfPhys() const {
         return m_Phys.size();
     }
-    RaidInfo * getRaidInfo() const;
-    Controller * getController() const {
-        return m_pParent ? m_pParent->getController() : NULL;
+    boost::shared_ptr<RaidInfo> getRaidInfo() const;
+    boost::shared_ptr<Controller> getController() const {
+        if (Parent parent = m_pParent.lock()) {
+            return parent->getController();
+        } else {
+            return boost::shared_ptr<Controller>();
+        }
     }
     SSI_Status getInfo(SSI_RoutingDeviceInfo *pInfo) const;
 

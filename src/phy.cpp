@@ -18,12 +18,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/phy.h>
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Phy> &container)
+using boost::shared_ptr;
+
+static void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType, Container<Phy> &container)
 {
     pScopeObject->getPhys(container);
 }
 
-static Phy * getItem(Session *pSession, SSI_Handle handle)
+static shared_ptr<Phy> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
 {
     return pSession->getPhy(handle);
 }
@@ -45,9 +47,14 @@ SSI_Status SsiGetPhyInfo(SSI_Handle session, SSI_Handle phyHandle,
 /* */
 SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
 {
-    Phy *pPhy = NULL;
-    if (SSI_Status status = SsiGetItem(phyHandle, &pPhy, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Phy> pPhy = getItem(pSession, phyHandle);
+    if (!pPhy) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pPhy->locate(mode == SSI_TRUE);

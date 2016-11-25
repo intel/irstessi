@@ -60,9 +60,11 @@ class NVME_Disk : public BlockDevice {
 public:
     NVME_Disk(const String &path, unsigned int vmdDomain);
 
-    SSI_DiskType getDiskType() const {
+    virtual SSI_DiskType getDiskType() const {
         return SSI_DiskTypeVMD;
     }
+
+    virtual void discover();
 protected:
     void identify();
 };

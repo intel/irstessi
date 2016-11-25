@@ -25,7 +25,24 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 ISCI_Disk::ISCI_Disk(const String &path)
     : BlockDevice(path)
 {
-    Path end_path = path.reverse_left("/");
+
+}
+
+/* */
+SSI_DiskType ISCI_Disk::getDiskType() const
+{
+    if (m_pPhy && m_pPhy->getProtocol() == SSI_PhyProtocolSATA) {
+        return SSI_DiskTypeSATA;
+    }
+
+    return SSI_DiskTypeSAS;
+}
+
+/* */
+void ISCI_Disk::discover()
+{
+    BlockDevice::discover();
+    Path end_path = m_Path.reverse_left("/");
     end_path = end_path.reverse_left("/");
     Directory dir(end_path + "/sas_device");
     File attr;
@@ -38,16 +55,6 @@ ISCI_Disk::ISCI_Disk(const String &path)
             /* TODO: report read failure of attribtue. */
         }
     }
-}
-
-/* */
-SSI_DiskType ISCI_Disk::getDiskType() const
-{
-    if (m_pPhy != NULL) {
-        if (m_pPhy->getProtocol() == SSI_PhyProtocolSATA)
-            return SSI_DiskTypeSATA;
-    }
-    return SSI_DiskTypeSAS;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

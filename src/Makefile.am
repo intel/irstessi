@@ -7,7 +7,8 @@ lib_LTLIBRARIES = libssi.la
 libssi_la_CPPFLAGS =                    \
         -I$(top_srcdir)                 \
         -I$(top_srcdir)/include         \
-        -I$(top_srcdir)/lib
+        -I$(top_srcdir)/lib             \
+        -DBOOST_NO_USER_CONFIG
 
 libssi_la_LDFLAGS =                     \
         $(SGUTILS_LDFLAGS)              \
@@ -42,7 +43,7 @@ libssi_la_SOURCES =                     \
         routing_device.cpp              \
         session.cpp                     \
         system.cpp                      \
-	templates.h			\
+        templates.h                     \
         volume.cpp
 
 libssi_la_LIBADD =                      \
@@ -50,5 +51,5 @@ libssi_la_LIBADD =                      \
         ../lib/log/liblog.la            \
         ../lib/orom/liborom.la          \
         ../lib/mpb/libmpb.la            \
-        ../lib/engine/libengine.la	\
-	../lib/safeclib/libsafec.la
+        ../lib/engine/libengine.la      \
+        ../lib/safeclib/libsafec.la

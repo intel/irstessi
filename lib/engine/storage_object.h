@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __STORAGE_OBJECT_H__INCLUDED__
 
 #include "scope_object.h"
+#include <boost/weak_ptr.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
@@ -23,15 +24,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class StorageObject : public ScopeObject {
 public:
-    StorageObject(StorageObject *pParent = NULL)
+    typedef boost::shared_ptr<StorageObject> Parent;
+
+    StorageObject(const Parent& pParent = Parent())
         : m_pParent(pParent) {
     }
-    StorageObject(const String &path, StorageObject *pParent = NULL)
+
+    StorageObject(const String &path, const Parent& pParent = Parent())
         : m_pParent(pParent), m_Path(path) {
     }
 
 protected:
-    StorageObject *m_pParent;
+    boost::weak_ptr<StorageObject> m_pParent;
     String m_Path;
 
 public:
@@ -43,40 +47,40 @@ public:
     }
 
 public:
-    virtual void attachEndDevice(EndDevice *) {
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>&) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachRoutingDevice(RoutingDevice *) {
+    virtual void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>&) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachPort(Port *) {
+    virtual void attachPort(const boost::shared_ptr<Port>&) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachVolume(Volume *) {
+    virtual void attachVolume(const boost::shared_ptr<Volume>&) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachArray(Array *) {
+    virtual void attachArray(const boost::shared_ptr<Array>&) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachPhy(Phy *) {
+    virtual void attachPhy(const boost::shared_ptr<Phy>&) {
         throw E_INVALID_OPERATION;
     }
-    virtual void attachEnclosure(Enclosure *) {
+    virtual void attachEnclosure(const boost::shared_ptr<Enclosure>&) {
         throw E_INVALID_OPERATION;
     }
-    StorageObject * getParent() const {
+    boost::weak_ptr<StorageObject> getParent() const {
         return m_pParent;
     }
-    void setParent(StorageObject *pParent) {
-        if (pParent != this) {
+    void setParent(const Parent& pParent) {
+        if (pParent.get() != this) {
             m_pParent = pParent;
         }
     }
-    virtual Controller * getController() const {
-        return NULL;
+    virtual boost::shared_ptr<Controller> getController() const {
+        return boost::shared_ptr<Controller>();
     }
-    virtual RaidInfo * getRaidInfo() const {
-        return NULL;
+    virtual boost::shared_ptr<RaidInfo> getRaidInfo() const {
+        return boost::shared_ptr<RaidInfo>();
     }
     virtual void getAddress(SSI_Address &) const {
         throw E_INVALID_OPERATION;
@@ -90,16 +94,16 @@ public:
     }
 
 public:
-    virtual Port * getPort() const {
+    virtual boost::shared_ptr<Port> getPort() const {
         throw E_INVALID_OPERATION;
     }
-    virtual Port * getPortByPath(const String &s) const {
+    virtual boost::shared_ptr<Port> getPortByPath(const String &s) const {
         throw E_INVALID_OPERATION;
     }
     virtual void discover() {
         throw E_INVALID_OPERATION;
     }
-    virtual void addToSession(Session *pSession) = 0;
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession) = 0;
 };
 
 #endif /* __STORAGE_OBJECT_H__INCLUDED__ */

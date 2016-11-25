@@ -23,8 +23,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ISCI_Phy : public Phy {
 public:
-    ISCI_Phy(const String &path, unsigned int number, StorageObject *pParent = NULL);
-    void discover();
+    ISCI_Phy(const String &path, unsigned int number, const Parent& pParent = Parent());
+    virtual void discover();
 };
 
 #endif /* __ISCI_PHY_H__INCLUDED__ */

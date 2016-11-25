@@ -52,7 +52,6 @@ libengine_la_SOURCES =          \
         exception.h             \
         filesystem.cpp          \
         filesystem.h            \
-        handle_manager.cpp      \
         handle_manager.h        \
         isci.cpp                \
         isci.h                  \
@@ -90,7 +89,7 @@ libengine_la_SOURCES =          \
         nvme.h                  \
         vmd_raid_info.cpp       \
         vmd_raid_info.h         \
-       	vmd.cpp                 \
+        vmd.cpp                 \
         vmd.h                   \
         object.cpp              \
         object.h                \
@@ -126,4 +125,5 @@ libengine_la_SOURCES =          \
 libengine_la_CPPFLAGS =         \
         -I$(top_srcdir)         \
         -I$(top_srcdir)/include \
-        -I$(top_srcdir)/lib
+        -I$(top_srcdir)/lib     \
+        -DBOOST_NO_USER_CONFIG

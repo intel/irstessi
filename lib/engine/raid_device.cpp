@@ -27,19 +27,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 
 using std::numeric_limits;
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
 
 /* */
 RaidDevice::RaidDevice(const String &path)
     : StorageDevice(path)
 {
-    m_DevName = m_Path.reverse_after("/");
-
-    Directory dir(m_Path + "/slaves");
-    std::list<Directory *> dirs = dir.dirs();
-    foreach (i, dirs) {
-        m_Components.push_back(new String((*i)->reverse_after("/")));
-    }
-    update();
 
 }
 
@@ -49,22 +43,32 @@ RaidDevice::RaidDevice() : StorageDevice()
 }
 
 /* */
-RaidDevice::~RaidDevice()
+void RaidDevice::discover()
 {
-    foreach (i, m_Components)
-        delete *i;
+    m_DevName = m_Path.reverse_after("/");
+
+    Directory dir(m_Path + "/slaves");
+    std::list<Directory *> dirs = dir.dirs();
+    foreach (i, dirs) {
+        m_Components.push_back(shared_ptr<String>(new String((*i)->reverse_after("/"))));
+    }
+    update();
 }
 
 /* */
-RaidInfo * RaidDevice::getRaidInfo() const
+shared_ptr<RaidInfo> RaidDevice::getRaidInfo() const
 {
-    RaidInfo *pinfo;
+    shared_ptr<RaidInfo> pinfo;
     foreach (i, m_BlockDevices) {
-        pinfo = (*i)->getRaidInfo();
-        if (pinfo != NULL)
-            return pinfo;
+        if (shared_ptr<BlockDevice> block = (*i).lock()) {
+            pinfo = block->getRaidInfo();
+            if (pinfo) {
+                break;
+            }
+        }
     }
-    return NULL;
+
+    return pinfo;
 }
 
 File RaidDevice::getMapFile()
@@ -79,8 +83,9 @@ File RaidDevice::getMapFile()
 
     for (int i = 0; i < n; i++) {
         File map(paths[i]);
-        if (map.exists())
+        if (map.exists()) {
             return map;
+        }
     }
 
     throw E_NOT_FOUND;
@@ -116,10 +121,12 @@ void RaidDevice::__internal_update(String &map)
     }
     dlog(name + " looking up in map");
     while (line != "") {
-        if (create)
+        if (create) {
             tmp = line.reverse_after("/");
-        else
+        } else {
             tmp = line.left(" ");
+        }
+
         try {
             tmp.find(name);
             break;
@@ -128,12 +135,16 @@ void RaidDevice::__internal_update(String &map)
         map = map.after("\n");
         line = map.left("\n");
     }
-    if (line == "")
+
+    if (line == "") {
         throw E_ARRAY_CREATE_FAILED;
-    if (create)
+    }
+
+    if (create) {
         m_DevName = line.left(" ");
-    else
+    } else {
         m_Name = line.reverse_after("/");
+    }
     line = line.reverse_left(" ");
     m_Uuid = line.reverse_after(" ");
     dlog(m_Name + " found in map: " + m_DevName + " " + m_Uuid);
@@ -147,15 +158,17 @@ bool RaidDevice::operator ==(const Object &object) const
 }
 
 /* */
-void RaidDevice::addToSession(Session *pSession)
+void RaidDevice::addToSession(const shared_ptr<Session>& pSession)
 {
-    if (pSession == NULL) {
+    if (!pSession) {
         throw E_NULL_POINTER;
     }
+
     Container<EndDevice> endDevices;
     pSession->getEndDevices(endDevices, false);
-    foreach (i, m_Components)
+    foreach (i, m_Components) {
         attachComponent(endDevices, *(*i));
+    }
 }
 
 /* */
@@ -163,21 +176,21 @@ void RaidDevice::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
     foreach (i, container) {
-        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == NULL) {
+        shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(*i);
+        if (!pBlockDevice) {
             throw E_INVALID_OBJECT;
-        }
-        if (pBlockDevice->isSystemDisk()) {
+        } else if (pBlockDevice->isSystemDisk()) {
             throw E_SYSTEM_DEVICE;
         }
 #if 0 /* APW */
-        if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
+        else if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
             throw E_INVALID_USAGE;
         }
 #endif /* APW */
-        if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
+        else if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
             throw E_NOT_AVAILABLE;
         }
+
         m_BlockDevices.add(pBlockDevice);
     }
 }
@@ -211,10 +224,11 @@ void RaidDevice::setName(const String &deviceName)
 void RaidDevice::attachComponent(const Container<EndDevice> &endDevices, const String &devName)
 {
     foreach (i, endDevices) {
-        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == NULL) {
+        shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(*i);
+        if (!pBlockDevice) {
             continue;
         }
+
         if (pBlockDevice->getDevName() == devName) {
             attachEndDevice(*i);
             return;

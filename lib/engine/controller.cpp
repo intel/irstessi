@@ -31,6 +31,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "phy.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+using boost::const_pointer_cast;
+
 /* */
 Controller::Controller(const String &path)
     : StorageObject(path),
@@ -42,7 +46,7 @@ Controller::Controller(const String &path)
       m_SubVendorId(0),
       m_prgIface(0),
       m_ClassId(0),
-      m_pRaidInfo(0),
+      m_pRaidInfo(),
       m_twoTbVolumePrebootSupported(false),
       m_twoTbDiskPrebootSupported(false),
       m_ESATASpanning(false),
@@ -113,9 +117,9 @@ String Controller::getPartId() const
 }
 
 /* */
-RaidInfo * Controller::findRaidInfo(Container<RaidInfo> &container)
+shared_ptr<RaidInfo> Controller::findRaidInfo(Container<RaidInfo>&)
 {
-    return NULL;
+    return shared_ptr<RaidInfo>();
 }
 
 /* */
@@ -176,33 +180,33 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     return SSI_StatusOk;
 }
 
-SSI_Status Controller::makeSpare(EndDevice *pEndDevice)
+SSI_Status Controller::makeSpare(const shared_ptr<EndDevice>& pEndDevice)
 {
     foreach (i, m_Arrays) {
         if ((*i)->addSpare(pEndDevice) == SSI_StatusOk)
             return SSI_StatusOk;
     }
-    Array *pArray = NULL;
+    shared_ptr<Array> pArray;
     Container<EndDevice> container;
     container.add(pEndDevice);
     try {
-       pArray = new Array();
+       pArray = shared_ptr<Array>(new Array());
     } catch (...) {
         return SSI_StatusInsufficientResources;
     }
+
     try {
         pArray->setEndDevices(container);
     } catch (...) {
-        delete pArray;
         return SSI_StatusInvalidState;
     }
+
     try {
         pArray->create();
     } catch (...) {
-        delete pArray;
         return SSI_StatusFailed;
     }
-    delete pArray;
+
     return SSI_StatusOk;
 }
 
@@ -220,8 +224,9 @@ void Controller::getEnclosures(Container<Enclosure> &container, bool all) const
         return;
     }
     foreach (i, m_Enclosures_Direct)
-        if ((*i)->attachedTo(const_cast<Controller *>(this)))
+        if ((*i)->attachedTo(const_pointer_cast<Controller>(shared_from_this()))) {
             container.add(*i);
+        }
 }
 
 /* */
@@ -274,16 +279,16 @@ bool Controller::operator ==(const Object &object) const
 }
 
 /* */
-void Controller::attachEndDevice(EndDevice *pEndDevice)
+void Controller::attachEndDevice(const shared_ptr<EndDevice>& pEndDevice)
 {
     m_EndDevices_Direct.add(pEndDevice);
 }
 
 /* */
-void Controller::attachRoutingDevice(RoutingDevice *pRoutingDevice)
+void Controller::attachRoutingDevice(const shared_ptr<RoutingDevice>& pRoutingDevice)
 {
     m_RoutingDevices_Direct.add(pRoutingDevice);
-    ScopeObject *pScopeObject = dynamic_cast<ScopeObject *>(pRoutingDevice);
+    shared_ptr<ScopeObject> pScopeObject = dynamic_pointer_cast<ScopeObject>(pRoutingDevice);
     Container<EndDevice> endDevices;
     pScopeObject->getEndDevices(endDevices, true);
     m_EndDevices.add(endDevices);
@@ -293,56 +298,60 @@ void Controller::attachRoutingDevice(RoutingDevice *pRoutingDevice)
 }
 
 /* */
-void Controller::attachPort(Port *pPort)
+void Controller::attachPort(const shared_ptr<Port>& pPort)
 {
     m_Ports.add(pPort);
 }
 
 /* */
-void Controller::attachVolume(Volume *pVolume)
+void Controller::attachVolume(const shared_ptr<Volume>& pVolume)
 {
     foreach (i, m_Volumes) {
         if (*i == pVolume) {
             return;
         }
     }
+
     m_Volumes.add(pVolume);
 }
 
 /* */
-void Controller::attachPhy(Phy *pPhy)
+void Controller::attachPhy(const shared_ptr<Phy>& pPhy)
 {
     m_Phys.add(pPhy);
 }
 
 /* */
-void Controller::attachArray(Array *pArray)
+void Controller::attachArray(const shared_ptr<Array>& pArray)
 {
     foreach (i, m_Arrays) {
         if (*i == pArray) {
             return;
         }
     }
+
     m_Arrays.add(pArray);
 }
 
 /* */
-void Controller::attachEnclosure(Enclosure *pEnclosure)
+void Controller::attachEnclosure(const shared_ptr<Enclosure>& pEnclosure)
 {
     foreach (i, m_Enclosures_Direct) {
-        if (*pEnclosure == **i) {
-            RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(pEnclosure->getParent());
-            (*i)->attachRoutingDevice(pRoutingDevice);
-            pRoutingDevice->setEnclosure(*i);
-            delete pEnclosure;
-            return;
+        if (pEnclosure == *i) {
+            if (shared_ptr<StorageObject> parent = pEnclosure->getParent().lock()) {
+                shared_ptr<RoutingDevice> pRoutingDevice = dynamic_pointer_cast<RoutingDevice>(parent);
+                (*i)->attachRoutingDevice(pRoutingDevice);
+                pRoutingDevice->setEnclosure(*i);
+                return;
+            }
         }
     }
+
     m_Enclosures_Direct.add(pEnclosure);
 }
 
 /* */
-void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container)
+void Controller::getEnclosures(const shared_ptr<RoutingDevice>& pRoutingDevice, Container<Enclosure> &container)
 {
     foreach (i, m_Enclosures_Direct) {
         if (pRoutingDevice->getEnclosure() != *i && (*i)->attachedTo(pRoutingDevice)) {
@@ -352,9 +361,9 @@ void Controller::getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosur
 }
 
 /* */
-void Controller::addToSession(Session *pSession)
+void Controller::addToSession(const shared_ptr<Session>& pSession)
 {
-    pSession->addController(this);
+    pSession->addController(shared_from_this());
 
     foreach (i, m_EndDevices_Direct) {
         (*i)->addToSession(pSession);

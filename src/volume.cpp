@@ -19,13 +19,15 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/volume.h>
 #include <engine/array.h>
 
+using boost::shared_ptr;
+
 namespace {
-    void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Volume> &container)
+    void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType, Container<Volume> &container)
     {
         pScopeObject->getVolumes(container);
     }
 
-    Volume * getItem(Session *pSession, SSI_Handle handle)
+    shared_ptr<Volume> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
     {
         return pSession->getVolume(handle);
     }
@@ -46,9 +48,14 @@ SSI_Status SsiGetVolumeInfo(SSI_Handle session, SSI_Handle volumeHandle, SSI_Vol
 /* */
 SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pVolume->markAsNormal();
@@ -57,18 +64,18 @@ SSI_Status SsiVolumeMarkAsNormal(SSI_Handle volumeHandle)
 /* */
 SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
-    Volume *pVolume = getItem(session.get(), volumeHandle);
-    if (pVolume == NULL) {
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
         return SSI_StatusInvalidHandle;
     }
 
-    EndDevice *pEndDevice = session->getEndDevice(diskHandle);
-    if (pEndDevice == NULL) {
+    shared_ptr<EndDevice> pEndDevice = pSession->getEndDevice(diskHandle);
+    if (!pEndDevice) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -90,9 +97,14 @@ SSI_Status SsiVolumeRebuild(SSI_Handle volumeHandle, SSI_Handle diskHandle)
 /* */
 SSI_Status SsiVolumeDelete(SSI_Handle volumeHandle)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = pSession->getVolume(volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pVolume->remove();
@@ -110,21 +122,21 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         return SSI_StatusInvalidParameter;
     }
 
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
-    Volume *pVolume = NULL;
-    Array *pArray = NULL;
+    shared_ptr<Volume> pVolume;
+    shared_ptr<Array> pArray;
     Container<EndDevice> container;
-    EndDevice *pEndDevice;
+    shared_ptr<EndDevice> pEndDevice;
 
     /* create container */
     try {
         for (unsigned int i = 0; i < params.numDisks; ++i) {
-            pEndDevice = session->getEndDevice(params.disks[i]);
-            if (pEndDevice == NULL) {
+            pEndDevice = pSession->getEndDevice(params.disks[i]);
+            if (!pEndDevice) {
                 return SSI_StatusInvalidHandle;
             }
             container.add(pEndDevice);
@@ -140,14 +152,14 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
             }
         }
 
-        pEndDevice = session->getEndDevice(params.sourceDisk);
+        pEndDevice = pSession->getEndDevice(params.sourceDisk);
 
-        if (pEndDevice != NULL) {
-            throw E_NOT_SUPPORTED;
+        if (pEndDevice) {
+            return SSI_StatusNotSupported;
         }
 
         try {
-            pArray = new Array();
+            pArray = shared_ptr<Array>(new Array());
         } catch (...) {
             return SSI_StatusInsufficientResources;
         }
@@ -155,7 +167,6 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         pArray->setEndDevices(container);
         pArray->create();
     } catch (Exception ex) {
-        delete pArray;
         switch (ex) {
             case E_NOT_SUPPORTED:
                 return SSI_StatusNotSupported;
@@ -184,12 +195,13 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
     /* create volume */
     try {
         try {
-            pVolume = new Volume();
+            pVolume = shared_ptr<Volume>(new Volume());
         } catch (...) {
             pArray->remove();
-            delete pArray;
             return SSI_StatusInsufficientResources;
         }
+
+        pVolume->discover();
         pVolume->setParent(pArray);
         pVolume->setSourceDisk(pEndDevice);
         pVolume->setEndDevices(container);
@@ -201,13 +213,11 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
         }
         pVolume->setRwhPolicy(params.rwhPolicy);
         pVolume->create();
-        session->addVolume(pVolume);
-        session->addArray(pArray);
-        *volumeHandle = pVolume->getId();
+        pSession->addVolume(pVolume);
+        pSession->addArray(pArray);
+        *volumeHandle = pVolume->getHandle();
     } catch (Exception ex) {
-        delete pVolume;
         pArray->remove();
-        delete pArray;
         switch (ex) {
             case E_INVALID_STRIP_SIZE:
                 return SSI_StatusInvalidStripSize;
@@ -234,29 +244,31 @@ SSI_Status SsiVolumeCreateFromDisks(SSI_CreateFromDisksParams params, SSI_Handle
 /* */
 SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
-    Array *pArray = session->getArray(params.arrayHandle);
-    if (pArray == NULL) {
+    shared_ptr<Array> pArray = pSession->getArray(params.arrayHandle);
+    if (!pArray) {
         return SSI_StatusInvalidHandle;
     }
 
     Container<EndDevice> container;
     pArray->getEndDevices(container, false);
-    if (0 == container.size()) {
+    if (container.size() == 0) {
         pArray->getEndDevices(container, true);
     }
 
-    Volume *pVolume = NULL;
     try {
+        shared_ptr<Volume> pVolume;
         try {
-            pVolume = new Volume();
+            pVolume = shared_ptr<Volume>(new Volume());
         } catch (...) {
             return SSI_StatusInsufficientResources;
         }
+
+        pVolume->discover();
         pVolume->setParent(pArray);
         pVolume->setEndDevices(container);
         pVolume->setComponentSize(params.sizeInBytes, container.size(), params.raidLevel);
@@ -266,11 +278,10 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
         pVolume->setRwhPolicy(params.rwhPolicy);
         pVolume->create();
         pVolume->update();
-        session->addVolume(pVolume);
+        pSession->addVolume(pVolume);
 
         return SSI_StatusOk;
     } catch (Exception ex) {
-        delete pVolume;
         switch (ex) {
             case E_INVALID_STRIP_SIZE:
                 return SSI_StatusInvalidStripSize;
@@ -295,23 +306,22 @@ SSI_Status SsiVolumeCreate(SSI_CreateFromArrayParams params)
 }
 
 /* */
-SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
-                           const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
+SSI_Status SsiVolumeRename(SSI_Handle volumeHandle, const SSI_Char volumeName[SSI_VOLUME_NAME_LENGTH])
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
     }
 
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     String name = volumeName;
 
     Container<Volume> volumes;
-    session->getVolumes(volumes);
+    pSession->getVolumes(volumes);
     foreach (iter, volumes) {
         Volume& volume = *(*iter);
 
@@ -327,9 +337,14 @@ SSI_Status SsiVolumeRename(SSI_Handle volumeHandle,
 /* */
 SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pVolume->expand(newSizeMB * 1024ULL);
@@ -338,20 +353,30 @@ SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
 /* */
 SSI_Status SsiVolumeSetCachePolicy(SSI_Handle volumeHandle, SSI_VolumeCachePolicy policy)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pVolume->setCachePolicy(policy == SSI_VolumeCachePolicyOff);
 }
 
 /* */
-SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle journalingDriveHandle, SSI_RwhPolicy policy)
+SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle, SSI_RwhPolicy policy)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pVolume->changeRwhPolicy(policy);
@@ -360,9 +385,14 @@ SSI_Status SsiVolumeSetRwhPolicy(SSI_Handle volumeHandle, SSI_Handle journalingD
 /* */
 SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pVolume->initialize();
@@ -371,9 +401,14 @@ SSI_Status SsiVolumeInitialize(SSI_Handle volumeHandle)
 /* */
 SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
     }
 
     if (pVolume->getState() != SSI_VolumeStateNormal) {
@@ -386,13 +421,17 @@ SSI_Status SsiVolumeVerify(SSI_Handle volumeHandle, SSI_Bool repair)
 /* */
 SSI_Status SsiVolumeCancelVerify(SSI_Handle volumeHandle)
 {
-    Volume *pVolume = NULL;
-    if (SSI_Status status = SsiGetItem(volumeHandle, &pVolume, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
     }
 
-    if (pVolume->getState() != SSI_VolumeStateVerifying &&
-            pVolume->getState() != SSI_VolumeStateVerifyingAndFix) {
+    shared_ptr<Volume> pVolume = getItem(pSession, volumeHandle);
+    if (!pVolume) {
+        return SSI_StatusInvalidHandle;
+    }
+
+    if (pVolume->getState() != SSI_VolumeStateVerifying && pVolume->getState() != SSI_VolumeStateVerifyingAndFix) {
         return SSI_StatusInvalidState;
     }
 

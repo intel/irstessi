@@ -17,38 +17,37 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "session_manager.h"
 
+using std::nothrow;
+using boost::shared_ptr;
+
 /* */
 SessionManager::SessionManager()
 {
 }
 
 /* */
-SessionManager::~SessionManager()
+shared_ptr<Session> SessionManager::getSession(SSI_Handle handle) const
 {
-    for (HandleManager::iterator iter = m_sessions.begin(); iter != m_sessions.end(); ++iter) {
-        delete iter->second;
-    }
-}
-
-/* */
-Session* SessionManager::getSession(SSI_Handle handle) const
-{
-    return const_cast<Session*>(static_cast<const Session*>(m_sessions.at(handle)));
+    return m_sessions.at(handle);
 }
 
 /* */
 SSI_Handle SessionManager::openSession()
 {
-    Session *pSession;
+    shared_ptr<Session> pSession = shared_ptr<Session>(new(nothrow) Session());
 
-    try {
-        pSession = new Session();
-    } catch (...) {
+    if (!pSession) {
         return SSI_NULL_HANDLE;
     }
 
     if (!m_sessions.insert(pSession).second) { /* Out of resources */
-        delete pSession;
+        return SSI_NULL_HANDLE;
+    }
+
+    try {
+        pSession->initialize();
+    } catch (...) {
+        m_sessions.remove(pSession->getHandle());
         return SSI_NULL_HANDLE;
     }
 
@@ -62,13 +61,12 @@ SSI_Status SessionManager::closeSession(SSI_Handle handle)
         return SSI_StatusInvalidParameter;
     }
 
-    Object *pSession = m_sessions.remove(handle);
+    shared_ptr<Session> pSession = m_sessions.remove(handle);
 
     if (pSession == NULL) {
         return SSI_StatusInvalidHandle;
     }
 
-    delete pSession;
     return SSI_StatusOk;
 }
 

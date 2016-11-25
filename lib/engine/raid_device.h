@@ -27,24 +27,26 @@ class RaidDevice : public StorageDevice {
 public:
     RaidDevice();
     RaidDevice(const String &path);
-    virtual ~RaidDevice();
 
     // Object
 
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
+
     // StorageObject
 
 public:
-    virtual void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
+
+    virtual void discover();
 
     // RaidDevice
 
 protected:
     String m_Name;
     String m_Uuid;
-    Container<BlockDevice> m_BlockDevices;
-    std::list<String *> m_Components;
+    Container<BlockDevice, boost::weak_ptr<BlockDevice> > m_BlockDevices;
+    std::list<boost::shared_ptr<String> > m_Components;
 
     void attachComponent(const Container<EndDevice> &endDevices, const String &devName);
 
@@ -52,7 +54,7 @@ public:
     String getUuid() const {
         return m_Uuid;
     }
-    RaidInfo * getRaidInfo() const;
+    virtual boost::shared_ptr<RaidInfo> getRaidInfo() const;
 
     void update();
     virtual SSI_Status remove() = 0;

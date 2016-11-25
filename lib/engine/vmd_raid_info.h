@@ -24,18 +24,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class VMD_RaidInfo : public RaidInfo {
 public:
-    VMD_RaidInfo(VMD *pVMD, struct orom_info *pInfo, unsigned int orom_dev_id);
+    VMD_RaidInfo(const boost::shared_ptr<VMD>& pVMD, struct orom_info *pInfo, unsigned int orom_dev_id);
 
     // Object
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
 
     // RaidInfo
 
 public:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeVMD;
     }
+
 private:
     struct orom_info orom_vmd;
 };

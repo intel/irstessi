@@ -15,13 +15,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __CONTROLLER_H__INCLUDED__
 
 #include "storage_object.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class Controller : public StorageObject {
+class Controller : public StorageObject, public boost::enable_shared_from_this<Controller> {
 public:
     Controller(const String &path);
 
@@ -52,15 +53,15 @@ public:
     // StorageObject
 
 public:
-    void attachEndDevice(EndDevice *pEndDevice);
-    void attachRoutingDevice(RoutingDevice *pRoutingDevice);
-    void attachPort(Port *pPort);
-    void attachVolume(Volume *pVolume);
-    void attachPhy(Phy *pPhy);
-    void attachArray(Array *pArray);
-    void attachEnclosure(Enclosure *pEnclosure);
+    void attachEndDevice(const boost::shared_ptr<EndDevice>& pEndDevice);
+    void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>& pRoutingDevice);
+    void attachPort(const boost::shared_ptr<Port>& pPort);
+    void attachVolume(const boost::shared_ptr<Volume>& pVolume);
+    void attachPhy(const boost::shared_ptr<Phy>& pPhy);
+    void attachArray(const boost::shared_ptr<Array>& pArray);
+    void attachEnclosure(const boost::shared_ptr<Enclosure>& pEnclosure);
 
-    void addToSession(Session *pSession);
+    void addToSession(const boost::shared_ptr<Session>& pSession);
 
     // Controller
 
@@ -89,7 +90,7 @@ protected:
     unsigned char m_prgIface;
     unsigned char m_ClassId;
 
-    RaidInfo *m_pRaidInfo;
+    boost::shared_ptr<RaidInfo> m_pRaidInfo;
 
     bool m_twoTbVolumePrebootSupported;
     bool m_twoTbDiskPrebootSupported;
@@ -109,15 +110,16 @@ protected:
     }
 
 public:
-    virtual RaidInfo *findRaidInfo(Container <RaidInfo> &container);
+    virtual boost::shared_ptr<RaidInfo> findRaidInfo(Container <RaidInfo> &container);
     SSI_Status readPatrolSetState(bool enable);
     SSI_Status getInfo(SSI_ControllerInfo *pInfo) const;
 
-    RaidInfo * getRaidInfo() const {
+    boost::shared_ptr<RaidInfo> getRaidInfo() const {
         return m_pRaidInfo;
     }
-    Controller * getController() const {
-        return const_cast<Controller *>(this);
+
+    boost::shared_ptr<Controller> getController() const {
+        return boost::const_pointer_cast<Controller>(shared_from_this());
     }
 
     unsigned short getPciVendorId() const {
@@ -132,8 +134,8 @@ public:
         return m_hardwareMode;
     }
 
-    SSI_Status makeSpare(EndDevice *pEndDevice);
-    void getEnclosures(RoutingDevice *pRoutingDevice, Container<Enclosure> &container);
+    SSI_Status makeSpare(const boost::shared_ptr<EndDevice>& pEndDevice);
+    void getEnclosures(const boost::shared_ptr<RoutingDevice>& pRoutingDevice, Container<Enclosure> &container);
 };
 
 #endif /* __CONTROLLER_H__INCLUDED__ */

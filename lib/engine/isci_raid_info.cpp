@@ -22,8 +22,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "isci_raid_info.h"
 
+using boost::shared_ptr;
+
 /* */
-ISCI_RaidInfo::ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo, unsigned int orom_dev_id)
+ISCI_RaidInfo::ISCI_RaidInfo(const shared_ptr<ISCI>& pISCI, struct orom_info *pInfo, unsigned int orom_dev_id)
     : RaidInfo(pInfo)
 {
     attachController(pISCI);

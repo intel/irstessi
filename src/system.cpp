@@ -18,6 +18,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/storage_device.h>
 
+using boost::shared_ptr;
+
 /* */
 SSI_Status SsiGetSystemInfo(SSI_SystemInfo *systemInfo)
 {
@@ -54,17 +56,17 @@ SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize)
 /* */
 SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle, SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
     if (storageArea != SSI_StorageAreaCim) {
         return SSI_StatusInvalidParameter;
     }
 
-    StorageDevice *pDevice = session->getDevice(deviceHandle);
-    if (pDevice == NULL) {
+    shared_ptr<StorageDevice> pDevice = pSession->getDevice(deviceHandle);
+    if (!pDevice) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -74,17 +76,17 @@ SSI_Status SsiReadStorageArea(SSI_Handle deviceHandle, SSI_StorageArea storageAr
 /* */
 SSI_Status SsiWriteStorageArea(SSI_Handle deviceHandle, SSI_StorageArea storageArea, void *buffer, SSI_Uint32 bufferLen)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
     if (storageArea != SSI_StorageAreaCim) {
         return SSI_StatusInvalidParameter;
     }
 
-    StorageDevice *pDevice = session->getDevice(deviceHandle);
-    if (pDevice == NULL) {
+    shared_ptr<StorageDevice> pDevice = pSession->getDevice(deviceHandle);
+    if (!pDevice) {
         return SSI_StatusInvalidHandle;
     }
 

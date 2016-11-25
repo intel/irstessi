@@ -24,12 +24,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class AHCI_Phy : public Phy {
 public:
-    AHCI_Phy(const String &path, unsigned int number, StorageObject *pParent = NULL);
+    AHCI_Phy(const String &path, unsigned int number, const Parent& pParent = Parent());
     void discover();
 
 private:
     String m_PhyPath;
-    EndDevice * __internal_attach_end_device(Directory *dir);
+    boost::shared_ptr<EndDevice> __internal_attach_end_device(Directory *dir);
 };
 
 #endif /* __AHCI_PHY_H__INCLUDED__ */

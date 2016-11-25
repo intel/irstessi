@@ -19,16 +19,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/raid_info.h>
 #include <engine/volume.h>
 
+using boost::shared_ptr;
+
 /* */
 SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle, SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *raidLevelInfo)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getSession(session, pSession)) {
         return status;
     }
 
-    RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
-    if (pRaidInfo == NULL) {
+    shared_ptr<RaidInfo> pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
+    if (!pRaidInfo) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -38,13 +40,13 @@ SSI_Status SsiGetRaidLevelInfo(SSI_Handle session, SSI_Handle raidInfoHandle, SS
 /* */
 SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle, SSI_RaidLevelModifyParams params)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
-    Volume *pVolume = session->getVolume(volumeHandle);
-    if (pVolume == NULL) {
+    shared_ptr<Volume> pVolume = pSession->getVolume(volumeHandle);
+    if (!pVolume) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -55,8 +57,8 @@ SSI_Status SsiRaidLevelModify(SSI_Handle volumeHandle, SSI_RaidLevelModifyParams
     Container<EndDevice> container;
 
     for (unsigned int i = 0; i < params.diskHandleCount; i++) {
-        EndDevice *pEndDevice = session->getEndDevice(params.diskHandles[i]);
-        if (pEndDevice == NULL) {
+        shared_ptr<EndDevice> pEndDevice = pSession->getEndDevice(params.diskHandles[i]);
+        if (!pEndDevice) {
             return SSI_StatusInvalidHandle;
         }
 

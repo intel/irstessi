@@ -29,6 +29,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "nvme_raid_info.h"
 #include "filesystem.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
 NVME::NVME(const String &path)
     : Controller(path)
@@ -41,7 +44,7 @@ NVME::NVME(const String &path)
 void NVME::discover()
 {
     unsigned int number = 0;
-    NVME_Phy *pPhy = new NVME_Phy(CanonicalPath(m_Path), 0, number++, this);
+    shared_ptr<NVME_Phy> pPhy = shared_ptr<NVME_Phy>(new NVME_Phy(CanonicalPath(m_Path), 0, number++, shared_from_this()));
     attachPhy(pPhy);
     pPhy->discover();
 }
@@ -57,16 +60,18 @@ void NVME::getAddress(SSI_Address &address) const
     address.sasAddress = 0ULL;
 }
 
-RaidInfo *NVME::findRaidInfo(Container <RaidInfo> &RaidInfos)
+shared_ptr<RaidInfo> NVME::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
     foreach (i, RaidInfos) {
         if ((*i)->getControllerType() == SSI_ControllerTypeNVME) {
             m_pRaidInfo = (*i);
-            (*i)->attachController(this);
-            return NULL;
+            (*i)->attachController(shared_from_this());
+            return shared_ptr<RaidInfo>();
         }
     }
-    m_pRaidInfo = new NVME_RaidInfo(this);
+
+    shared_ptr<NVME> parent = dynamic_pointer_cast<NVME>(shared_from_this());
+    m_pRaidInfo = shared_ptr<RaidInfo>(new NVME_RaidInfo(parent));
     return m_pRaidInfo;
 }
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

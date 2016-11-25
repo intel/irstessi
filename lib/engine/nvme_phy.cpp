@@ -28,8 +28,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 #define EM_MSG_WAIT     1500
 
+using boost::shared_ptr;
+
 /* */
-NVME_Phy::NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, StorageObject *pParent)
+NVME_Phy::NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, const Parent& pParent)
     : Phy(path, number, pParent)
 {
     m_Protocol = SSI_PhyProtocolNVME;
@@ -39,27 +41,29 @@ NVME_Phy::NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int numb
 /* */
 void NVME_Phy::discover()
 {
-    m_pPort = new NVME_Port(m_Path);
-    m_pPort->setParent(m_pParent);
-    m_pPort->attachPhy(this);
+    shared_ptr<NVME_Port> port = shared_ptr<NVME_Port>(new NVME_Port(m_Path));
+    m_pPort = port;
+    port->setParent(m_pParent.lock());
+    port->attachPhy(shared_from_this());
 
-    EndDevice *pEndDevice = __internal_attach_end_device(m_Path, m_VmdDomain);
-    if (pEndDevice != NULL) {
-        pEndDevice->setParent(m_pParent);
-        Phy *pPhy = pEndDevice->getPhy();
-        m_pPort->attachPort(pEndDevice->getPort());
+    shared_ptr<EndDevice> pEndDevice = __internal_attach_end_device(m_Path, m_VmdDomain);
+    if (pEndDevice) {
+        pEndDevice->setParent(m_pParent.lock());
+        shared_ptr<Phy> pPhy = pEndDevice->getPhy();
+        port->attachPort(pEndDevice->getPort());
         pPhy->setProtocol(m_Protocol);
     }
-    if (m_pParent != NULL) {
-        m_pParent->attachPort(m_pPort);
+
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachPort(port);
     }
 }
 
 /* */
-EndDevice * NVME_Phy::__internal_attach_end_device(String path, unsigned int vmdDomain)
+shared_ptr<EndDevice> NVME_Phy::__internal_attach_end_device(const String& path, unsigned int vmdDomain)
 {
-    EndDevice *pEndDevice = NULL;
-    pEndDevice = new NVME_Disk(path, vmdDomain);
+    shared_ptr<EndDevice> pEndDevice = shared_ptr<EndDevice>(new NVME_Disk(path, vmdDomain));
+    pEndDevice->discover();
     return pEndDevice;
 }
 

@@ -28,28 +28,35 @@ public:
     // EndDevice
 
 public:
-    SSI_EndDeviceType getDeviceType() const {
+    virtual void discover();
+
+    virtual SSI_EndDeviceType getDeviceType() const {
         return SSI_EndDeviceTypeDisk;
     }
-    bool isSystemDisk() const {
+
+    virtual bool isSystemDisk() const {
         return m_IsSystem;
     }
-    SSI_DiskUsage getDiskUsage() const {
+
+    virtual SSI_DiskUsage getDiskUsage() const {
         return m_DiskUsage;
     }
-    SSI_DiskState getDiskState() const {
+
+    virtual SSI_DiskState getDiskState() const {
         return m_DiskState;
     }
-    unsigned char getStoragePoolId() const {
+
+    virtual unsigned char getStoragePoolId() const {
         return m_StoragePoolId;
     }
-    SSI_Status makeSpare();
+
+    virtual SSI_Status makeSpare();
 
     // BlockDevice
 
 protected:
     Container<Volume> m_Volumes;
-    Array *m_pArray;
+    boost::shared_ptr<Array> m_pArray;
     SSI_DiskUsage m_DiskUsage;
     SSI_DiskState m_DiskState;
     bool m_IsSystem;
@@ -61,11 +68,11 @@ public:
     SSI_Status assignPoolId(unsigned char poolId);
     SSI_Status markAsNormal();
 
-    void attachArray(Array *pArray);
-    void attachVolume(Volume *pVolume);
+    void attachArray(const boost::shared_ptr<Array>& pArray);
+    void attachVolume(const boost::shared_ptr<Volume>& pVolume);
 
 public:
-    Array * getArray() const {
+    virtual boost::shared_ptr<Array> getArray() const {
         return m_pArray;
     }
     void setWriteCache(bool enable);

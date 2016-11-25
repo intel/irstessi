@@ -28,6 +28,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "nvme_phy.h"
 #include "vmd_raid_info.h"
 
+using std::vector;
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
 VMD::VMD(const String &path)
     : Controller(path)
@@ -79,7 +83,7 @@ void VMD::discover(const String &path)
         CanonicalPath nvmePath = *(*i);
         if (nvmeDriverPath == dir) {
             if ((unsigned int)nvmePath.compare(vmdPath) == nvmePath.length() - vmdPath.length()) {
-                NVME_Phy *pPhy = new NVME_Phy(nvmePath, m_DomainCount, m_EndDevicesCount++, this);
+                shared_ptr<NVME_Phy> pPhy = shared_ptr<NVME_Phy>(new NVME_Phy(nvmePath, m_DomainCount, m_EndDevicesCount++, shared_from_this()));
                 attachPhy(pPhy);
                 pPhy->discover();
             }
@@ -93,12 +97,12 @@ void VMD::getAddress(SSI_Address &address) const
     parse_pci_address(m_Path, address);
 }
 
-RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
+shared_ptr<RaidInfo> VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
     /* try EFI, there's no legacy OROM for VMD */
     struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
     if (pInfo_ext == NULL) {
-        return NULL;
+        return shared_ptr<RaidInfo>();
     }
 
     orom_info *pInfo = &pInfo_ext->data;
@@ -106,15 +110,17 @@ RaidInfo *VMD::findRaidInfo(Container <RaidInfo> &RaidInfos)
         if ((*i)->getControllerType() == SSI_ControllerTypeVMD &&
            (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
             m_pRaidInfo = (*i);
-            (*i)->attachController(this);
-            return NULL;
+            (*i)->attachController(shared_from_this());
+            return shared_ptr<RaidInfo>();
         }
     }
-    m_pRaidInfo = new VMD_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
+
+    shared_ptr<VMD> parent = dynamic_pointer_cast<VMD>(shared_from_this());
+    m_pRaidInfo = shared_ptr<RaidInfo>(new VMD_RaidInfo(parent, pInfo, pInfo_ext->orom_dev_id));
     return m_pRaidInfo;
 }
 
-const std::vector<CanonicalPath>& VMD::getHandledNVMEPaths()
+const vector<CanonicalPath>& VMD::getHandledNVMEPaths() const
 {
     return m_HandledNVMEPaths;
 }

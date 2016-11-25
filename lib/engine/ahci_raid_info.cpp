@@ -24,8 +24,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "ahci_raid_info.h"
 #include "ahci.h"
 
+using boost::shared_ptr;
+
 /* */
-AHCI_RaidInfo::AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo, unsigned int orom_dev_id)
+AHCI_RaidInfo::AHCI_RaidInfo(const shared_ptr<AHCI>& pAHCI, struct orom_info *pInfo, unsigned int orom_dev_id)
     : RaidInfo(pInfo)
 {
     attachController(pAHCI);

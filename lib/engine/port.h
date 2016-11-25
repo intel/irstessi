@@ -15,57 +15,57 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __PORT_H__INCLUDED__
 
 #include "storage_object.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class Port : public StorageObject {
+class Port : public StorageObject, public boost::enable_shared_from_this<Port> {
 public:
     Port(const String &path);
-    virtual ~Port();
 
     // Object
 
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
     virtual String getId() const;
 
     // ScopeObject
 
 public:
-    void getPhys(Container<Phy> &container) const;
+    virtual void getPhys(Container<Phy> &container) const;
 
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypePort;
     }
 
     // StorageObject
 
 public:
-    virtual void attachArray(Array *pArray);
-    virtual void attachPort(Port *pPort);
-    virtual void attachVolume(Volume *pVolume);
-    virtual void attachRoutingDevice(RoutingDevice *pRoutingDevice);
-    virtual void attachEnclosure(Enclosure *pEnclosure);
-    virtual void attachEndDevice(EndDevice *pEndDevice);
-    void attachPhy(Phy *pPhy);
+    virtual void attachArray(const boost::shared_ptr<Array>& pArray);
+    virtual void attachPort(const boost::shared_ptr<Port>& pPort);
+    virtual void attachVolume(const boost::shared_ptr<Volume>& pVolume);
+    virtual void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>& pRoutingDevice);
+    virtual void attachEnclosure(const boost::shared_ptr<Enclosure>& pEnclosure);
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>& pEndDevice);
+    virtual void attachPhy(const boost::shared_ptr<Phy>& pPhy);
 
-    void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
 
     // Port
 
 public:
     SSI_Status getInfo(SSI_PortInfo *pInfo) const;
     virtual SSI_Status locate(bool mode) const;
-    virtual RaidInfo * getRaidInfo() const;
-    Port *getRemotePort() const {
-        return m_pRemotePort;
+    virtual boost::shared_ptr<RaidInfo> getRaidInfo() const;
+    boost::shared_ptr<Port> getRemotePort() const {
+        return m_pRemotePort.lock();
     }
 
 protected:
-    Port *m_pRemotePort;
+    boost::weak_ptr<Port> m_pRemotePort;
     Container<Phy> m_Phys;
 };
 

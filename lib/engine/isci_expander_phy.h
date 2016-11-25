@@ -23,11 +23,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ISCI_Expander_Phy : public Phy {
 public:
-    ISCI_Expander_Phy(const String &path, unsigned int number, StorageObject *pParent = NULL);
-    void discover();
+    ISCI_Expander_Phy(const String &path, unsigned int number, const Parent& pParent = Parent());
+    virtual void discover();
 
 private:
-    Port * __internal_create_port(const String &portPath);
+    boost::shared_ptr<Port> __internal_create_port(const String &portPath);
 };
 
 #endif /* __ISCI_EXPANDER_PHY_H__INCLUDED__ */

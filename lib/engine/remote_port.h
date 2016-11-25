@@ -28,20 +28,20 @@ public:
     // StorageObject
 
 public:
-    void attachArray(Array *pArray);
-    void attachVolume(Volume *pVolume);
-    void attachPort(Port *pPort);
-    void attachRoutingDevice(RoutingDevice *pRoutingDevice) {
+    virtual void attachArray(const boost::shared_ptr<Array>& pArray);
+    virtual void attachVolume(const boost::shared_ptr<Volume>& pVolume);
+    virtual void attachPort(const boost::shared_ptr<Port>& pPort);
+    virtual void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>&) {
         throw E_INVALID_OPERATION;
     }
-    void attachEndDevice(EndDevice *pEndDevice) {
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>&) {
         throw E_INVALID_OPERATION;
     }
 
     // Port
 
 public:
-    RaidInfo * getRaidInfo() const;
+    virtual boost::shared_ptr<RaidInfo> getRaidInfo() const;
 };
 
 #endif /* __REMOTE_PORT_H__INCLUDED__ */

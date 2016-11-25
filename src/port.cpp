@@ -18,12 +18,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/port.h>
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Port> &container)
+using boost::shared_ptr;
+
+static void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType, Container<Port> &container)
 {
     pScopeObject->getPorts(container);
 }
 
-static Port * getItem(Session *pSession, SSI_Handle handle)
+static shared_ptr<Port> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
 {
     return pSession->getPort(handle);
 }
@@ -45,9 +47,14 @@ SSI_Status SsiGetPortInfo(SSI_Handle session, SSI_Handle portHandle,
 /* */
 SSI_Status SsiPortLocate(SSI_Handle portHandle, SSI_Bool mode)
 {
-    Port *pPort = NULL;
-    if (SSI_Status status = SsiGetItem(portHandle, &pPort, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Port> pPort = getItem(pSession, portHandle);
+    if (!pPort) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pPort->locate(mode == SSI_TRUE);

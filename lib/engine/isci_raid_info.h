@@ -24,17 +24,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ISCI_RaidInfo : public RaidInfo {
 public:
-    ISCI_RaidInfo(ISCI *pISCI, struct orom_info *pInfo, unsigned int orom_dev_id);
+    ISCI_RaidInfo(const boost::shared_ptr<ISCI>& pISCI, struct orom_info *pInfo, unsigned int orom_dev_id);
 
     // Object
 
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
 
     // RaidInfo
 
 public:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeSCU;
     }
 };

@@ -23,21 +23,23 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "session.h"
 #include "filesystem.h"
 
+using boost::shared_ptr;
+
 /* */
-Phy::Phy(const String &path, unsigned int number, StorageObject *pParent)
-    : StorageObject(path, pParent), m_pRemotePhy(NULL), m_pPort(NULL), m_Number(number)
+Phy::Phy(const String &path, unsigned int number, const Parent& pParent)
+    : StorageObject(path, pParent), m_pRemotePhy(), m_pPort(), m_Number(number)
 {
     setProperties();
 }
 
 /* */
-Phy::~Phy()
-{
-}
-
 String Phy::getId() const
 {
-    return "ph:" + m_pParent->getPartId() + "/" + String(m_Number);
+    if (Parent parent = m_pParent.lock()) {
+        return "ph:" + parent->getPartId() + "/" + String(m_Number);
+    } else {
+        return "ph:" + String(getHandle());
+    }
 }
 
 /* */
@@ -46,57 +48,68 @@ SSI_Status Phy::getInfo(SSI_PhyInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
+
     pInfo->phyHandle = getHandle();
     getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
-    m_pParent->getAddress(pInfo->phyAddress);
     pInfo->phyNumber = m_Number;
     pInfo->protocol = m_Protocol;
-    if (m_pPort != NULL) {
-        pInfo->associatedPort = m_pPort->getHandle();
+    if (shared_ptr<Port> port = m_pPort.lock()) {
+        pInfo->associatedPort = port->getHandle();
     } else {
         pInfo->associatedPort = SSI_NULL_HANDLE;
     }
 
-    if (dynamic_cast<Controller *>(m_pParent)) {
-        pInfo->deviceType = SSI_DeviceTypeController;
-    } else if (dynamic_cast<EndDevice *>(m_pParent)) {
-        pInfo->deviceType = SSI_DeviceTypeEndDevice;
-    } else if (dynamic_cast<RoutingDevice *>(m_pParent)) {
-        pInfo->deviceType = SSI_DeviceTypeRoutingDevice;
+    if (Parent parent = m_pParent.lock()) {
+        parent->getAddress(pInfo->phyAddress);
+        if (dynamic_cast<Controller*>(parent.get())) {
+            pInfo->deviceType = SSI_DeviceTypeController;
+        } else if (dynamic_cast<EndDevice *>(parent.get())) {
+            pInfo->deviceType = SSI_DeviceTypeEndDevice;
+        } else if (dynamic_cast<RoutingDevice *>(parent.get())) {
+            pInfo->deviceType = SSI_DeviceTypeRoutingDevice;
+        } else {
+            pInfo->deviceType = SSI_DeviceTypeUnknown;
+        }
+        pInfo->deviceHandle = parent->getHandle();
+
+        if (dynamic_cast<EndDevice *>(parent.get())) {
+            fetchSpeeds(pInfo);
+        } else {
+            setSpeeds(pInfo);
+        }
     } else {
         pInfo->deviceType = SSI_DeviceTypeUnknown;
-    }
-
-    pInfo->deviceHandle = m_pParent->getHandle();
-    pInfo->isExternal = SSI_FALSE;
-    pInfo->hotPlugCap = SSI_FALSE;
-
-    if (dynamic_cast<EndDevice *>(m_pParent)) {
-        fetchSpeeds(pInfo);
-    } else {
+        pInfo->deviceHandle = SSI_NULL_HANDLE;
         setSpeeds(pInfo);
     }
 
+    pInfo->isExternal = SSI_FALSE;
+    pInfo->hotPlugCap = SSI_FALSE;
     pInfo->countsValid = SSI_FALSE;
+
     return SSI_StatusOk;
 }
 
 /* */
 SSI_Status Phy::locate(bool mode) const
 {
-    return m_pParent->locate(mode);
+    if (Parent parent = m_pParent.lock()) {
+        return parent->locate(mode);
+    } else {
+        return SSI_StatusInvalidState;
+    }
 }
 
 /* */
 void Phy::fetchSpeeds(SSI_PhyInfo *pInfo) const
 {
-    if (m_pRemotePhy != NULL) {
-        m_pRemotePhy->setSpeeds(pInfo);
+    if (shared_ptr<Phy> remote = m_pRemotePhy.lock()) {
+        remote->setSpeeds(pInfo);
         return;
     }
-    if (m_pPort != NULL) {
-        Port *pPort = m_pPort->getRemotePort();
-        if (pPort != NULL) {
+
+    if (shared_ptr<Port> port = m_pPort.lock()) {
+        if (shared_ptr<Port> pPort = port->getRemotePort()) {
             Container<Phy> container;
             pPort->getPhys(container);
             foreach (i, container) {
@@ -130,75 +143,77 @@ void Phy::setProperties()
     m_maxLinkSpeed = SSI_PhySpeedUnknown;
     m_negotiatedLinkSpeed = SSI_PhySpeedUnknown;
 
-    if (dynamic_cast<EndDevice *>(m_pParent)) {
-        tmp = tmp.reverse_left("/");
-        dir = tmp + "sas_device";
-        dirs = dir.dirs();
-        foreach (i, dirs) {
-            try {
-                File attr;
-                String protocol;
-                attr = *(*i) + "target_port_protocols";
-                attr >> protocol;
-                m_Protocol = __internal_parse_protocol(protocol);
-            } catch (...) {
-                /* TODO: report read failure of attribtue. */
-            }
-        }
-    } else if (dynamic_cast<Controller *>(m_pParent) || dynamic_cast<RoutingDevice *>(m_pParent)) {
-        dir = m_Path + "/sas_phy";
-        dirs = dir.dirs();
-        foreach (i, dirs) {
-            File attr;
-            String linkrate;
-            try {
-                String protocol;
-                attr = *(*i) + "target_port_protocols";
-                attr >> protocol;
-                m_Protocol = __internal_parse_protocol(protocol);
-            } catch (...) {
-            }
-            try {
-                attr = *(*i) + "maximum_linkrate";
-                attr >> linkrate;
-                m_maxLinkSpeed = __internal_parse_linkrate(linkrate);
-            } catch (...) {
-            }
-            try {
-                attr = *(*i) + "maximum_linkrate_hw";
-                attr >> linkrate;
-                m_maxHWLinkSpeed = __internal_parse_linkrate(linkrate);
-            } catch (...) {
-            }
-            try {
-                attr = *(*i) + "minimum_linkrate";
-                attr >> linkrate;
-                m_minLinkSpeed = __internal_parse_linkrate(linkrate);
-            } catch (...) {
-            }
-            try {
-                attr = *(*i) + "minimum_linkrate_hw";
-                attr >> linkrate;
-                m_minHWLinkSpeed = __internal_parse_linkrate(linkrate);
-            } catch (...) {
-            }
-            try {
-                attr = *(*i) + "negotiated_linkrate";
-                attr >> linkrate;
-                m_negotiatedLinkSpeed = __internal_parse_linkrate(linkrate);
-            } catch (...) {
-            }
-            try {
-                unsigned long long sasAddress;
-                attr = *(*i) + "sas_address";
-                attr >> sasAddress;
-                if (sasAddress) {
-                    SSI_Address address;
-                    address.sasAddressPresent = SSI_TRUE;
-                    address.sasAddress = sasAddress;
-                    m_pParent->setAddress(address);
+    if (Parent parent = m_pParent.lock()) {
+        if (dynamic_cast<EndDevice *>(parent.get())) {
+            tmp = tmp.reverse_left("/");
+            dir = tmp + "sas_device";
+            dirs = dir.dirs();
+            foreach (i, dirs) {
+                try {
+                    File attr;
+                    String protocol;
+                    attr = *(*i) + "target_port_protocols";
+                    attr >> protocol;
+                    m_Protocol = __internal_parse_protocol(protocol);
+                } catch (...) {
+                    /* TODO: report read failure of attribtue. */
                 }
-            } catch (...) {
+            }
+        } else if (dynamic_cast<Controller *>(parent.get()) || dynamic_cast<RoutingDevice *>(parent.get())) {
+            dir = m_Path + "/sas_phy";
+            dirs = dir.dirs();
+            foreach (i, dirs) {
+                File attr;
+                String linkrate;
+                try {
+                    String protocol;
+                    attr = *(*i) + "target_port_protocols";
+                    attr >> protocol;
+                    m_Protocol = __internal_parse_protocol(protocol);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "maximum_linkrate";
+                    attr >> linkrate;
+                    m_maxLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "maximum_linkrate_hw";
+                    attr >> linkrate;
+                    m_maxHWLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "minimum_linkrate";
+                    attr >> linkrate;
+                    m_minLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "minimum_linkrate_hw";
+                    attr >> linkrate;
+                    m_minHWLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    attr = *(*i) + "negotiated_linkrate";
+                    attr >> linkrate;
+                    m_negotiatedLinkSpeed = __internal_parse_linkrate(linkrate);
+                } catch (...) {
+                }
+                try {
+                    unsigned long long sasAddress;
+                    attr = *(*i) + "sas_address";
+                    attr >> sasAddress;
+                    if (sasAddress) {
+                        SSI_Address address;
+                        address.sasAddressPresent = SSI_TRUE;
+                        address.sasAddress = sasAddress;
+                        parent->setAddress(address);
+                    }
+                } catch (...) {
+                }
             }
         }
     }
@@ -252,35 +267,42 @@ SSI_PhySpeed Phy::__internal_parse_linkrate(const String &linkrate)
 }
 
 /* */
-void Phy::addToSession(Session *pSession)
+void Phy::addToSession(const shared_ptr<Session>& pSession)
 {
-    pSession->addPhy(this);
+    pSession->addPhy(shared_from_this());
 }
 
 /* */
 bool Phy::operator ==(const Object &object) const
 {
     const Phy *pPhy = dynamic_cast<const Phy *>(&object);
-    return pPhy != NULL &&
-        *m_pParent == *pPhy->m_pParent && m_Number == pPhy->m_Number;
-}
-
-/* */
-void Phy::attachPhy(Phy *pPhy)
-{
-    if (pPhy != this ) {
-        m_pRemotePhy = pPhy;
-        if (pPhy == NULL) {
-            throw E_NULL_POINTER;
-        }
-        m_pRemotePhy->attachPhy(this);
+    if (pPhy != NULL) {
+        Parent parent = m_pParent.lock();
+        Parent phyParent = pPhy->m_pParent.lock();
+        return parent && phyParent && *parent == *phyParent && m_Number == pPhy->m_Number;
+    } else {
+        return false;
     }
 }
 
 /* */
-void Phy::attachPort(Port *pPort)
+void Phy::attachPhy(const shared_ptr<Phy>& pPhy)
 {
-    if (pPort == NULL) {
+    if (pPhy.get() != this) {
+        m_pRemotePhy = pPhy;
+        if (!pPhy) {
+            throw E_NULL_POINTER;
+        }
+        if (shared_ptr<Phy> remote = m_pRemotePhy.lock()) {
+            remote->attachPhy(shared_from_this());
+        }
+    }
+}
+
+/* */
+void Phy::attachPort(const shared_ptr<Port>& pPort)
+{
+    if (!pPort) {
         throw E_NULL_POINTER;
     }
     m_pPort = pPort;

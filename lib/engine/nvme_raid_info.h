@@ -24,16 +24,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class NVME_RaidInfo : public RaidInfo {
 public:
-    NVME_RaidInfo(NVME *pNVME);
+    NVME_RaidInfo(const boost::shared_ptr<NVME>& pNVME);
 
     // Object
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
 
     // RaidInfo
 
 public:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeNVME;
     }
 private:

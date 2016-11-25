@@ -28,16 +28,16 @@ public:
     // StorageObject
 
 public:
-    void getAddress(SSI_Address &address) const;
-    void discover();
+    virtual void getAddress(SSI_Address &address) const;
+    virtual void discover();
 
     // Controller
 
 protected:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeAHCI;
     }
-    RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
+    virtual boost::shared_ptr<RaidInfo> findRaidInfo(Container <RaidInfo> &RaidInfos);
 };
 
 #endif /* __AHCI_H__INCLUDED__ */

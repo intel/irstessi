@@ -32,8 +32,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 #define EM_MSG_WAIT     1500
 
+using boost::shared_ptr;
+
 /* */
-AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, StorageObject *pParent)
+AHCI_Phy::AHCI_Phy(const String &path, unsigned int number, const Parent& pParent)
     : Phy(path, number, pParent), m_PhyPath(CanonicalPath(path + "/scsi_host" + path.reverse_right("/host")))
 {
     m_Protocol = SSI_PhyProtocolSATA;
@@ -60,51 +62,57 @@ void AHCI_Phy::discover()
 {
     Directory dir(m_Path, "target");
     if (dir > 0) {
-        m_pPort = new AHCI_Port(m_Path);
-        m_pPort->setParent(m_pParent);
-        m_pPort->attachPhy(this);
+        shared_ptr<Port> port = shared_ptr<Port>(new AHCI_Port(m_Path));
+        m_pPort = port;
+        port->setParent(m_pParent.lock());
+        port->attachPhy(shared_from_this());
 
         if (dir.count() == 1) {
-            EndDevice *pEndDevice = __internal_attach_end_device(*dir.dirs().begin());
-            if (pEndDevice != NULL) {
-                pEndDevice->setParent(m_pParent);
-                Phy *pPhy = pEndDevice->getPhy();
-                m_pPort->attachPort(pEndDevice->getPort());
+            shared_ptr<EndDevice> pEndDevice = __internal_attach_end_device(*dir.dirs().begin());
+            if (pEndDevice) {
+                pEndDevice->setParent(m_pParent.lock());
+                shared_ptr<Phy> pPhy = pEndDevice->getPhy();
+                port->attachPort(pEndDevice->getPort());
                 pPhy->setProtocol(m_Protocol);
             }
         } else {
-            AHCI_Multiplier *pMultiplier = new AHCI_Multiplier(m_Path, dir);
-            Phy *pPhy = pMultiplier->getPhy();
+            shared_ptr<AHCI_Multiplier> pMultiplier = shared_ptr<AHCI_Multiplier>(new AHCI_Multiplier(m_Path, dir));
+            pMultiplier->discover();
+            shared_ptr<Phy> pPhy = pMultiplier->getPhy();
             pPhy->setProtocol(m_Protocol);
-            pMultiplier->setParent(m_pParent);
-            m_pPort->attachPort(pMultiplier->getSubtractivePort());
+            pMultiplier->setParent(m_pParent.lock());
+            port->attachPort(pMultiplier->getSubtractivePort());
         }
-        if (m_pParent != NULL) {
-            m_pParent->attachPort(m_pPort);
+
+        if (Parent parent = m_pParent.lock()) {
+            parent->attachPort(port);
         }
     }
 }
 
 /* */
-EndDevice * AHCI_Phy::__internal_attach_end_device(Directory *dir)
+shared_ptr<EndDevice> AHCI_Phy::__internal_attach_end_device(Directory *dir)
 {
-    EndDevice *pEndDevice = NULL;
     std::list<Directory *> dirs = dir->dirs();
+    shared_ptr<EndDevice> pEndDevice;
     foreach (j, dirs) {
         CanonicalPath temp = *(*j) + "driver";
         if (temp == "/sys/bus/scsi/drivers/sd") {
-            pEndDevice = new AHCI_Disk(*(*j));
+            pEndDevice = shared_ptr<EndDevice>(new AHCI_Disk(*(*j)));
             break;
-        } else
-        if (temp == "/sys/bus/scsi/drivers/sr") {
-            pEndDevice = new AHCI_CDROM(*(*j));
+        } else if (temp == "/sys/bus/scsi/drivers/sr") {
+            pEndDevice = shared_ptr<EndDevice>(new AHCI_CDROM(*(*j)));
             break;
-        } else
-        if (temp == "/sys/bus/scsi/drivers/st") {
-            pEndDevice = new AHCI_Tape(*(*j));
+        } else if (temp == "/sys/bus/scsi/drivers/st") {
+            pEndDevice = shared_ptr<EndDevice>(new AHCI_Tape(*(*j)));
             break;
         }
     }
+
+    if (pEndDevice) {
+        pEndDevice->discover();
+    }
+
     return pEndDevice;
 }
 

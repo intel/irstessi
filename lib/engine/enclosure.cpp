@@ -25,6 +25,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "end_device.h"
 #include "session.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
 Enclosure::Enclosure(const String &path)
     : StorageObject(path),
@@ -80,14 +83,6 @@ Enclosure::Enclosure(const String &path)
 }
 
 /* */
-Enclosure::~Enclosure()
-{
-    foreach (i, m_Slots) {
-        delete *i;
-    }
-}
-
-/* */
 String Enclosure::getId() const
 {
     return "en:" + String(m_LogicalId);
@@ -109,10 +104,11 @@ SSI_Status Enclosure::getInfo(SSI_EnclosureInfo *pInfo) const
     getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     pInfo->enclosureKey = (getHandle() & 0x0fffffff);
     foreach (i, m_RoutingDevices) {
-        StorageObject *parent = (*i)->getParent();
-        if (parent && dynamic_cast<Controller *>(parent)) {
-            pInfo->enclosureKey |= 0x10000000;
-            break;
+        if (shared_ptr<StorageObject> parent = (*i)->getParent().lock()) {
+            if (parent && dynamic_pointer_cast<Controller>(parent)) {
+                pInfo->enclosureKey |= 0x10000000;
+                break;
+            }
         }
     }
     m_VendorId.get(pInfo->vendorInfo, sizeof(pInfo->vendorInfo));
@@ -146,7 +142,7 @@ bool Enclosure::operator ==(const Object &object) const
 }
 
 /* */
-void Enclosure::attachEndDevice(EndDevice *pEndDevice)
+void Enclosure::attachEndDevice(const shared_ptr<EndDevice>& pEndDevice)
 {
     m_EndDevices.add(pEndDevice);
 }
@@ -155,26 +151,26 @@ void Enclosure::attachEndDevice(EndDevice *pEndDevice)
 void Enclosure::attachEndDevices(Container<EndDevice> &EndDevices)
 {
     foreach (i, EndDevices) {
-        (*i)->setEnclosure(this);
+        (*i)->setEnclosure(shared_from_this());
         attachEndDevice(*i);
     }
 }
 
 /* */
-void Enclosure::attachRoutingDevice(RoutingDevice *pRoutingDevice)
+void Enclosure::attachRoutingDevice(const shared_ptr<RoutingDevice>& pRoutingDevice)
 {
     m_RoutingDevices.add(pRoutingDevice);
 }
 
 /* */
-void Enclosure::addToSession(Session *pSession)
+void Enclosure::addToSession(const shared_ptr<Session>& pSession)
 {
     Container<EndDevice> container;
     foreach (i, m_RoutingDevices) {
         (*i)->getEndDevices(container, false);
         attachEndDevices(container);
     }
-    pSession->addEnclosure(this);
+    pSession->addEnclosure(shared_from_this());
 }
 
 /* */
@@ -207,33 +203,32 @@ void Enclosure::__get_slot_info(String &buffer)
         catch (...) {
             offset = 0;
         }
-        info = offset?right.left(offset):right;
+        info = offset ? right.left(offset) : right;
         /* get info */
         String tmp = info.between("bay number: ", "\n");
         if (tmp) {
-            Slot *pSlot = new Slot;
+            shared_ptr<Slot> pSlot = shared_ptr<Slot>(new Slot);
             pSlot->slotNumber = tmp;
             tmp = info.reverse_after("SAS address:");
             tmp = tmp.left("\n");
             pSlot->sasAddress = tmp;
             if (pSlot->sasAddress != 0) {
                 m_Slots.add(pSlot);
-            } else {
-                delete pSlot;
             }
         }
-        right = offset?right.get(offset+13):"";
+        right = offset ? right.get(offset + 13) : "";
     }
 }
 
 /* */
-bool Enclosure::attachedTo(StorageObject *pObject) const
+bool Enclosure::attachedTo(const shared_ptr<StorageObject>& pObject) const
 {
     foreach (i, m_RoutingDevices) {
-        if ((*i)->getParent() == pObject) {
+        if ((*i)->getParent().lock() == pObject) {
             return true;
         }
     }
+
     return false;
 }
 

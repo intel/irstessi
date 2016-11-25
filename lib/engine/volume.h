@@ -16,36 +16,38 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "raid_device.h"
 #include "block_device.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class Volume : public RaidDevice {
+class Volume : public RaidDevice, public boost::enable_shared_from_this<Volume> {
 public:
     Volume();
-    Volume(const String &path, unsigned int orginal);
-    ~Volume();
+    Volume(const String &path, unsigned int ordinal);
 
     virtual String getId() const;
 
     // ScopeObject
 
 public:
-    void getEndDevices(Container<EndDevice> &, bool all) const;
+    virtual void getEndDevices(Container<EndDevice> &, bool all) const;
 
     // StorageObject
 
 public:
-    void attachEndDevice(EndDevice *pEndDevice);
-    void addToSession(Session *pSession);
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>& pEndDevice);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
+
+    virtual void discover();
 
     // RaidDevice
 
 public:
-    SSI_Status remove();
-    void create();
+    virtual SSI_Status remove();
+    virtual void create();
 
     // Volume
 protected:
@@ -59,8 +61,8 @@ protected:
     unsigned int m_MigrProgress;
     unsigned long long m_ComponentSize;
     SSI_VolumeState m_State;
-    BlockDevice blk;
-    BlockDevice *m_pSourceDisk;
+    boost::shared_ptr<BlockDevice> blk;
+    boost::shared_ptr<BlockDevice> m_pSourceDisk;
     SSI_RwhPolicy m_RwhPolicy;
 
 public:
@@ -68,18 +70,17 @@ public:
     SSI_Status getInfo(SSI_VolumeInfo *pInfo);
     SSI_Status markAsNormal();
     SSI_Status rename(const String &newName);
-    SSI_Status rebuild(EndDevice *pEndDevice);
+    SSI_Status rebuild(const boost::shared_ptr<EndDevice>& pEndDevice);
     SSI_Status setCachePolicy(bool off);
     SSI_Status expand(unsigned long long newSize);
     SSI_Status cancelVerify();
     SSI_Status verify(bool repair);
-    SSI_Status modify(SSI_StripSize chunkSize, SSI_RaidLevel raidLevel,
-        unsigned long long newSize, const Container<EndDevice> &disks);
+    SSI_Status modify(SSI_StripSize chunkSize, SSI_RaidLevel raidLevel, unsigned long long newSize, const Container<EndDevice> &disks);
     SSI_Status changeRwhPolicy(SSI_RwhPolicy policy);
 
     void setComponentSize(unsigned long long size, unsigned long long diskCount, SSI_RaidLevel level);
     void setStripSize(SSI_StripSize stripSize);
-    void setSourceDisk(EndDevice *pEndDevice);
+    void setSourceDisk(const boost::shared_ptr<EndDevice>& pEndDevice);
     void setRaidLevel(SSI_RaidLevel raidLevel);
     void setRwhPolicy(SSI_RwhPolicy policy);
 
@@ -102,10 +103,10 @@ public:
         return m_SystemVolume;
     }
     unsigned long long getTotalSize() const {
-        return blk.getTotalSize();
+        return blk->getTotalSize();
     }
     unsigned long long getLogicalSectorSize() const {
-        return blk.getLogicalSectorSize();
+        return blk->getLogicalSectorSize();
     }
     SSI_RaidLevel getSsiRaidLevel() const;
     SSI_StripSize getSsiStripSize() const;

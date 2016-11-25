@@ -15,6 +15,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __HANDLE_MANAGER_H__INCLUDED__
 
 #include <map>
+#include <limits>
+#include <boost/shared_ptr.hpp>
 
 #include "object.h"
 
@@ -23,30 +25,139 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 /* */
+template <typename T>
 class HandleManager {
 public:
-    typedef std::map<SSI_Handle, Object*> map_type;
-    typedef map_type::iterator iterator;
-    typedef map_type::const_iterator const_iterator;
+    typedef boost::shared_ptr<T> object_ptr;
+    typedef std::map<SSI_Handle, object_ptr> map_type;
+    typedef typename map_type::iterator iterator;
+    typedef typename map_type::const_iterator const_iterator;
 
-    std::pair<SSI_Handle, bool> insert(Object *object);
+    std::pair<SSI_Handle, bool> insert(const object_ptr& object)
+    {
+        SSI_Handle unique = getUniqueHandle(object.get());
+        if (unique == SSI_NULL_HANDLE) {
+            return std::make_pair(SSI_NULL_HANDLE, false);
+        }
 
-    void remove(Object *object);
-    Object* remove(SSI_Handle handle);
+        std::pair<iterator, bool> ret;
+        try {
+            ret = m_objects.insert(std::make_pair(unique, object));
+        } catch (...) {
+            return std::make_pair(SSI_NULL_HANDLE, false);
+        }
 
-    Object* operator[](SSI_Handle handle);
-    Object* at(SSI_Handle handle);
-    const Object* at(SSI_Handle handle) const;
+        if (ret.second) { /* Object was inserted */
+            object->setHandle(ret.first->first);
+        }
 
-    std::size_t size() const;
+        return std::make_pair(ret.first->first, ret.second);
+    }
 
-    iterator begin();
-    iterator end();
-    const_iterator begin() const;
-    const_iterator end() const;
+    object_ptr remove(T *object)
+    {
+        return remove(object->getHandle());
+    }
+
+    object_ptr remove(SSI_Handle handle)
+    {
+        if (handle != SSI_NULL_HANDLE) {
+            iterator found = m_objects.find(handle);
+            if (found != m_objects.end()) {
+                object_ptr object = found->second;
+                object->setHandle(SSI_NULL_HANDLE);
+                m_objects.erase(found);
+
+                return object;
+            }
+        }
+
+        return object_ptr();
+    }
+
+    object_ptr operator[](SSI_Handle handle)
+    {
+        if (handle == SSI_NULL_HANDLE) {
+            return object_ptr();
+        } else {
+            try {
+                return m_objects[handle];
+            } catch (...) {
+                return object_ptr();
+            }
+        }
+    }
+
+    object_ptr at(SSI_Handle handle)
+    {
+        if (handle == SSI_NULL_HANDLE) {
+            return object_ptr();
+        }
+
+        try {
+            return m_objects.at(handle);
+        } catch (...) {
+            return object_ptr();
+        }
+    }
+
+    const object_ptr at(SSI_Handle handle) const
+    {
+        if (handle == SSI_NULL_HANDLE) {
+            return object_ptr();
+        }
+
+        try {
+            return m_objects.at(handle);
+        } catch (...) {
+            return object_ptr();
+        }
+    }
+
+    std::size_t size() const
+    {
+        return m_objects.size();
+    }
+
+    iterator begin()
+    {
+        return m_objects.begin();
+    }
+
+    iterator end()
+    {
+        return m_objects.end();
+    }
+
+    const_iterator begin() const
+    {
+        return m_objects.begin();
+    }
+
+    const_iterator end() const
+    {
+        return m_objects.end();
+    }
 
 private:
-    SSI_Handle getUniqueHandle(Object *object) const;
+    SSI_Handle getUniqueHandle(T *object) const
+    {
+        const SSI_Handle initValue = 1;
+
+        if (at(object->getHandle())) {
+            return object->getHandle();
+        } else if (!m_objects.empty()) {
+            const_iterator last = --m_objects.end();
+
+            if (last->first == std::numeric_limits<SSI_Handle>::max()) {
+                return SSI_NULL_HANDLE; /* Out of resources */
+            }
+
+            return last->first + 1;
+        } else {
+            return initValue;
+        }
+    }
 
     map_type m_objects;
 };

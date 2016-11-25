@@ -37,8 +37,56 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "array.h"
 #include "mdadm_config.h"
 
+using boost::shared_ptr;
+
 /* */
 Session::Session()
+{
+
+}
+
+/* */
+Session::~Session()
+{
+    foreach (i, m_Controllers) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_Arrays) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_Enclosures) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_RaidInfo) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_Phys) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_Ports) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_Volumes) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_EndDevices) {
+        pContextMgr->remove(*i);
+    }
+
+    foreach (i, m_RoutingDevices) {
+        pContextMgr->remove(*i);
+    }
+}
+
+/* */
+void Session::initialize()
 {
     Directory dir;
     std::list<Directory *> dirs;
@@ -53,15 +101,16 @@ Session::Session()
             attr = *(*i) + "vendor";
             try {
                 attr >> vendor;
-                if (vendor != "0x8086")
+                if (vendor != "0x8086") {
                     continue;
+                }
             } catch (...) {
                 /* TODO log that vendor cannot be read from filesystem */
                 continue;
             }
-            AHCI *pAHCI = new AHCI(CanonicalPath(*(*i)));
+            shared_ptr<AHCI> pAHCI = shared_ptr<AHCI>(new AHCI(CanonicalPath(*(*i))));
             pAHCI->discover();
-            pAHCI->addToSession(this);
+            pAHCI->addToSession(shared_from_this());
         }
     }
     dir = "/sys/bus/pci/drivers/isci";
@@ -69,34 +118,37 @@ Session::Session()
     foreach (i, dirs) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            ISCI *pISCI = new ISCI(CanonicalPath(*(*i)));
+            shared_ptr<ISCI> pISCI = shared_ptr<ISCI>(new ISCI(CanonicalPath(*(*i))));
             pISCI->discover();
-            pISCI->addToSession(this);
+            pISCI->addToSession(shared_from_this());
         }
     }
 
     dir = "/sys/bus/pci/drivers/vmd";
     dirs = dir.dirs();
     // all VMD controllers are presented as 1 controller
-    VMD *pVMD = NULL;
+    shared_ptr<VMD> pVMD;
     foreach (i, dirs) {
         CanonicalPath path = *(*i) + "driver";
         if (path == dir) {
-            if (pVMD == NULL) {
-                pVMD = new VMD(CanonicalPath(*(*i)));
+            if (!pVMD) {
+                pVMD = shared_ptr<VMD>(new VMD(CanonicalPath(*(*i))));
             }
             pVMD->discover(*(*i));
         }
     }
-    if (pVMD != NULL) {
-        pVMD->addToSession(this);
+
+    if (pVMD) {
+        pVMD->addToSession(shared_from_this());
     }
 
     foreach (i, m_Controllers) {
-        RaidInfo *pRaidInfo = (*i)->findRaidInfo(m_RaidInfo);
-        if (pRaidInfo)
-            pRaidInfo->addToSession(this);
+        shared_ptr<RaidInfo> pRaidInfo = (*i)->findRaidInfo(m_RaidInfo);
+        if (pRaidInfo) {
+            pRaidInfo->addToSession(shared_from_this());
+        }
     }
+
     if (m_EndDevices.size() > 0) {
         dir = "/sys/devices/virtual/block";
         dirs = dir.dirs();
@@ -109,97 +161,93 @@ Session::Session()
 }
 
 /* */
-Session::~Session()
-{
-    foreach (i, m_EndDevices)
-        pContextMgr->remove(*i);
-    foreach (i, m_Arrays)
-        pContextMgr->remove(*i);
-    foreach (i, m_Enclosures)
-        pContextMgr->remove(*i);
-    foreach (i, m_RaidInfo)
-        pContextMgr->remove(*i);
-    foreach (i, m_Phys)
-        pContextMgr->remove(*i);
-    foreach (i, m_Volumes)
-        pContextMgr->remove(*i);
-    foreach (i, m_Ports)
-        pContextMgr->remove(*i);
-    foreach (i, m_RoutingDevices)
-        pContextMgr->remove(*i);
-    foreach (i, m_Controllers)
-        pContextMgr->remove(*i);
-}
-/* */
 bool Session::operator ==(const Object &object) const
 {
     return &object == this;
 }
 
 /* */
-ScopeObject * Session::getObject(SSI_Handle handle)
+shared_ptr<ScopeObject> Session::getObject(SSI_Handle handle)
 {
-    if (handle == SSI_NULL_HANDLE)
-        return this;
+    if (handle == SSI_NULL_HANDLE) {
+        return shared_from_this();
+    }
 
-    ScopeObject *pObject;
+    shared_ptr<ScopeObject> pObject;
     try {
-        pObject = m_EndDevices.find(handle);
-        if (pObject)
+        pObject = getEndDevice(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_Arrays.find(handle);
-        if (pObject)
+        }
+
+        pObject = getArray(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_Enclosures.find(handle);
-        if (pObject)
+        }
+
+        pObject = getEnclosure(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_Phys.find(handle);
-        if (pObject)
+        }
+
+        pObject = getPhy(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_Volumes.find(handle);
-        if (pObject)
+        }
+
+        pObject = getVolume(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_Ports.find(handle);
-        if (pObject)
+        }
+
+        pObject = getPort(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_RoutingDevices.find(handle);
-        if (pObject)
+        }
+
+        pObject = getRoutingDevice(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_RaidInfo.find(handle);
-        if (pObject)
+        }
+
+        pObject = getRaidInfo(handle);
+        if (pObject) {
             return pObject;
-        pObject = m_Controllers.find(handle);
-        if (pObject)
+        }
+
+        pObject = getController(handle);
+        if (pObject) {
             return pObject;
+        }
     } catch (...) {
-        pObject = NULL;
+        pObject = shared_ptr<ScopeObject>();
     }
 
     return pObject;
 }
 
 /* */
-RaidInfo * Session::getRaidInfo(SSI_Handle handle) const
+shared_ptr<RaidInfo> Session::getRaidInfo(SSI_Handle handle) const
 {
     return m_RaidInfo.find(handle);
 }
 
 /* */
-Array * Session::getArray(SSI_Handle handle) const
+shared_ptr<Array> Session::getArray(SSI_Handle handle) const
 {
     return m_Arrays.find(handle);
 }
 
 /* */
-Controller * Session::getController(SSI_Handle handle) const
+shared_ptr<Controller> Session::getController(SSI_Handle handle) const
 {
     return m_Controllers.find(handle);
 }
 
 /* */
-StorageDevice * Session::getDevice(SSI_Handle handle) const
+shared_ptr<StorageDevice> Session::getDevice(SSI_Handle handle) const
 {
-    StorageDevice *pResult;
+    shared_ptr<StorageDevice> pResult;
 
     pResult = m_Arrays.find(handle);
     if (pResult) {
@@ -212,135 +260,141 @@ StorageDevice * Session::getDevice(SSI_Handle handle) const
     }
 
     pResult = m_Volumes.find(handle);
-    if (pResult) {
-        return pResult;
-    }
 
     return pResult;
 }
 
 /* */
-Phy * Session::getPhy(SSI_Handle handle) const
+shared_ptr<Phy> Session::getPhy(SSI_Handle handle) const
 {
     return m_Phys.find(handle);
 }
 
 /* */
-Port * Session::getPort(SSI_Handle handle) const
+shared_ptr<Port> Session::getPort(SSI_Handle handle) const
 {
     return m_Ports.find(handle);
 }
 
 /* */
-RoutingDevice * Session::getRoutingDevice(SSI_Handle handle) const
+shared_ptr<RoutingDevice> Session::getRoutingDevice(SSI_Handle handle) const
 {
     return m_RoutingDevices.find(handle);
 }
 
 /* */
-Volume * Session::getVolume(SSI_Handle handle) const
+shared_ptr<Volume> Session::getVolume(SSI_Handle handle) const
 {
     return m_Volumes.find(handle);
 }
 
 /* */
-Enclosure * Session::getEnclosure(SSI_Handle handle) const
+shared_ptr<Enclosure> Session::getEnclosure(SSI_Handle handle) const
 {
     return m_Enclosures.find(handle);
 }
 
 /* */
-EndDevice * Session::getEndDevice(SSI_Handle handle) const
+shared_ptr<EndDevice> Session::getEndDevice(SSI_Handle handle) const
 {
     return m_EndDevices.find(handle);
 }
 
 /* */
-void Session::addEndDevice(EndDevice *pEndDevice)
+void Session::addEndDevice(const shared_ptr<EndDevice>& pEndDevice)
 {
-    if (pEndDevice == NULL) {
+    if (!pEndDevice) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pEndDevice);
     m_EndDevices.add(pEndDevice);
 }
 
 /* */
-void Session::addArray(Array *pArray)
+void Session::addArray(const shared_ptr<Array>& pArray)
 {
-    if (pArray == NULL) {
+    if (!pArray) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pArray);
     m_Arrays.add(pArray);
 }
 
 /* */
-void Session::addRoutingDevice(RoutingDevice *pRoutingDevice)
+void Session::addRoutingDevice(const shared_ptr<RoutingDevice>& pRoutingDevice)
 {
-    if (pRoutingDevice == NULL) {
+    if (!pRoutingDevice) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pRoutingDevice);
     m_RoutingDevices.add(pRoutingDevice);
 }
 
 /* */
-void Session::addEnclosure(Enclosure *pEnclosure)
+void Session::addEnclosure(const shared_ptr<Enclosure>& pEnclosure)
 {
-    if (pEnclosure == NULL) {
+    if (!pEnclosure) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pEnclosure);
     m_Enclosures.add(pEnclosure);
 }
 
 /* */
-void Session::addPhy(Phy *pPhy)
+void Session::addPhy(const shared_ptr<Phy>& pPhy)
 {
-    if (pPhy == NULL) {
+    if (!pPhy) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pPhy);
     m_Phys.add(pPhy);
 }
 
 /* */
-void Session::addVolume(Volume *pVolume)
+void Session::addVolume(const shared_ptr<Volume>& pVolume)
 {
-    if (pVolume == NULL) {
+    if (!pVolume) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pVolume);
     m_Volumes.add(pVolume);
 }
 
 /* */
-void Session::addPort(Port *pPort)
+void Session::addPort(const shared_ptr<Port>& pPort)
 {
-    if (pPort == NULL) {
+    if (!pPort) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pPort);
     m_Ports.add(pPort);
 }
 
 /* */
-void Session::addController(Controller *pController)
+void Session::addController(const shared_ptr<Controller>& pController)
 {
-    if (pController == NULL) {
+    if (!pController) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pController);
     m_Controllers.add(pController);
 }
 
 /* */
-void Session::addRaidInfo(RaidInfo *pRaidInfo)
+void Session::addRaidInfo(const shared_ptr<RaidInfo>& pRaidInfo)
 {
-    if (pRaidInfo == NULL) {
+    if (!pRaidInfo) {
         throw E_NULL_POINTER;
     }
+
     pContextMgr->add(pRaidInfo);
     m_RaidInfo.add(pRaidInfo);
 }
@@ -365,33 +419,16 @@ void Session::__internal_attach_imsm_device(const String &path)
 /* */
 void Session::__internal_attach_imsm_array(const String &path)
 {
-    Array *pArray = NULL;
     try {
-        pArray = new Array(path);
-        pArray->addToSession(this);
-    } catch (Exception ex) {
-        if (ex == E_INVALID_OBJECT) {
-            delete pArray;
+        shared_ptr<Array> pArray = shared_ptr<Array>(new Array(path));
+        if (pArray) {
+            pArray->discover();
+            pArray->addToSession(shared_from_this());
         }
+    } catch (Exception) {
+        /* Invalid object */
     } catch (...) {
         /* TODO: log that there's not enough resources in the system. */
-    }
-}
-
-TemporarySession::TemporarySession() : m_session(NULL)
-{
-    if (pContextMgr != NULL) {
-        try {
-            m_session = new Session();
-        } catch (...) {
-            /* Out of memory, no more sessions allowed. */
-        }
-    }
-}
-
-TemporarySession::~TemporarySession() {
-    if (isValid()) {
-        delete m_session;
     }
 }
 

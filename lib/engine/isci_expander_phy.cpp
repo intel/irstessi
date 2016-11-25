@@ -19,8 +19,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_expander_port.h"
 #include "routing_device.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
-ISCI_Expander_Phy::ISCI_Expander_Phy(const String &path, unsigned int number, StorageObject *pParent)
+ISCI_Expander_Phy::ISCI_Expander_Phy(const String &path, unsigned int number, const Parent& pParent)
     : Phy(path, number, pParent)
 {
 }
@@ -30,26 +33,34 @@ void ISCI_Expander_Phy::discover()
 {
     CanonicalPath portPath(m_Path + "/port");
     if (portPath) {
-        m_pPort = m_pParent->getPortByPath(portPath);
-        if (m_pPort == NULL) {
-            m_pPort = __internal_create_port(portPath);
-            m_pPort->setParent(m_pParent);
+        shared_ptr<Port> port;
+        if (Parent parent = m_pParent.lock()) {
+            port = parent->getPortByPath(portPath);
+            m_pPort = port;
+            if (!port) {
+                port = __internal_create_port(portPath);
+                port->setParent(parent);
+                m_pPort = port;
+            }
         }
-        m_pPort->attachPhy(this);
+
+        if (port) {
+            port->attachPhy(shared_from_this());
+        }
     }
 }
 
 /* */
-Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
+shared_ptr<Port> ISCI_Expander_Phy::__internal_create_port(const String &portPath)
 {
     Directory dir(portPath);
-    Port *pPort = NULL;
-    RoutingDevice *pRtDevice = dynamic_cast<RoutingDevice *>(m_pParent);
+    shared_ptr<Port> pPort;
+    shared_ptr<RoutingDevice> pRtDevice = dynamic_pointer_cast<RoutingDevice>(m_pParent.lock());
 
     dir.setFilter("host");
     if (dir > 0) {
         /* host" */
-        pPort = new ISCI_Expander_SubtractivePort(portPath);
+        pPort = shared_ptr<Port>(new ISCI_Expander_SubtractivePort(portPath));
         if (pRtDevice) {
             pRtDevice->setSubtractivePort(pPort);
         }
@@ -60,20 +71,26 @@ Port * ISCI_Expander_Phy::__internal_create_port(const String &portPath)
     if (dir > 0) {
         if (portPath.compare(CanonicalPath(**dir.dirs().begin())) > 0) {
             /* host of expander behind expander */
-            pPort = new ISCI_Expander_SubtractivePort(portPath);
+            pPort = shared_ptr<Port>(new ISCI_Expander_SubtractivePort(portPath));
             if (pRtDevice) {
                 pRtDevice->setSubtractivePort(pPort);
             }
         } else {
             /* expander in expander */
-            pPort = new ISCI_Expander_Port(portPath);
-            m_pParent->attachPort(pPort);
+            pPort = shared_ptr<Port>(new ISCI_Expander_Port(portPath));
+            if (Parent parent = m_pParent.lock()) {
+                parent->attachPort(pPort);
+            }
         }
+
         return pPort;
     }
 
-    pPort = new ISCI_Expander_Port(portPath);
-    m_pParent->attachPort(pPort);
+    pPort = shared_ptr<Port>(new ISCI_Expander_Port(portPath));
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachPort(pPort);
+    }
+
     return pPort;
 }
 

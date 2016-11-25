@@ -29,6 +29,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "context_manager.h"
 
 using std::numeric_limits;
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
 
 namespace {
     bool isBlockDeviceSata(const BlockDevice& device) {
@@ -41,12 +43,26 @@ namespace {
 }
 
 /* */
+Array::Array()
+    : RaidDevice()
+{
+
+}
+
+/* */
 Array::Array(const String &path)
     : RaidDevice(path),
       m_Busy(false),
       m_TotalSize(0),
       m_FreeSize(0)
 {
+
+}
+
+/* */
+void Array::discover()
+{
+    RaidDevice::discover();
     String metadata;
     Directory dir("/sys/devices/virtual/block");
     std::list<Directory *> dirs = dir.dirs();
@@ -57,6 +73,7 @@ Array::Array(const String &path)
         } catch (...) {
             continue;
         }
+
         try {
             metadata.find("/" + m_DevName);
         } catch (...) {
@@ -66,21 +83,20 @@ Array::Array(const String &path)
                 continue;
             }
         }
-        Volume *pVolume = new Volume(*(*i), metadata.reverse_after("/"));
+
+        shared_ptr<Volume> pVolume = shared_ptr<Volume>(new Volume(*(*i), metadata.reverse_after("/")));
+        pVolume->discover();
         attachVolume(pVolume);
-        pVolume->setParent(this);
+        pVolume->setParent(shared_from_this());
     }
 }
 
 /* */
-Array::~Array()
-{
-}
-
 String Array::getId() const {
     return "ar:" + getPartId();
 }
 
+/* */
 String Array::getPartId() const {
     return m_Name;
 }
@@ -92,45 +108,54 @@ SSI_Status Array::addSpare(const Container<EndDevice> &container)
 
     String endDevices;
     foreach (i, container) {
-        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == NULL) {
-            return SSI_StatusInvalidState;
-        }
+        if (shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(*i)) {
+            if (pBlockDevice->getArray().get() == this && pBlockDevice->getDiskUsage() == SSI_DiskUsageSpare) {
+                /* TODO: log that the given end device is already a component of this array. */
+                continue;
+            }
 
-        if (pBlockDevice->getArray() == this &&
-           pBlockDevice->getDiskUsage() == SSI_DiskUsageSpare) {
-            /* TODO: log that the given end device is already a component of this array. */
-            continue;
-        }
-        if (pBlockDevice->isSystemDisk()) {
-            return SSI_StatusInvalidState;
-        }
-        if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
-            return SSI_StatusInvalidState;
-        }
-        if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
-            return SSI_StatusInvalidState;
-        }
+            shared_ptr<Controller> pController = pBlockDevice->getController();
+            if (!pController) {
+                return SSI_StatusInvalidState;
+            }
 
-        endDevices += " '/dev/" + pBlockDevice->getDevName() + "'";
-        count++;
+            if (pBlockDevice->isSystemDisk()) {
+                return SSI_StatusInvalidState;
+            }
+
+            if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
+                return SSI_StatusInvalidState;
+            }
+
+            if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
+                return SSI_StatusInvalidState;
+            }
+
+            endDevices += " '/dev/" + pBlockDevice->getDevName() + "'";
+            count++;
+        } else {
+            return SSI_StatusInvalidState;
+        }
     }
+
     if (count == 0) {
         return SSI_StatusOk;
     }
+
     unsigned int lines = 3;
     unsigned int offset = 0;
     if (shellEx("mdadm '/dev/" + m_DevName + "' -a" + endDevices, lines, offset) == 0) {
         return SSI_StatusOk;
     }
+
     return SSI_StatusFailed;
 }
 
 /* */
-SSI_Status Array::addSpare(EndDevice *pEndDevice)
+SSI_Status Array::addSpare(const shared_ptr<EndDevice>& pEndDevice)
 {
     Container<EndDevice> container;
-    if (pEndDevice == NULL) {
+    if (!pEndDevice) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -147,8 +172,8 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
         return SSI_StatusInvalidState;
     }
     Container<EndDevice> addedToSpare = getSpareableEndDevices(container);
-    status = this->addSpare(container);
-    this->getEndDevices(tmp,false);
+    status = addSpare(container);
+    getEndDevices(tmp, false);
     if (status == SSI_StatusOk) {
         usleep(3000000);
         if (shellEx("mdadm --grow '/dev/" + m_DevName + "' --raid-devices " + String(tmp.size() + container.size())) != 0) {
@@ -156,6 +181,7 @@ SSI_Status Array::grow(const Container<EndDevice> &container)
             status = SSI_StatusFailed;
         }
     }
+
     return status;
 }
 
@@ -165,6 +191,7 @@ SSI_Status Array::getInfo(SSI_ArrayInfo *pInfo) const
     if (pInfo == NULL) {
         return SSI_StatusInvalidParameter;
     }
+
     pInfo->arrayHandle = getHandle();
     getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
     m_Name.get(pInfo->name, sizeof(pInfo->name));
@@ -188,7 +215,9 @@ SSI_Status Array::setWriteCacheState(bool enable)
         return SSI_StatusInvalidState;
     }
     foreach (i, m_BlockDevices) {
-        (*i)->setWriteCache(enable);
+        if (shared_ptr<BlockDevice> tmp = (*i).lock()) {
+            tmp->setWriteCache(enable);
+        }
     }
     return SSI_StatusNotSupported;
 }
@@ -198,52 +227,42 @@ void Array::setEndDevices(const Container<EndDevice> &container)
 {
     m_BlockDevices.clear();
     foreach (i, container) {
-        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
-        if (pBlockDevice == NULL) {
+        if (shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(*i)) {
+            if (pBlockDevice->isSystemDisk()) {
+                throw E_SYSTEM_DEVICE;
+            }
+            if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
+                throw E_INVALID_USAGE;
+            }
+            if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
+                throw E_NOT_AVAILABLE;
+            }
+            m_BlockDevices.add(pBlockDevice);
+        } else {
             throw E_INVALID_OBJECT;
         }
-        if (pBlockDevice->isSystemDisk()) {
-            throw E_SYSTEM_DEVICE;
-        }
-        if (pBlockDevice->getDiskUsage() != SSI_DiskUsagePassThru) {
-            throw E_INVALID_USAGE;
-        }
-        if (pBlockDevice->getDiskState() != SSI_DiskStateNormal) {
-            throw E_NOT_AVAILABLE;
-        }
-        m_BlockDevices.add(pBlockDevice);
     }
 }
 
 /* */
-SSI_Status Array::removeSpare(const EndDevice *pEndDevice, bool force)
+SSI_Status Array::removeSpare(const shared_ptr<EndDevice>& pEndDevice, bool force)
 {
-    if(!force)
+    if (!force)
     {
-        if (pEndDevice->getArray() != this) {
+        if (pEndDevice->getArray().get() != this) {
             return SSI_StatusInvalidState;
         }
 
-        const BlockDevice *pBlockDevice = dynamic_cast<const BlockDevice *>(pEndDevice);
-        if (pBlockDevice == NULL) {
-            return SSI_StatusInvalidState;
-        }
+        if (shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(pEndDevice)) {
+            if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
+                return SSI_StatusInvalidState;
+            }
 
-        Controller* pController = pBlockDevice->getController();
-        if (pController == NULL) {
-            return SSI_StatusInvalidState;
-        }
-
-        if (pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
-            return SSI_StatusInvalidState;
-        }
-
-        SSI_DiskState state = pBlockDevice->getDiskState();
-        if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
-            return SSI_StatusInvalidState;
-        }
-
-        if (pBlockDevice->getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
+            SSI_DiskState state = pBlockDevice->getDiskState();
+            if (state != SSI_DiskStateNormal && state != SSI_DiskStateFailed && state != SSI_DiskStateSmartEventTriggered) {
+                return SSI_StatusInvalidState;
+            }
+        } else {
             return SSI_StatusInvalidState;
         }
     }
@@ -264,10 +283,10 @@ SSI_Status Array::removeSpare(const EndDevice *pEndDevice, bool force)
 SSI_Status Array::removeSpare(const Container<EndDevice>& endDevices, bool force)
 {
     SSI_Status status = SSI_StatusOk;
-    foreach(i, endDevices)
+    foreach (i, endDevices)
     {
         SSI_Status localStatus;
-        if((localStatus = removeSpare(*i, force)) != SSI_StatusOk) {
+        if ((localStatus = removeSpare(*i, force)) != SSI_StatusOk) {
             status = localStatus;
         }
     }
@@ -354,8 +373,11 @@ void Array::getEndDevices(Container<EndDevice> &container, bool all) const
 {
     container.clear();
     foreach (i, m_BlockDevices) {
-        if (all || (*i)->getDiskUsage() == SSI_DiskUsageArrayMember)
-        container.add(*i);
+        if (shared_ptr<EndDevice> tmp = (*i).lock()) {
+            if (all || tmp->getDiskUsage() == SSI_DiskUsageArrayMember) {
+                container.add(tmp);
+            }
+        }
     }
 }
 
@@ -366,16 +388,18 @@ void Array::getVolumes(Container<Volume> &container) const
 }
 
 /* */
-void Array::addToSession(Session *pSession)
+void Array::addToSession(const shared_ptr<Session>& pSession)
 {
     RaidDevice::addToSession(pSession);
-    pSession->addArray(this);
+    pSession->addArray(shared_from_this());
     foreach (i, m_Volumes) {
         (*i)->addToSession(pSession);
     }
+
     foreach (i, m_Volumes) {
         if ((*i)->getState() != SSI_VolumeStateNormal) {
-            m_Busy = true; break;
+            m_Busy = true;
+            break;
         }
     }
     __internal_determine_total_and_free_size();
@@ -383,7 +407,7 @@ void Array::addToSession(Session *pSession)
     Container<EndDevice> endDevices;
     getEndDevices(endDevices, true);
     foreach (endDevice, endDevices) {
-        (*endDevice)->determineBlocksFree(this);
+        (*endDevice)->determineBlocksFree(shared_from_this());
     }
 }
 
@@ -396,7 +420,9 @@ SSI_Status Array::remove()
             pContextMgr->remove(this);
             String devices;
             foreach (i, m_BlockDevices) {
-                devices += " '/dev/" + (*i)->getDevName() + "'";
+                if (shared_ptr<BlockDevice> tmp = (*i).lock()) {
+                    devices += " '/dev/" + tmp->getDevName() + "'";
+                }
             }
             usleep(3000000);
             if (shellEx("mdadm --zero-superblock" + devices) == 0) {
@@ -412,7 +438,7 @@ Container<EndDevice> Array::getSpareableEndDevices(const Container<EndDevice>& e
 {
     Container<EndDevice> result;
     foreach(i, endDevices) {
-        BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(*i);
+        shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(*i);
         if(pBlockDevice->getDiskUsage() != SSI_DiskUsageSpare) {
             result.add(*i);
         }
@@ -427,16 +453,16 @@ SSI_Status Array::canAddEndDevices(const Container<EndDevice>& endDevices) const
     /* Checking which devices we have (assuming if one is SATA - all are SATA etc.) */
     /* For now, we only support SATA and VMD */
     if (!m_BlockDevices.empty()) {
-        const BlockDevice& device = *m_BlockDevices.front();
+        shared_ptr<BlockDevice> device = m_BlockDevices.front().lock();
 
-        isSata = isBlockDeviceSata(device);
+        isSata = isBlockDeviceSata(*device);
     }
 
     /* Checking if new devices can be add */
     foreach (i, endDevices) {
-        const BlockDevice* device = dynamic_cast<const BlockDevice*>(*i);
+        shared_ptr<BlockDevice> device = dynamic_pointer_cast<BlockDevice>(*i);
 
-        if (device != NULL) {
+        if (device) {
             if ((isBlockDeviceSata(*device) && !isSata) || (isBlockDeviceVmd(*device) && isSata)) {
                 return SSI_StatusInvalidParameter;
             }
@@ -480,7 +506,9 @@ void Array::create()
 
     String devices;
     foreach (i, m_BlockDevices) {
-        devices += " /dev/" + (*i)->getDevName();
+        if (shared_ptr<BlockDevice> tmp = (*i).lock()) {
+            devices += " /dev/" + tmp->getDevName();
+        }
     }
 
     if (m_BlockDevices.size() == 0) {
@@ -496,18 +524,18 @@ void Array::create()
 }
 
 /* */
-void Array::attachEndDevice(EndDevice *pObject)
+void Array::attachEndDevice(const shared_ptr<EndDevice>& pObject)
 {
-    BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pObject);
-    if (pBlockDevice == NULL) {
+    shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(pObject);
+    if (!pBlockDevice) {
         throw E_INVALID_OBJECT;
     }
-    pBlockDevice->attachArray(this);
+    pBlockDevice->attachArray(shared_from_this());
     m_BlockDevices.add(pBlockDevice);
 }
 
 /* */
-void Array::attachVolume(Volume *pVolume)
+void Array::attachVolume(const shared_ptr<Volume>& pVolume)
 {
     m_Volumes.add(pVolume);
 }
@@ -518,7 +546,9 @@ void Array::__internal_determine_total_and_free_size()
     u_int64_t raidSectorSize = DEFAULT_SECTOR_SIZE;
     unsigned long long int totalSize = -1ULL;
     foreach (i, m_BlockDevices) {
-        totalSize = ssi_min(totalSize, (*i)->getTotalSize());
+        if (shared_ptr<BlockDevice> tmp = (*i).lock()) {
+            totalSize = ssi_min(totalSize, tmp->getTotalSize());
+        }
     }
     m_TotalSize = (totalSize * m_BlockDevices);
     unsigned long long occupiedSize = 0;

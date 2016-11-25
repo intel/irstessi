@@ -18,6 +18,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <engine/event.h>
 #include <engine/context_manager.h>
 
+using boost::shared_ptr;
+
 /* */
 SSI_Status SsiGetEventHandle(SSI_Handle *eventHandle)
 {
@@ -55,9 +57,9 @@ SSI_Status SsiEventWait(SSI_Uint32 timeout, SSI_Handle eventHandle)
         return SSI_StatusNotInitialized;
     }
 
-    Event *pEvent = pContextMgr->getEvent(eventHandle);
+    shared_ptr<Event> pEvent = pContextMgr->getEvent(eventHandle);
 
-    if (pEvent == NULL) {
+    if (!pEvent) {
         return SSI_StatusInvalidHandle;
     }
 

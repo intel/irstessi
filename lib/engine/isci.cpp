@@ -26,6 +26,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "isci_raid_info.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
 ISCI::ISCI(const String &path)
     : Controller(path)
@@ -51,25 +54,28 @@ void ISCI::discover()
         number *= 4;
         std::list<Directory *> phys_dirs = phys.dirs();
         foreach (j, phys_dirs) {
-            Phy *pPhy = new ISCI_Phy(*(*j), number++, this);
-            attachPhy(pPhy);
+            attachPhy(shared_ptr<Phy>(new ISCI_Phy(*(*j), number++, shared_from_this())));
         }
     }
-    foreach (i, m_Phys)
+
+    foreach (i, m_Phys) {
         (*i)->discover();
-    foreach (i, m_Ports)
+    }
+
+    foreach (i, m_Ports) {
         (*i)->discover();
+    }
 }
 
 /* */
-Port * ISCI::getPortByPath(const String &path) const
+shared_ptr<Port> ISCI::getPortByPath(const String &path) const
 {
     foreach (i, m_Ports) {
         if ((*i)->getPath() == path) {
             return (*i);
         }
     }
-    return NULL;
+    return shared_ptr<Port>();
 }
 
 /* */
@@ -94,7 +100,7 @@ void ISCI::setAddress(SSI_Address &address)
     m_Address.sasAddress = address.sasAddress;
 }
 
-RaidInfo *ISCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
+shared_ptr<RaidInfo> ISCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
 {
     /* first try EFI, if its failed - try legacy OROM */
 
@@ -105,18 +111,20 @@ RaidInfo *ISCI::findRaidInfo(Container <RaidInfo> &RaidInfos)
 
     if (pInfo_ext != NULL) {
         orom_info *pInfo = &pInfo_ext->data;
-        foreach(i,RaidInfos){
-            if ((*i)->getControllerType() == SSI_ControllerTypeSCU &&
-               (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
+        foreach (i, RaidInfos) {
+            if ((*i)->getControllerType() == SSI_ControllerTypeSCU && (*i)->m_OromDevId == pInfo_ext->orom_dev_id) {
                 m_pRaidInfo = (*i);
-                (*i)->attachController(this);
-                return NULL;
+                (*i)->attachController(shared_from_this());
+                return shared_ptr<RaidInfo>();
             }
         }
-        m_pRaidInfo = new ISCI_RaidInfo(this,pInfo,pInfo_ext->orom_dev_id);
+
+        shared_ptr<ISCI> parent = dynamic_pointer_cast<ISCI>(shared_from_this());
+        m_pRaidInfo = shared_ptr<RaidInfo>(new ISCI_RaidInfo(parent, pInfo, pInfo_ext->orom_dev_id));
         return m_pRaidInfo;
     }
-    return NULL;
+
+    return shared_ptr<RaidInfo>();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

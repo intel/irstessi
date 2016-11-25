@@ -21,6 +21,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "context_manager.h"
 #include "mdadm_config.h"
 
+using boost::shared_ptr;
+
 /* */
 ContextManager::ContextManager()
 {
@@ -54,7 +56,7 @@ SSI_Status ContextManager::getSystemInfo(SSI_SystemInfo *pInfo) const
 }
 
 /* */
-Session * ContextManager::getSession(SSI_Handle handle) const
+shared_ptr<Session> ContextManager::getSession(SSI_Handle handle) const
 {
     return m_SessionMgr.getSession(handle);
 }
@@ -71,7 +73,7 @@ SSI_Status ContextManager::closeSession(SSI_Handle handle)
 }
 
 /* */
-Event * ContextManager::getEvent(SSI_Handle handle) const
+shared_ptr<Event> ContextManager::getEvent(SSI_Handle handle) const
 {
     return m_EventMgr.getEvent(handle);
 }
@@ -89,13 +91,17 @@ SSI_Status ContextManager::unregisterEvent(SSI_Handle handle)
 }
 
 /* */
-bool ContextManager::add(Object *pObject) {
+bool ContextManager::add(const object_ptr& pObject) {
     return m_HandleMgr.insert(pObject).second;
 }
 
+ContextManager::object_ptr ContextManager::remove(const object_ptr &pObject) {
+    return remove(pObject.get());
+}
+
 /* */
-void ContextManager::remove(Object *pObject) {
-    m_HandleMgr.remove(pObject);
+ContextManager::object_ptr ContextManager::remove(Object *pObject) {
+    return m_HandleMgr.remove(pObject);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -16,6 +16,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include <cstdlib>
 #include <list>
+#include <boost/shared_ptr.hpp>
 #include "utils.h"
 #include <ssi.h>
 
@@ -24,9 +25,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 /* */
-template <typename T>
+template <typename T, typename SmartPtr = boost::shared_ptr<T> >
 class Container {
 public:
+    typedef typename std::list<SmartPtr> list_type;
+    typedef typename list_type::value_type value_type;
+    typedef typename list_type::const_iterator const_iterator;
+
     SSI_Status getHandles(SSI_Handle *pBuffer, SSI_Uint32 *bufferSize) {
         SSI_Status status = SSI_StatusOk;
 
@@ -52,8 +57,8 @@ public:
         return status;
     }
 
-    T * remove(SSI_Handle handle) {
-        T *pObject = find(handle);
+    value_type remove(SSI_Handle handle) {
+        value_type pObject = find(handle);
 
         if (pObject) {
             m_list.remove(pObject);
@@ -62,17 +67,17 @@ public:
         return pObject;
     }
 
-    T * find(SSI_Handle handle) const {
+    value_type find(SSI_Handle handle) const {
         foreach (i, m_list) {
             if ((*i)->getHandle() == handle) {
                 return *i;
             }
         }
 
-        return NULL;
+        return value_type();
     }
 
-    SSI_Status add(T * const &data) {
+    SSI_Status add(const value_type& data) {
         try {
             m_list.push_back(data);
         } catch (...) {
@@ -82,7 +87,7 @@ public:
         return SSI_StatusOk;
     }
 
-    SSI_Status add(Container<T> const &c) {
+    SSI_Status add(const Container& c) {
         try {
             m_list.insert(m_list.end(), c.m_list.begin(), c.m_list.end());
         } catch (...) {
@@ -96,15 +101,15 @@ public:
         return m_list.size();
     }
 
-    typename std::list<T *>::iterator begin() const {
-        return const_cast<Container *>(this)->m_list.begin();
+    const_iterator begin() const {
+        return m_list.begin();
     }
 
-    typename std::list<T *>::iterator end() const {
-        return const_cast<Container *>(this)->m_list.end();
+    const_iterator end() const {
+        return m_list.end();
     }
 
-    const T * front() const {
+    const value_type& front() const {
         return m_list.front();
     }
 
@@ -117,7 +122,7 @@ public:
     }
 
 private:
-    std::list<T *> m_list;
+    list_type m_list;
 };
 
 #endif /* __CONTAINER_H__INCLUDED__ */

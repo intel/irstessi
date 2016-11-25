@@ -23,20 +23,23 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "phy.h"
 #include "session.h"
 
-/* */
-Port::Port(const String &path)
-    : StorageObject(path), m_pRemotePort(NULL)
-{
-}
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
 
 /* */
-Port::~Port()
+Port::Port(const String &path)
+    : StorageObject(path), m_pRemotePort()
 {
+
 }
 
 String Port::getId() const
 {
-    return "po:" + m_pParent->getPartId() + "/" + String(getHandle()); //TODO: Some kind of stable id
+    if (Parent parent = m_pParent.lock()) {
+        return "po:" + parent->getPartId() + "/" + String(getHandle()); //TODO: Some kind of stable id
+    } else {
+        return "po:" + String(getHandle());
+    }
 }
 
 /* */
@@ -47,31 +50,42 @@ SSI_Status Port::getInfo(SSI_PortInfo *pInfo) const
     }
     pInfo->portHandle = getHandle();
     getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
-    m_pParent->getAddress(pInfo->portAddress);
     pInfo->numPhys = m_Phys.size();
 
-    if (dynamic_cast<Controller *>(m_pParent)) {
-        pInfo->localDeviceType = SSI_DeviceTypeController;
-    } else if (dynamic_cast<EndDevice *>(m_pParent)) {
-        pInfo->localDeviceType = SSI_DeviceTypeEndDevice;
-    } else if (dynamic_cast<RoutingDevice *>(m_pParent)) {
-        pInfo->localDeviceType = SSI_DeviceTypeRoutingDevice;
+    if (Parent parent = m_pParent.lock()) {
+        parent->getAddress(pInfo->portAddress);
+        if (dynamic_cast<Controller *>(parent.get())) {
+            pInfo->localDeviceType = SSI_DeviceTypeController;
+        } else if (dynamic_cast<EndDevice *>(parent.get())) {
+            pInfo->localDeviceType = SSI_DeviceTypeEndDevice;
+        } else if (dynamic_cast<RoutingDevice *>(parent.get())) {
+            pInfo->localDeviceType = SSI_DeviceTypeRoutingDevice;
+        } else {
+            pInfo->localDeviceType = SSI_DeviceTypeUnknown;
+        }
+
+        pInfo->localDeviceHandle = parent->getHandle();
     } else {
         pInfo->localDeviceType = SSI_DeviceTypeUnknown;
+        pInfo->localDeviceHandle = SSI_NULL_HANDLE;
     }
 
-    pInfo->localDeviceHandle = m_pParent->getHandle();
-    if (m_pRemotePort != NULL) {
-        pInfo->connectedToPort = m_pRemotePort->getHandle();
+    if (shared_ptr<Port> remote = m_pRemotePort.lock()) {
+        pInfo->connectedToPort = remote->getHandle();
     } else {
         pInfo->connectedToPort = SSI_NULL_HANDLE;
     }
+
     return SSI_StatusOk;
 }
 
 SSI_Status Port::locate(bool mode) const
 {
-    return m_pParent->locate(mode);
+    if (Parent parent = m_pParent.lock()) {
+        return parent->locate(mode);
+    } else {
+        return SSI_StatusInvalidState;
+    }
 }
 
 /* */
@@ -84,70 +98,91 @@ void Port::getPhys(Container<Phy> &container) const
 bool Port::operator ==(const Object &object) const
 {
     const Port *pPort = dynamic_cast<const Port *>(&object);
-    return pPort != NULL &&
-        *m_pParent == *pPort->m_pParent && m_Path == pPort->m_Path;
+    if (pPort != NULL) {
+        Parent parent = m_pParent.lock();
+        Parent portParent = pPort->m_pParent.lock();
+        return parent && portParent && *parent == *portParent && m_Path == pPort->m_Path;
+    } else {
+        return false;
+    }
 }
 
 /* */
-void Port::attachArray(Array *pArray)
+void Port::attachArray(const shared_ptr<Array>& pArray)
 {
-    m_pParent->attachArray(pArray);
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachArray(pArray);
+    }
 }
 
 /* */
-void Port::attachVolume(Volume *pVolume)
+void Port::attachVolume(const shared_ptr<Volume>& pVolume)
 {
-    m_pParent->attachVolume(pVolume);
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachVolume(pVolume);
+    }
 }
 
 /* */
-void Port::attachEndDevice(EndDevice *pEndDevice)
+void Port::attachEndDevice(const shared_ptr<EndDevice>& pEndDevice)
 {
-    m_pParent->attachEndDevice(pEndDevice);
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachEndDevice(pEndDevice);
+    }
 }
 
 /* */
-void Port::attachRoutingDevice(RoutingDevice *pRoutingDevice)
+void Port::attachRoutingDevice(const shared_ptr<RoutingDevice>& pRoutingDevice)
 {
-    m_pParent->attachRoutingDevice(pRoutingDevice);
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachRoutingDevice(pRoutingDevice);
+    }
 }
 
 /* */
-void Port::attachEnclosure(Enclosure *pEnclosure)
+void Port::attachEnclosure(const shared_ptr<Enclosure>& pEnclosure)
 {
-    RoutingDevice *pRoutingDevice = dynamic_cast<RoutingDevice *>(m_pParent);
-    pEnclosure->attachRoutingDevice(pRoutingDevice);
-    pRoutingDevice->setEnclosure(pEnclosure);
-    pRoutingDevice->attachEnclosure(pEnclosure);
+    if (Parent parent = m_pParent.lock()) {
+        if (shared_ptr<RoutingDevice> pRoutingDevice = dynamic_pointer_cast<RoutingDevice>(parent)) {
+            pEnclosure->attachRoutingDevice(pRoutingDevice);
+            pRoutingDevice->setEnclosure(pEnclosure);
+            pRoutingDevice->attachEnclosure(pEnclosure);
+        }
+    }
 }
 
 /* */
-void Port::attachPhy(Phy *pPhy)
+void Port::attachPhy(const shared_ptr<Phy>& pPhy)
 {
     m_Phys.add(pPhy);
-    pPhy->attachPort(this);
+    pPhy->attachPort(shared_from_this());
 }
 
 /* */
-void Port::attachPort(Port *pPort)
+void Port::attachPort(const shared_ptr<Port>& pPort)
 {
-    if (pPort == this) {
+    if (pPort.get() == this) {
         throw E_INVALID_OBJECT;
     }
+
     m_pRemotePort = pPort;
-    m_pRemotePort->attachPort(this);
+    pPort->attachPort(shared_from_this());
 }
 
 /* */
-void Port::addToSession(Session *pSession)
+void Port::addToSession(const shared_ptr<Session>& pSession)
 {
-    pSession->addPort(this);
+    pSession->addPort(shared_from_this());
 }
 
 /* */
-RaidInfo * Port::getRaidInfo() const
+shared_ptr<RaidInfo> Port::getRaidInfo() const
 {
-    return m_pParent->getRaidInfo();
+    if (Parent parent = m_pParent.lock()) {
+        return parent->getRaidInfo();
+    }
+
+    return shared_ptr<RaidInfo>();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

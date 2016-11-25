@@ -16,10 +16,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif /* HAVE_CONFIG_H */
 
 extern "C" {
-#include "lib/safeclib/safe_str_lib.h"
+#include <safeclib/safe_str_lib.h>
 }
 
 #include <engine/context_manager.h>
+
+using std::nothrow;
+using boost::shared_ptr;
 
 /* */
 SSI_Status SsiSessionOpen(SSI_Handle *pSession)
@@ -51,15 +54,35 @@ SSI_Status SsiSessionClose(SSI_Handle session)
     return pContextMgr->closeSession(session);
 }
 
-SSI_Status getSession(SSI_Handle session, Session **pSession)
+SSI_Status getTempSession(boost::shared_ptr<Session>& pSession)
 {
     if (pContextMgr == NULL) {
         return SSI_StatusNotInitialized;
     }
 
-    *pSession = pContextMgr->getSession(session);
+    pSession = shared_ptr<Session>(new(nothrow) Session());
+    if (!pSession) {
+        return SSI_StatusInsufficientResources;
+    }
 
-    if (*pSession == NULL) {
+    try {
+        pSession->initialize();
+    } catch (...) {
+        return SSI_StatusFailed;
+    }
+
+    return SSI_StatusOk;
+}
+
+SSI_Status getSession(SSI_Handle session, shared_ptr<Session>& pSession)
+{
+    if (pContextMgr == NULL) {
+        return SSI_StatusNotInitialized;
+    }
+
+    pSession = pContextMgr->getSession(session);
+
+    if (!pSession) {
         return session == SSI_NULL_HANDLE ? SSI_StatusFailed : SSI_StatusInvalidSession;
     }
 

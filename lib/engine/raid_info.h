@@ -15,20 +15,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __RAID_INFO_H__INCLUDED__
 
 #include "scope_object.h"
+#include <boost/weak_ptr.hpp>
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class RaidInfo : public ScopeObject {
+class RaidInfo : public ScopeObject, public boost::enable_shared_from_this<RaidInfo> {
 public:
-    virtual ~RaidInfo() {
-    }
-    RaidInfo(struct orom_info *pInfo) {
-        m_OromDevId = 0;
-        m_pInfo = pInfo;
-    }
+    RaidInfo(struct orom_info *pInfo);
 
     // Object
 
@@ -38,22 +35,24 @@ public:
     // ScopeObject
 
 public:
-    void getControllers(Container<Controller> &) const;
+    virtual void getControllers(Container<Controller> &) const;
 
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeRaidInfo;
     }
 
     // RaidInfo
 
 public:
-    Controller* m_Controller;
+    boost::weak_ptr<Controller> m_Controller;
     unsigned int m_OromDevId;
     struct orom_info * m_pInfo;
-    void attachController(Controller *pController) {
+
+public:
+    virtual void attachController(const boost::shared_ptr<Controller>& pController) {
         m_Controller = pController;
     }
-    void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
 
     virtual SSI_ControllerType getControllerType() const = 0;
     SSI_Status getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo *pInfo) const;

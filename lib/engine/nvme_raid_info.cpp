@@ -27,8 +27,10 @@ extern "C" {
 
 #include "nvme_raid_info.h"
 
+using boost::shared_ptr;
+
 /* */
-NVME_RaidInfo::NVME_RaidInfo(NVME *pNVME)
+NVME_RaidInfo::NVME_RaidInfo(const shared_ptr<NVME>& pNVME)
     : RaidInfo(&orom_nvme)
 {
     attachController(pNVME);

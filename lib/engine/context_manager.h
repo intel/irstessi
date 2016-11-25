@@ -25,20 +25,23 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class ContextManager {
 public:
+    typedef HandleManager<Object>::object_ptr object_ptr;
+
     ContextManager();
     ~ContextManager();
 
 public:
     SSI_Status closeSession(SSI_Handle handle);
     SSI_Handle openSession();
-    Session * getSession(SSI_Handle handle) const;
+    boost::shared_ptr<Session> getSession(SSI_Handle handle) const;
 
     SSI_Status unregisterEvent(SSI_Handle handle);
     SSI_Handle registerEvent();
-    Event * getEvent(SSI_Handle handle) const;
+    boost::shared_ptr<Event> getEvent(SSI_Handle handle) const;
 
-    bool add(Object *pObejct);
-    void remove(Object *pObject);
+    bool add(const object_ptr& pObejct);
+    object_ptr remove(const object_ptr& pObject);
+    object_ptr remove(Object *pObject);
 
     SSI_Status getSystemInfo(SSI_SystemInfo *) const;
 
@@ -46,7 +49,7 @@ private:
     ContextManager(const ContextManager&) { /* do not create copies */ }
     SessionManager m_SessionMgr;
     EventManager m_EventMgr;
-    HandleManager m_HandleMgr;
+    HandleManager<Object> m_HandleMgr;
     void operator = (const ContextManager&) {}
 };
 

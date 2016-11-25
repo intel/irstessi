@@ -18,11 +18,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/raid_info.h>
 
+using boost::shared_ptr;
+
 /* */
 SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList, SSI_Uint32 *handleCount)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getSession(session, pSession)) {
         return status;
     }
 
@@ -34,13 +36,13 @@ SSI_Status SsiGetRaidInfoHandles(SSI_Handle session, SSI_Handle *handleList, SSI
 /* */
 SSI_Status SsiGetRaidInfo(SSI_Handle session, SSI_Handle raidInfoHandle, SSI_RaidInfo *raidInfo)
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getSession(session, pSession)) {
         return status;
     }
 
-    RaidInfo *pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
-    if (pRaidInfo == NULL) {
+    shared_ptr<RaidInfo> pRaidInfo = pSession->getRaidInfo(raidInfoHandle);
+    if (!pRaidInfo) {
         return SSI_StatusInvalidHandle;
     }
 

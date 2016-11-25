@@ -31,17 +31,17 @@ public:
     // StorageObject
 
 public:
-    void getAddress(SSI_Address &address) const;
-    void discover(const String &path);
+    virtual void getAddress(SSI_Address &address) const;
+    virtual void discover(const String &path);
 
-    const std::vector<CanonicalPath>& getHandledNVMEPaths();
+    const std::vector<CanonicalPath>& getHandledNVMEPaths() const;
 
 protected:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeVMD;
     }
 
-    RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
+    virtual boost::shared_ptr<RaidInfo> findRaidInfo(Container <RaidInfo> &RaidInfos);
 
 private:
     std::vector<CanonicalPath> m_HandledNVMEPaths;

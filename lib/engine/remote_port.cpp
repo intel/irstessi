@@ -19,6 +19,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "routing_device.h"
 #include "end_device.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
 RemotePort::RemotePort(const String &path)
     : Port(path)
@@ -26,34 +29,46 @@ RemotePort::RemotePort(const String &path)
 }
 
 /* */
-void RemotePort::attachPort(Port *pPort)
+void RemotePort::attachPort(const shared_ptr<Port>& pPort)
 {
-    if (pPort == this)
+    if (pPort.get() == this) {
         throw E_INVALID_OBJECT;
+    }
 
     m_pRemotePort = pPort;
-    if (RoutingDevice *tmp = dynamic_cast<RoutingDevice *>(m_pParent))
-        m_pRemotePort->attachRoutingDevice(tmp);
-    else if (EndDevice *tmp = dynamic_cast<EndDevice *>(m_pParent))
-        m_pRemotePort->attachEndDevice(tmp);
+    if (Parent parent = m_pParent.lock()) {
+        if (shared_ptr<RoutingDevice> tmp = dynamic_pointer_cast<RoutingDevice>(parent)) {
+            pPort->attachRoutingDevice(tmp);
+        } else if (shared_ptr<EndDevice> tmp = dynamic_pointer_cast<EndDevice>(parent)) {
+            pPort->attachEndDevice(tmp);
+        }
+    }
 }
 
 /* */
-RaidInfo * RemotePort::getRaidInfo() const
+shared_ptr<RaidInfo> RemotePort::getRaidInfo() const
 {
-    return m_pRemotePort->getRaidInfo();
+    if (shared_ptr<Port> remote = m_pRemotePort.lock()) {
+        return remote->getRaidInfo();
+    } else {
+        return shared_ptr<RaidInfo>();
+    }
 }
 
 /* */
-void RemotePort::attachArray(Array *pArray)
+void RemotePort::attachArray(const shared_ptr<Array>& pArray)
 {
-    m_pRemotePort->attachArray(pArray);
+    if (shared_ptr<Port> remote = m_pRemotePort.lock()) {
+        remote->attachArray(pArray);
+    }
 }
 
 /* */
-void RemotePort::attachVolume(Volume *pVolume)
+void RemotePort::attachVolume(const shared_ptr<Volume>& pVolume)
 {
-    m_pRemotePort->attachVolume(pVolume);
+    if (shared_ptr<Port> remote = m_pRemotePort.lock()) {
+        remote->attachVolume(pVolume);
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

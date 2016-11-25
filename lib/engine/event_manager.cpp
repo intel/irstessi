@@ -23,6 +23,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "utils.h"
 
 using std::nothrow;
+using boost::shared_ptr;
 
 /* */
 EventManager::EventManager():
@@ -34,7 +35,7 @@ EventManager::EventManager():
 EventManager::~EventManager()
 {
     /* unregisterEvent invalidates iterator - foreach loop is forbidden */
-    HandleManager::iterator iter = m_events.begin();
+    Manager::iterator iter = m_events.begin();
     while (iter != m_events.end()) {
         unregisterEvent(iter->first);
         iter = m_events.begin();
@@ -74,13 +75,12 @@ SSI_Handle EventManager::registerEvent()
         return SSI_NULL_HANDLE;
     }
 
-    Event *pEvent = new(nothrow) Event();
-    if (pEvent == NULL) {
+    shared_ptr<Event> pEvent = shared_ptr<Event>(new(nothrow) Event());
+    if (!pEvent) {
         return SSI_NULL_HANDLE; /* Out of memory */
     }
 
     if (!m_events.insert(pEvent).second) {
-        delete pEvent;
         return SSI_NULL_HANDLE; /* Out of resources */
     }
 
@@ -105,20 +105,19 @@ SSI_Status EventManager::unregisterEvent(SSI_Handle handle)
         return SSI_StatusInvalidParameter;
     }
 
-    Object *pEvent = m_events.remove(handle);
+    shared_ptr<Event> pEvent = m_events.remove(handle);
 
-    if (pEvent == NULL) {
+    if (!pEvent) {
         return SSI_StatusInvalidHandle;
     }
 
-    delete pEvent;
     return SSI_StatusOk;
 }
 
 /* */
-Event *EventManager::getEvent(SSI_Handle handle) const
+shared_ptr<Event> EventManager::getEvent(SSI_Handle handle) const
 {
-    return const_cast<Event*>(static_cast<const Event*>(m_events.at(handle)));
+    return m_events.at(handle);
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

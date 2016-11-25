@@ -25,41 +25,46 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "controller.h"
 #include "port.h"
 
+using boost::shared_ptr;
+
 /* */
 BlockDevice::BlockDevice(const String &path)
     : EndDevice(path),
-    m_pArray(NULL),
+    m_pArray(),
     m_DiskUsage(SSI_DiskUsageUnknown),
     m_DiskState(SSI_DiskStateUnknown),
     m_IsSystem(false),
     m_StoragePoolId(0)
 {
+
+}
+
+/* */
+void BlockDevice::discover()
+{
+    EndDevice::discover();
     __internal_determine_disk_state();
     __internal_determine_disk_usage();
     __internal_determine_disk_is_system();
+
     m_BlocksFree = m_BlocksTotal;
 }
 
 /* */
-SSI_Status BlockDevice::unlock(SSI_DiskUnlockInfo *pInfo)
+SSI_Status BlockDevice::unlock(SSI_DiskUnlockInfo *)
 {
-    (void)pInfo;
     return SSI_StatusOk;
 }
 
 /* */
 SSI_Status BlockDevice::makeSpare()
 {
-    Controller *pController = getController();
-    if (pController == NULL) {
-        return SSI_StatusFailed;
+    shared_ptr<Controller> pController = getController();
+    if (!pController) {
+        return SSI_StatusInvalidState;
     }
 
-    if (getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
-        return SSI_StatusNotSupported;
-    }
-
-    return pController->makeSpare(this);
+    return pController->makeSpare(shared_from_this());
 }
 
 /* */
@@ -68,22 +73,25 @@ SSI_Status BlockDevice::clearMetadata()
     if (m_DiskState != SSI_DiskStateNormal) {
         return SSI_StatusInvalidState;
     }
+
     if (m_IsSystem) {
         return SSI_StatusInvalidState;
     }
+
     if (m_DiskUsage != SSI_DiskUsageOfflineArray && m_DiskUsage != SSI_DiskUsagePassThruReadOnlyMount) {
         return SSI_StatusInvalidState;
     }
+
     if (shellEx("mdadm --zero-superblock '/dev/" + m_DevName + "'") == 0) {
         return SSI_StatusOk;
     }
+
     return SSI_StatusFailed;
 }
 
 /* */
-SSI_Status BlockDevice::assignPoolId(unsigned char poolId)
+SSI_Status BlockDevice::assignPoolId(unsigned char)
 {
-    (void)poolId;
     return SSI_StatusNotSupported;
 }
 
@@ -94,11 +102,12 @@ SSI_Status BlockDevice::markAsNormal()
 }
 
 /* */
-void BlockDevice::attachArray(Array *pArray)
+void BlockDevice::attachArray(const shared_ptr<Array>& pArray)
 {
-    if (pArray == NULL) {
+    if (!pArray) {
         throw E_NULL_POINTER;
     }
+
     m_pArray = pArray;
     m_pPort->attachArray(pArray);
 
@@ -106,19 +115,19 @@ void BlockDevice::attachArray(Array *pArray)
 }
 
 /* */
-void BlockDevice::attachVolume(Volume *pVolume)
+void BlockDevice::attachVolume(const shared_ptr<Volume>& pVolume)
 {
-    if (pVolume == NULL) {
+    if (!pVolume) {
         throw E_NULL_POINTER;
     }
+
     m_Volumes.add(pVolume);
     m_pPort->attachVolume(pVolume);
 }
 
 /* */
-void BlockDevice::setWriteCache(bool enable)
+void BlockDevice::setWriteCache(bool)
 {
-    (void)enable;
 }
 
 /* */

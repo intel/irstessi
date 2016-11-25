@@ -29,6 +29,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 using std::vector;
 using std::find_if;
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
 
 namespace {
     vector<String>::const_iterator findErrorMessage(const vector<String>& lines, const String& message);
@@ -49,10 +51,11 @@ Volume::Volume() : RaidDevice(),
       m_MigrProgress(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
-      blk(0),
-      m_pSourceDisk(NULL),
+      blk(shared_ptr<BlockDevice>(new BlockDevice(""))),
+      m_pSourceDisk(),
       m_RwhPolicy(SSI_RwhInvalid)
 {
+
 }
 
 /* */
@@ -68,10 +71,18 @@ Volume::Volume(const String &path, unsigned int ordinal)
       m_MigrProgress(0),
       m_ComponentSize(0),
       m_State(SSI_VolumeStateUnknown),
-      blk(path),
-      m_pSourceDisk(NULL),
+      blk(shared_ptr<BlockDevice>(new BlockDevice(path))),
+      m_pSourceDisk(),
       m_RwhPolicy(SSI_RwhInvalid)
 {
+
+}
+
+/* */
+void Volume::discover()
+{
+    RaidDevice::discover();
+    blk->discover();
     String temp;
     File attr;
     try {
@@ -81,6 +92,7 @@ Volume::Volume(const String &path, unsigned int ordinal)
     } catch (...) {
         // Intentionaly left blank
     }
+
     if (m_State == SSI_VolumeStateUnknown) {
         try {
             attr = m_Path + "/md/array_state";
@@ -119,42 +131,41 @@ Volume::Volume(const String &path, unsigned int ordinal)
             m_State = SSI_VolumeStateNormal;
         }
     }
+
     if (m_State == SSI_VolumeStateUnknown || m_State == SSI_VolumeStateNormal) {
-    try {
-        int degraded = 0;
-        attr = m_Path + "/md/degraded";
-        attr >> degraded;
-        if (degraded > 0) {
-            switch (m_RaidLevel) {
-            case 1:
-            case 5:
-                if (degraded > 1) {
-                    m_State = SSI_VolumeStateFailed;
-                } else {
-                    m_State = SSI_VolumeStateDegraded;
+        try {
+            int degraded = 0;
+            attr = m_Path + "/md/degraded";
+            attr >> degraded;
+            if (degraded > 0) {
+                switch (m_RaidLevel) {
+                case 1:
+                case 5:
+                    if (degraded > 1) {
+                        m_State = SSI_VolumeStateFailed;
+                    } else {
+                        m_State = SSI_VolumeStateDegraded;
+                    }
+                    break;
+                case 6:
+                case 10:
+                    if (degraded > 2) {
+                        m_State = SSI_VolumeStateFailed;
+                    } else {
+                        m_State = SSI_VolumeStateDegraded;
+                    }
+                    break;
+                default:
+                    break;
                 }
-                break;
-            case 6:
-            case 10:
-                if (degraded > 2) {
-                    m_State = SSI_VolumeStateFailed;
-                } else {
-                    m_State = SSI_VolumeStateDegraded;
-                }
-                break;
-            default:
-                break;
             }
+        } catch (...) {
+            // Intentionally left blank
         }
-    } catch (...) {
-        // Intentionally left blank
-    }
-    }
-    else if(SSI_VolumeStateGeneralMigration == m_State) {
+    } else if (m_State == SSI_VolumeStateGeneralMigration) {
         m_RaidLevel = getMigrationTargetLevel();
         m_MigrProgress = getMigrationProgress();
-    }
-    else if(SSI_VolumeStateVerifying == m_State || SSI_VolumeStateVerifyingAndFix == m_State)
+    } else if (m_State == SSI_VolumeStateVerifying || m_State == SSI_VolumeStateVerifyingAndFix)
     {
         m_MigrProgress = getVerificationProgress();
     }
@@ -196,11 +207,6 @@ Volume::Volume(const String &path, unsigned int ordinal)
 }
 
 /* */
-Volume::~Volume()
-{
-}
-
-/* */
 String Volume::getId() const
 {
     return "vo:" + m_Name;
@@ -225,7 +231,7 @@ SSI_StripSize Volume::getSsiStripSize() const
 }
 
 /* */
-SSI_Status Volume::rebuild(EndDevice *pEndDevice)
+SSI_Status Volume::rebuild(const shared_ptr<EndDevice>& pEndDevice)
 {
     const unsigned long long volumeSize = getTotalSize();
     unsigned long long requiredSize = std::numeric_limits<unsigned long long>::max();
@@ -242,7 +248,7 @@ SSI_Status Volume::rebuild(EndDevice *pEndDevice)
         if (container.size() == 0) {
             return SSI_StatusInvalidParameter;
         }
-        requiredSize = volumeSize/container.size();
+        requiredSize = volumeSize / container.size();
         break;
     }
     case 10:
@@ -255,26 +261,26 @@ SSI_Status Volume::rebuild(EndDevice *pEndDevice)
         return SSI_StatusInvalidParameter;
     }
 
-    if ((pEndDevice)->getTotalSize() < requiredSize) {
+    if (pEndDevice->getTotalSize() < requiredSize) {
         String errorMessage = "For RAID " + String(m_RaidLevel) +
                               " minimum size is: " + String(requiredSize) +
                               " and an actual size of the disk is: " + String(pEndDevice->getTotalSize());
         setLastErrorMessage(errorMessage);
         return SSI_StatusInvalidParameter;
     }
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL) {
-        return SSI_StatusFailed;
-    } else {
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
         return pArray->addSpare(pEndDevice);
+    } else {
+        return SSI_StatusFailed;
     }
 }
 
 /* */
 SSI_Status Volume::expand(unsigned long long newSize)
 {
-    if (m_State != SSI_VolumeStateNormal)
+    if (m_State != SSI_VolumeStateNormal) {
         return SSI_StatusInvalidState;
+    }
     /* calculate size depending on raid level */
     switch (m_RaidLevel) {
     case 0:
@@ -320,51 +326,49 @@ SSI_Status Volume::expand(unsigned long long newSize)
 /* */
 SSI_Status Volume::rename(const String &newName)
 {
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL) {
-        return SSI_StatusFailed;
-    }
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
+        if (m_State != SSI_VolumeStateNormal) {
+            return SSI_StatusInvalidState;
+        }
 
-    if (m_State != SSI_VolumeStateNormal) {
+        /* MDADM issue */
+        /* mdadm cuts last character from 16 character-long name after successful rename */
+        if (shellEx("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
+                pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
+            return pArray->assemble();
+        }
+        /* assemble volume again even when rename failed */
+        pArray->assemble();
+        return SSI_StatusFailed;
+    } else {
         return SSI_StatusInvalidState;
     }
-
-    /* MDADM issue */
-    /* mdadm cuts last character from 16 character-long name after successful rename */
-    if (shellEx("mdadm -S '/dev/" + m_DevName + "'") == 0 &&
-            pArray->renameVolume(m_Ordinal, newName) == SSI_StatusOk) {
-        return pArray->assemble();
-    }
-    /* assemble volume again even when rename failed */
-    pArray->assemble();
-    return SSI_StatusFailed;
 }
 
 /* */
 SSI_Status Volume::remove()
 {
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL) {
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
+        int status = shellEx("mdadm -S '/dev/" + m_DevName + "'");
+        if (status == SSI_StatusOk) {
+            status |= pArray->removeVolume(m_Ordinal);
+        }
+
+        if (status == SSI_StatusOk) {
+            pContextMgr->remove(this);
+            Container<Volume> volumes;
+            pArray->getVolumes(volumes);
+            if (volumes.size() > 1) {
+                return SSI_StatusOk;
+            } else {
+                return pArray->remove();
+            }
+        }
+
         return SSI_StatusFailed;
+    } else {
+        return SSI_StatusInvalidState;
     }
-
-    int status = shellEx("mdadm -S '/dev/" + m_DevName + "'");
-    if (status == SSI_StatusOk) {
-        status |= pArray->removeVolume(m_Ordinal);
-    }
-    if (status == SSI_StatusOk) {
-        pContextMgr->remove(this);
-        Container<Volume> volumes;
-        pArray->getVolumes(volumes);
-        if (volumes.size() > 1) {
-            return SSI_StatusOk;
-        }
-        else {
-            return pArray->remove();
-        }
-    }
-
-    return SSI_StatusFailed;
 }
 
 /* */
@@ -405,11 +409,10 @@ SSI_Status Volume::cancelVerify()
 }
 
 /* */
-SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
-    unsigned long long newSize, const Container<EndDevice> &disks)
+SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel, unsigned long long newSize, const Container<EndDevice> &disks)
 {
     SSI_RaidLevel volumeLevel = ui2raidlevel(m_RaidLevel);
-    RaidInfo *pRaidInfo = getRaidInfo();
+    shared_ptr<RaidInfo> pRaidInfo = getRaidInfo();
 
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
@@ -438,17 +441,15 @@ SSI_Status Volume::modify(SSI_StripSize stripSize, SSI_RaidLevel raidLevel,
     /* FDx8 support */
     if (raidLevel != SSI_Raid0) {
         foreach (iter, m_BlockDevices) {
-            EndDevice& endDevice = *(*iter);
-
-            if (endDevice.isFultondalex8()) {
-                return SSI_StatusInvalidRaidLevel;
+            if (shared_ptr<EndDevice> endDevice = (*iter).lock()) {
+                if (endDevice->isFultondalex8()) {
+                    return SSI_StatusInvalidRaidLevel;
+                }
             }
         }
 
         foreach (iter, disks) {
-            EndDevice& endDevice = *(*iter);
-
-            if (endDevice.isFultondalex8()) {
+            if ((*iter)->isFultondalex8()) {
                 return SSI_StatusInvalidRaidLevel;
             }
         }
@@ -493,12 +494,16 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     }
     pInfo->volumeHandle = getHandle();
     getId().get(pInfo->uniqueId, sizeof(pInfo->uniqueId));
-    pInfo->arrayHandle = m_pParent->getHandle();
+    if (Parent parent = m_pParent.lock()) {
+        pInfo->arrayHandle = parent->getHandle();
+    } else {
+        pInfo->arrayHandle = SSI_NULL_HANDLE;
+    }
     pInfo->arrayOrdinal = m_Ordinal;
     m_Name.get(pInfo->volumeName, sizeof(pInfo->volumeName));
     pInfo->raidLevel = ui2raidlevel(m_RaidLevel);
     pInfo->state = m_State;
-    pInfo->totalSize = blk.getTotalSize();
+    pInfo->totalSize = blk->getTotalSize();
     pInfo->stripSize = ui2stripsize(m_StripSize);
     pInfo->numDisks = m_BlockDevices.size();
     pInfo->migrating = (m_State == SSI_VolumeStateGeneralMigration);
@@ -510,10 +515,10 @@ SSI_Status Volume::getInfo(SSI_VolumeInfo *pInfo)
     }
     pInfo->systemVolume = m_SystemVolume ? SSI_TRUE : SSI_FALSE;
     pInfo->initialized = m_State != SSI_VolumeStateInitializing ? SSI_TRUE : SSI_FALSE;
-    pInfo->logicalSectorSize = blk.getLogicalSectorSize();
+    pInfo->logicalSectorSize = blk->getLogicalSectorSize();
     pInfo->verifyErrors = m_MismatchCount;
     pInfo->verifyBadBlocks = 0;
-    pInfo->physicalSectorSize = blk.getPhysicalSectorSize();
+    pInfo->physicalSectorSize = blk->getPhysicalSectorSize();
     pInfo->rwhPolicy = m_RwhPolicy;
 
     return SSI_StatusOk;
@@ -526,43 +531,49 @@ SSI_Status Volume::setCachePolicy(bool)
 }
 
 /* */
-void Volume::getEndDevices(Container<EndDevice> &container, bool __attribute__((unused)) all) const
+void Volume::getEndDevices(Container<EndDevice> &container, bool) const
 {
     container.clear();
     foreach (i, m_BlockDevices) {
-        container.add(*i);
+        if (shared_ptr<EndDevice> tmp = (*i).lock()) {
+            container.add(tmp);
+        }
     }
 }
 
 /* */
-void Volume::addToSession(Session *pSession)
+void Volume::addToSession(const shared_ptr<Session>& pSession)
 {
     RaidDevice::addToSession(pSession);
-    pSession->addVolume(this);
+    pSession->addVolume(shared_from_this());
     if (m_RaidLevel == 0) {
         foreach (i, m_BlockDevices) {
-            if ((*i)->getDiskState() != SSI_DiskStateNormal) {
-                m_State = SSI_VolumeStateNonRedundantVolumeFailedDisk;
+            if (shared_ptr<BlockDevice> tmp = (*i).lock()) {
+                if (tmp->getDiskState() != SSI_DiskStateNormal) {
+                    m_State = SSI_VolumeStateNonRedundantVolumeFailedDisk;
+                    break;
+                }
             }
         }
     }
 }
 
 /* */
-void Volume::attachEndDevice(EndDevice *pEndDevice)
+void Volume::attachEndDevice(const shared_ptr<EndDevice>& pEndDevice)
 {
-    BlockDevice *pBlockDevice = dynamic_cast<BlockDevice *>(pEndDevice);
-    if (pBlockDevice == NULL) {
+    shared_ptr<BlockDevice> pBlockDevice = dynamic_pointer_cast<BlockDevice>(pEndDevice);
+    if (!pBlockDevice) {
         throw E_INVALID_OBJECT;
     }
-    pBlockDevice->attachVolume(this);
+
+    pBlockDevice->attachVolume(shared_from_this());
     m_BlockDevices.add(pBlockDevice);
 }
 
 /* */
-void Volume::setSourceDisk(EndDevice *pEndDevice)
+void Volume::setSourceDisk(const shared_ptr<EndDevice>& pEndDevice)
 {
-    m_pSourceDisk = dynamic_cast<BlockDevice *>(pEndDevice);
+    m_pSourceDisk = dynamic_pointer_cast<BlockDevice>(pEndDevice);
 }
 
 /* */
@@ -705,11 +716,11 @@ String Volume::rwhPolicyToString(SSI_RwhPolicy policy) const
 /* Convert total Volume size to component size and set it */
 void Volume::setComponentSize(unsigned long long volumeSize, unsigned long long diskCount, SSI_RaidLevel level)
 {
-    RaidInfo *pRaidInfo = getRaidInfo();
+    shared_ptr<RaidInfo> pRaidInfo = getRaidInfo();
     /* get raidinfo for this volume*/
     SSI_RaidLevelInfo info;
     /* get raidlevel info for this volume */
-    if (pRaidInfo == NULL) {
+    if (!pRaidInfo) {
         throw E_INVALID_HANDLE;
     }
 
@@ -760,15 +771,13 @@ void Volume::setStripSize(SSI_StripSize stripSize)
 void Volume::__wait_for_volume()
 {
     int j = 0;
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (!pArray) {
-        return;
-    }
-    while (m_Uuid == "" && j < 10) {
-        pArray->update();
-        update();
-        usleep(3000000);
-        j++;
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
+        while (m_Uuid == "" && j < 10) {
+            pArray->update();
+            update();
+            usleep(3000000);
+            j++;
+        }
     }
 }
 
@@ -781,10 +790,10 @@ void Volume::create()
 
     if (m_RaidLevel != 0) {
         foreach (iter, m_BlockDevices) {
-            EndDevice& endDevice = *(*iter);
-
-            if (endDevice.isFultondalex8()) {
-                throw E_INVALID_RAID_LEVEL;
+            if (shared_ptr<EndDevice> endDevice = (*iter).lock()) {
+                if (endDevice->isFultondalex8()) {
+                    throw E_INVALID_RAID_LEVEL;
+                }
             }
         }
     }
@@ -792,7 +801,9 @@ void Volume::create()
     if (m_pSourceDisk == NULL) {
         String devices;
         foreach (i, m_BlockDevices) {
-            devices += " '/dev/" + (*i)->getDevName() + "'";
+            if (shared_ptr<BlockDevice> tmp = (*i).lock()) {
+                devices += " '/dev/" + tmp->getDevName() + "'";
+            }
         }
 
         String componentSize;
@@ -966,183 +977,56 @@ namespace {
 }
 
 /* */
-SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks)
+SSI_Status Volume::__toRaid0(SSI_StripSize stripSize, unsigned long long, const Container<EndDevice> &disks)
 {
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL) {
-        return SSI_StatusFailed;
-    }
-
-    bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
-    String ch = "";
-    try {
-        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize) / 1024) : "";
-    } catch (...) {
-        return SSI_StatusInvalidStripSize;
-    }
-
-    switch (m_RaidLevel) {
-        case 0: {
-            if (disks.size() == 0 && !chunkChange) {
-                return SSI_StatusOk;
-            } else if (disks.size() > 0 && chunkChange) {
-                return SSI_StatusNotSupported;
-            } else if (disks.size() > 0) {
-                SSI_Status status = pArray->canAddEndDevices(disks);
-                if (status == SSI_StatusOk) {
-                    return pArray->grow(disks);
-                } else if (status == SSI_StatusInvalidParameter) {
-                    setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
-                }
-                return status;
-            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
-                return SSI_StatusOk;
-            }
-            break;
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
+        bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
+        String ch = "";
+        try {
+            ch = chunkChange ? " -c " + String(stripsize2ui(stripSize) / 1024) : "";
+        } catch (...) {
+            return SSI_StatusInvalidStripSize;
         }
 
-        case 1: {
-            if (chunkChange) {
-                setLastErrorMessage("Strip size cannot be changed during migration from Raid 1 to Raid 0");
-                return SSI_StatusInvalidStripSize;
-            }
-
-            if (stripSize != SSI_StripSize64kB) {
-                setLastErrorMessage("Strip size cannot be passed in Raid 1 to Raid 0 migration");
-                return SSI_StatusInvalidStripSize;
-            }
-
-            SSI_Status status = pArray->canAddEndDevices(disks);
-            if (status == SSI_StatusOk && shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
-                if (disks.size() > 0) {
-                    return pArray->grow(disks);
-                }
-                return SSI_StatusOk;
-            }
-
-            if (status == SSI_StatusInvalidParameter) {
-                setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
-            }
-
-            return status;
-        }
-
-        case 10: {
-            if (disks.size() > 0 && chunkChange) {
-                return SSI_StatusNotSupported;
-            }
-
-            SSI_Status status = pArray->canAddEndDevices(disks);
-            if (status == SSI_StatusOk && shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+        switch (m_RaidLevel) {
+            case 0: {
                 if (disks.size() == 0 && !chunkChange) {
                     return SSI_StatusOk;
-                }
-
-                usleep(3000000);
-                if (disks.size() > 0) {
-                    return pArray->grow(disks);
+                } else if (disks.size() > 0 && chunkChange) {
+                    return SSI_StatusNotSupported;
+                } else if (disks.size() > 0) {
+                    SSI_Status status = pArray->canAddEndDevices(disks);
+                    if (status == SSI_StatusOk) {
+                        return pArray->grow(disks);
+                    } else if (status == SSI_StatusInvalidParameter) {
+                        setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+                    }
+                    return status;
                 } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
                     return SSI_StatusOk;
                 }
+                break;
             }
 
-            if (status == SSI_StatusInvalidParameter) {
-                setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
-            }
+            case 1: {
+                if (chunkChange) {
+                    setLastErrorMessage("Strip size cannot be changed during migration from Raid 1 to Raid 0");
+                    return SSI_StatusInvalidStripSize;
+                }
 
-            return status;
-        }
+                if (stripSize != SSI_StripSize64kB) {
+                    setLastErrorMessage("Strip size cannot be passed in Raid 1 to Raid 0 migration");
+                    return SSI_StatusInvalidStripSize;
+                }
 
-        case 5: {
-            if (disks.size() > 0) {
-                return SSI_StatusNotSupported;
-            } else if (chunkChange) {
-                return SSI_StatusInvalidStripSize;
-            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
-                return SSI_StatusOk;
-            }
-            break;
-        }
+                SSI_Status status = pArray->canAddEndDevices(disks);
+                if (status == SSI_StatusOk && shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+                    if (disks.size() > 0) {
+                        return pArray->grow(disks);
+                    }
+                    return SSI_StatusOk;
+                }
 
-        default:
-            return SSI_StatusNotSupported;
-    }
-
-    return SSI_StatusFailed;
-}
-
-/* */
-SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks)
-{
-    SSI_Status status;
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL) {
-        return SSI_StatusFailed;
-    }
-
-    if (m_RaidLevel != 0 || m_BlockDevices.size() != 2) {
-        return SSI_StatusNotSupported;
-    } else if (disks.size() != 2) {
-        setLastErrorMessage("Cannot migrate to RAID10. Migration to RAID10 is supported only with 2 disks");
-
-        return SSI_StatusInvalidParameter;
-    } else if (stripSize && stripSize != ui2stripsize(m_StripSize)) {
-        return SSI_StatusInvalidStripSize;
-    }
-
-    status = pArray->canAddEndDevices(disks);
-
-    if (status != SSI_StatusOk) {
-        if (status == SSI_StatusInvalidParameter) {
-            setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
-        }
-
-        return status;
-    }
-
-    Container<EndDevice> addedToSpare = Array::getSpareableEndDevices(disks);
-
-    status = pArray->addSpare(disks);
-    if (status != SSI_StatusOk) {
-        return status;
-    }
-
-    if (shellEx("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0) {
-        return SSI_StatusOk;
-    }
-
-    pArray->removeSpare(addedToSpare, true);
-    return SSI_StatusFailed;
-}
-
-/* */
-SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize, const Container<EndDevice> &disks)
-{
-    Container<EndDevice> addedToSpare;
-    SSI_Status status = SSI_StatusOk;
-    Array *pArray = dynamic_cast<Array *>(m_pParent);
-    if (pArray == NULL) {
-        return SSI_StatusFailed;
-    }
-
-    bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
-    String ch = "";
-    try {
-        ch = chunkChange ? " -c " + String(stripsize2ui(stripSize) / 1024) : "";
-    } catch (...) {
-        return SSI_StatusInvalidStripSize;
-    }
-
-    switch (m_RaidLevel) {
-        case 0: {
-            if (disks.size() != 1) {
-                setLastErrorMessage("Cannot migrate to RAID5. Migration to RAID5 is supported only with 1 disk");
-
-                return SSI_StatusInvalidParameter;
-            }
-
-            status = pArray->canAddEndDevices(disks);
-            if (status != SSI_StatusOk) {
                 if (status == SSI_StatusInvalidParameter) {
                     setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
                 }
@@ -1150,37 +1034,115 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
                 return status;
             }
 
-            addedToSpare = Array::getSpareableEndDevices(disks);
-            status = pArray->addSpare(disks);
-            if (status != SSI_StatusOk) {
+            case 10: {
+                if (disks.size() > 0 && chunkChange) {
+                    return SSI_StatusNotSupported;
+                }
+
+                SSI_Status status = pArray->canAddEndDevices(disks);
+                if (status == SSI_StatusOk && shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+                    if (disks.size() == 0 && !chunkChange) {
+                        return SSI_StatusOk;
+                    }
+
+                    usleep(3000000);
+                    if (disks.size() > 0) {
+                        return pArray->grow(disks);
+                    } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0" + ch) == 0) {
+                        return SSI_StatusOk;
+                    }
+                }
+
+                if (status == SSI_StatusInvalidParameter) {
+                    setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+                }
+
                 return status;
-            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch, 3, 2) == 0) {
-                return SSI_StatusOk;
             }
 
-            pArray->removeSpare(addedToSpare, true);
-            break;
-        }
-
-        case 10: {
-            if (disks.size() > 0) {
-                setLastErrorMessage("Cannot migrate from RAID10 to RAID5 with additional disks");
-
-                return SSI_StatusInvalidParameter;
-            }
-
-            if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
-                if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
+            case 5: {
+                if (disks.size() > 0) {
+                    return SSI_StatusNotSupported;
+                } else if (chunkChange) {
+                    return SSI_StatusInvalidStripSize;
+                } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
                     return SSI_StatusOk;
                 }
+                break;
             }
-            break;
+
+            default:
+                return SSI_StatusNotSupported;
+        }
+    }
+
+    return SSI_StatusFailed;
+}
+
+/* */
+SSI_Status Volume::__toRaid10(SSI_StripSize stripSize, unsigned long long, const Container<EndDevice> &disks)
+{
+    SSI_Status status;
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
+        if (m_RaidLevel != 0 || m_BlockDevices.size() != 2) {
+            return SSI_StatusNotSupported;
+        } else if (disks.size() != 2) {
+            setLastErrorMessage("Cannot migrate to RAID10. Migration to RAID10 is supported only with 2 disks");
+
+            return SSI_StatusInvalidParameter;
+        } else if (stripSize && stripSize != ui2stripsize(m_StripSize)) {
+            return SSI_StatusInvalidStripSize;
         }
 
-        case 5: {
-            if (disks.size() > 0 && chunkChange) {
-                return SSI_StatusNotSupported;
-            } else if (disks.size() > 0) {
+        status = pArray->canAddEndDevices(disks);
+
+        if (status != SSI_StatusOk) {
+            if (status == SSI_StatusInvalidParameter) {
+                setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+            }
+
+            return status;
+        }
+
+        Container<EndDevice> addedToSpare = Array::getSpareableEndDevices(disks);
+
+        status = pArray->addSpare(disks);
+        if (status != SSI_StatusOk) {
+            return status;
+        }
+
+        if (shellEx("mdadm '/dev/" + m_DevName + "' --grow  -l10") == 0) {
+            return SSI_StatusOk;
+        }
+
+        pArray->removeSpare(addedToSpare, true);
+    }
+
+    return SSI_StatusFailed;
+}
+
+/* */
+SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long, const Container<EndDevice> &disks)
+{
+    Container<EndDevice> addedToSpare;
+    SSI_Status status = SSI_StatusOk;
+    if (shared_ptr<Array> pArray = dynamic_pointer_cast<Array>(m_pParent.lock())) {
+        bool chunkChange = stripSize && stripSize != ui2stripsize(m_StripSize);
+        String ch = "";
+        try {
+            ch = chunkChange ? " -c " + String(stripsize2ui(stripSize) / 1024) : "";
+        } catch (...) {
+            return SSI_StatusInvalidStripSize;
+        }
+
+        switch (m_RaidLevel) {
+            case 0: {
+                if (disks.size() != 1) {
+                    setLastErrorMessage("Cannot migrate to RAID5. Migration to RAID5 is supported only with 1 disk");
+
+                    return SSI_StatusInvalidParameter;
+                }
+
                 status = pArray->canAddEndDevices(disks);
                 if (status != SSI_StatusOk) {
                     if (status == SSI_StatusInvalidParameter) {
@@ -1190,17 +1152,58 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long newSize
                     return status;
                 }
 
-                /* MDADM issue
-                   Not all scenarios are correctly handled by mdadm. For now, it yields undefined behavior */
-                return pArray->grow(disks);
-            } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
-                return SSI_StatusOk;
-            }
-            break;
-        }
+                addedToSpare = Array::getSpareableEndDevices(disks);
+                status = pArray->addSpare(disks);
+                if (status != SSI_StatusOk) {
+                    return status;
+                } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch, 3, 2) == 0) {
+                    return SSI_StatusOk;
+                }
 
-        default:
-            return SSI_StatusNotSupported;
+                pArray->removeSpare(addedToSpare, true);
+                break;
+            }
+
+            case 10: {
+                if (disks.size() > 0) {
+                    setLastErrorMessage("Cannot migrate from RAID10 to RAID5 with additional disks");
+
+                    return SSI_StatusInvalidParameter;
+                }
+
+                if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l0") == 0) {
+                    if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch) == 0) {
+                        return SSI_StatusOk;
+                    }
+                }
+                break;
+            }
+
+            case 5: {
+                if (disks.size() > 0 && chunkChange) {
+                    return SSI_StatusNotSupported;
+                } else if (disks.size() > 0) {
+                    status = pArray->canAddEndDevices(disks);
+                    if (status != SSI_StatusOk) {
+                        if (status == SSI_StatusInvalidParameter) {
+                            setLastErrorMessage("Cannot have both SATA and NVMe disks in one volume");
+                        }
+
+                        return status;
+                    }
+
+                    /* MDADM issue
+                       Not all scenarios are correctly handled by mdadm. For now, it yields undefined behavior */
+                    return pArray->grow(disks);
+                } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5" + ch) == 0) {
+                    return SSI_StatusOk;
+                }
+                break;
+            }
+
+            default:
+                return SSI_StatusNotSupported;
+        }
     }
 
     return SSI_StatusFailed;

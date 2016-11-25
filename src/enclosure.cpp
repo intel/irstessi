@@ -18,12 +18,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/enclosure.h>
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<Enclosure> &container)
+using boost::shared_ptr;
+
+static void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType scopeType, Container<Enclosure> &container)
 {
     pScopeObject->getEnclosures(container, scopeType == SSI_ScopeTypeControllerAll);
 }
 
-static Enclosure * getItem(Session *pSession, SSI_Handle handle)
+static shared_ptr<Enclosure> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
 {
     return pSession->getEnclosure(handle);
 }

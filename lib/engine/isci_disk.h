@@ -24,7 +24,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 class ISCI_Disk : public BlockDevice {
 public:
       ISCI_Disk(const String &path);
-      SSI_DiskType getDiskType() const;
+      virtual SSI_DiskType getDiskType() const;
+      virtual void discover();
 };
 
 #endif /* __ISCI_DISK_H__INCLUDED__ */

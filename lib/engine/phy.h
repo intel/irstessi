@@ -15,37 +15,37 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __PHY_H__INCLUDED__
 
 #include "storage_object.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class Phy : public StorageObject {
+class Phy : public StorageObject, public boost::enable_shared_from_this<Phy> {
 public:
-    Phy(const String &path, unsigned int number, StorageObject *pParent = NULL);
-    virtual ~Phy();
+    Phy(const String &path, unsigned int number, const Parent& pParent = Parent());
 
     // Object
 
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
     virtual String getId() const;
 
     // ScopeObject
 
 public:
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypePhy;
     }
 
     // StorageObject
 
 public:
-    void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
 
-    void attachPhy(Phy *pPhy);
-    void attachPort(Port *pPort);
+    virtual void attachPhy(const boost::shared_ptr<Phy>& pPhy);
+    virtual void attachPort(const boost::shared_ptr<Port>& pPort);
 
     // Phy
 
@@ -69,8 +69,8 @@ public:
     virtual void setSpeeds(SSI_PhyInfo *pInfo) const;
 
 protected:
-    Phy *m_pRemotePhy;
-    Port *m_pPort;
+    boost::weak_ptr<Phy> m_pRemotePhy;
+    boost::weak_ptr<Port> m_pPort;
     unsigned int m_Number;
     SSI_PhyProtocol m_Protocol;
     SSI_PhySpeed m_minHWLinkSpeed;

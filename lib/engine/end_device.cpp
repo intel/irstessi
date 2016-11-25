@@ -47,6 +47,7 @@ extern "C" {
 
 using std::vector;
 using std::ifstream;
+using boost::shared_ptr;
 
 /* */
 #define HD_SERIALNO_LENGTH              20
@@ -100,9 +101,9 @@ EndDevice::EndDevice(const String &path)
     : StorageDevice(path),
       m_VendorId(""),
       m_SerialNum(""),
-      m_pPhy(NULL),
-      m_pPort(NULL),
-      m_pEnclosure(NULL),
+      m_pPhy(),
+      m_pPort(),
+      m_pEnclosure(),
       m_Model(""),
       m_Firmware(""),
       m_TotalSize(0),
@@ -119,9 +120,15 @@ EndDevice::EndDevice(const String &path)
       m_vmdDomain(0),
       m_isIntelNvme(false)
 {
-    m_pPhy = new Phy(path, 0, this);
-    m_pPort = new RemotePort(path);
-    m_pPort->setParent(this);
+
+}
+
+/* */
+void EndDevice::discover()
+{
+    m_pPhy = shared_ptr<Phy>(new Phy(m_Path, 0, shared_from_this()));
+    m_pPort = shared_ptr<Port>(new RemotePort(m_Path));
+    m_pPort->setParent(shared_from_this());
     m_pPort->attachPhy(m_pPhy);
 
     String scsiAddress = m_Path.reverse_after("/");
@@ -290,20 +297,6 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     return status;
 }
 
-/* */
-EndDevice::~EndDevice()
-{
-    if (m_pPhy) {
-        delete m_pPhy;
-    }
-    if (m_pPort) {
-        delete m_pPort;
-    }
-    if (m_pEnclosure) {
-        delete m_pEnclosure;
-    }
-}
-
 String EndDevice::getId() const
 {
     return "ed:" + getPartId();
@@ -325,30 +318,30 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     getAddress(pInfo->endDeviceAddress);
     pInfo->deviceType = getDeviceType();
 
-    Controller *pController = getController();
-    if (pController != NULL) {
+    shared_ptr<Controller> pController = getController();
+    if (pController) {
         pInfo->controllerHandle = pController->getHandle();
     } else {
         pInfo->controllerHandle = SSI_NULL_HANDLE;
     }
 
-    RaidInfo *pRaidInfo = getRaidInfo();
-    if (pRaidInfo != NULL) {
+    shared_ptr<RaidInfo> pRaidInfo = getRaidInfo();
+    if (pRaidInfo) {
         pInfo->raidInfoHandle = pRaidInfo->getHandle();
     } else {
         pInfo->raidInfoHandle = SSI_NULL_HANDLE;
     }
 
     pInfo->storagePool = getStoragePoolId();
-    Array *pArray = getArray();
-    if (pArray != NULL) {
+    shared_ptr<Array> pArray = getArray();
+    if (pArray) {
         pInfo->arrayHandle = pArray->getHandle();
     } else {
         pInfo->arrayHandle = SSI_NULL_HANDLE;
     }
 
-    Enclosure *pEnclosure = getEnclosure();
-    if (pEnclosure != NULL) {
+    shared_ptr<Enclosure> pEnclosure = getEnclosure();
+    if (pEnclosure) {
         pInfo->enclosureHandle = pEnclosure->getHandle();
         pEnclosure->getSlotAddress(pInfo->slotAddress, getSlotNumber());
     } else {
@@ -404,7 +397,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 /* */
 SSI_Status EndDevice::locate(bool mode) const
 {
-    String tmp = mode?"locate":"normal";
+    String tmp = mode ? "locate" : "normal";
     if (shell_command("ledctl " + tmp + "='/dev/" + m_DevName + "'") == 0) {
         return SSI_StatusOk;
     } else {
@@ -413,14 +406,14 @@ SSI_Status EndDevice::locate(bool mode) const
 }
 
 /* */
-RaidInfo * EndDevice::getRaidInfo() const
+shared_ptr<RaidInfo> EndDevice::getRaidInfo() const
 {
-    return m_pPort ? m_pPort->getRaidInfo() : NULL;
+    return m_pPort ? m_pPort->getRaidInfo() : shared_ptr<RaidInfo>();
 }
 
 unsigned int EndDevice::getSlotNumber() const
 {
-    if (m_pEnclosure == NULL) {
+    if (!m_pEnclosure) {
         return -1U;
     }
 
@@ -459,9 +452,9 @@ SSI_Status EndDevice::passthroughCmd(void *, void *, unsigned int, SSI_DataDirec
 }
 
 /* */
-void EndDevice::addToSession(Session *pSession)
+void EndDevice::addToSession(const shared_ptr<Session>& pSession)
 {
-    pSession->addEndDevice(this);
+    pSession->addEndDevice(shared_from_this());
     pSession->addPhy(m_pPhy);
     pSession->addPort(m_pPort);
 }
@@ -474,18 +467,19 @@ bool EndDevice::operator ==(const Object &object) const
 }
 
 /* */
-void EndDevice::attachPhy(Phy *pPhy)
+void EndDevice::attachPhy(const shared_ptr<Phy>& pPhy)
 {
     m_pPhy = pPhy;
 }
 
 /* */
-void EndDevice::attachPort(Port *pPort)
+void EndDevice::attachPort(const shared_ptr<Port>& pPort)
 {
     m_pPort = pPort;
 }
 
-void EndDevice::determineBlocksFree(Array *pArray)
+/* */
+void EndDevice::determineBlocksFree(const shared_ptr<Array>& pArray)
 {
     uint64_t raidSectorSize = DEFAULT_SECTOR_SIZE;
     unsigned long long int totalBlocks = -1ULL;
@@ -498,6 +492,9 @@ void EndDevice::determineBlocksFree(Array *pArray)
 
     if (!volumes.empty()) {
         raidSectorSize = volumes.front()->getLogicalSectorSize();
+        if (raidSectorSize == 0) {
+            raidSectorSize = DEFAULT_SECTOR_SIZE;
+        }
     }
     foreach (volume, volumes) {
         Container<EndDevice> endDevices;

@@ -26,43 +26,41 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 class AHCI_Multiplier : public RoutingDevice {
 public:
     AHCI_Multiplier(const String &path, Directory &dir);
-    ~AHCI_Multiplier() {
-        if (m_pPhy) {
-            delete m_pPhy;
-        }
-    }
 
     // ScopeObject
 
 public:
-    void getPhys(Container<Phy> &container) const;
+    virtual void getPhys(Container<Phy> &container) const;
 
     // StorageObject
 
 public:
-    void getAddress(SSI_Address &address) const;
+    virtual void getAddress(SSI_Address &address) const;
+
+    virtual void discover();
 
     // RoutingDevice
 
 public:
-    unsigned int getNumberOfPhys() const {
+    virtual unsigned int getNumberOfPhys() const {
         return RoutingDevice::getNumberOfPhys() + 1;
     }
-    SSI_RoutingDeviceType getRoutingDeviceType() const {
+    virtual SSI_RoutingDeviceType getRoutingDeviceType() const {
         return SSI_RoutingDeviceTypeMultiplier;
     }
 
-    void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
 
     // AHCI_Multiplier
 
 public:
-    Phy * getPhy() const {
+    boost::shared_ptr<Phy> getPhy() const {
         return m_pPhy;
     }
 
 protected:
-    Phy *m_pPhy;
+    boost::shared_ptr<Phy> m_pPhy;
+    Directory m_dir;
 
 private:
     AHCI_Multiplier(const AHCI_Multiplier &multiplier);

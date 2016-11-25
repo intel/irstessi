@@ -25,17 +25,17 @@ class AHCI;
 /* */
 class AHCI_RaidInfo : public RaidInfo {
 public:
-    AHCI_RaidInfo(AHCI *pAHCI, struct orom_info *pInfo, unsigned int orom_dev_id);
+    AHCI_RaidInfo(const boost::shared_ptr<AHCI>& pAHCI, struct orom_info *pInfo, unsigned int orom_dev_id);
 
     // Object
 
 public:
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
 
     // RaidInfo
 
 public:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeAHCI;
     }
 };

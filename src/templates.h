@@ -20,20 +20,22 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #pragma once
 #endif
 
-SSI_Status getSession(SSI_Handle session, Session **pSession);
+SSI_Status getTempSession(boost::shared_ptr<Session>& pSession);
+
+SSI_Status getSession(SSI_Handle session, boost::shared_ptr<Session>& pSession);
 
 template <class T>
 SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
     SSI_Handle scopeHandle, SSI_Handle *handleList, SSI_Uint32 *handleCount,
-    void (*getItems)(ScopeObject *, SSI_ScopeType, Container<T> &))
+    void (*getItems)(const boost::shared_ptr<ScopeObject> &, SSI_ScopeType, Container<T> &))
 {
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession)) {
+    boost::shared_ptr<Session> pSession;
+    if (SSI_Status status = getSession(session, pSession)) {
         return status;
     }
 
-    ScopeObject *pScopeObject = pSession->getObject(scopeHandle);
-    if (pScopeObject == NULL) {
+    boost::shared_ptr<ScopeObject> pScopeObject = pSession->getObject(scopeHandle);
+    if (!pScopeObject) {
         return SSI_StatusInvalidScope;
     }
 
@@ -54,15 +56,15 @@ SSI_Status SsiGetHandles(SSI_Handle session, SSI_ScopeType scopeType,
 template <class T>
 SSI_Status SsiGetHandles(SSI_ScopeType scopeType, SSI_Handle scopeHandle,
     SSI_Handle *handleList, SSI_Uint32 *handleCount,
-    void (*getItems)(ScopeObject *, SSI_ScopeType, Container<T> &))
+    void (*getItems)(const boost::shared_ptr<ScopeObject> &, SSI_ScopeType, Container<T> &))
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    boost::shared_ptr<Session> session;
+    if (SSI_Status status = getTempSession(session)) {
+        return status;
     }
 
-    ScopeObject *pScopeObject = session->getObject(scopeHandle);
-    if (pScopeObject == NULL) {
+    boost::shared_ptr<ScopeObject> pScopeObject = session->getObject(scopeHandle);
+    if (!pScopeObject) {
         return SSI_StatusInvalidScope;
     }
 
@@ -81,45 +83,17 @@ SSI_Status SsiGetHandles(SSI_ScopeType scopeType, SSI_Handle scopeHandle,
 }
 
 template <class T, class T2>
-SSI_Status SsiGetItem(SSI_Handle session, SSI_Handle itemHandle, T **pItem,
-    T2 * (*getItem)(Session *, SSI_Handle))
-{
-    Session *pSession = NULL;
-    if (SSI_Status status = getSession(session, &pSession)) {
-        return status;
-    }
-
-    *pItem = getItem(pSession, itemHandle);
-    if (*pItem == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-
-    return SSI_StatusOk;
-}
-
-template <class T, class T2>
-SSI_Status SsiGetItem(SSI_Handle itemHandle, T **pItem, T2 * (*getItem)(Session *, SSI_Handle))
-{
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
-    }
-
-    *pItem = getItem(session.get(), itemHandle);
-    if (*pItem == NULL) {
-        return SSI_StatusInvalidHandle;
-    }
-
-    return SSI_StatusOk;
-}
-
-template <class T, class T2>
 SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle itemHandle, T *info,
-    T2 * (*getItem)(Session *, SSI_Handle))
+    boost::shared_ptr<T2> (*getItem)(const boost::shared_ptr<Session> &, SSI_Handle))
 {
-    T2 *pItem = NULL;
-    if (SSI_Status status = SsiGetItem(session, itemHandle, &pItem, getItem)) {
+    boost::shared_ptr<Session> pSession;
+    if (SSI_Status status = getSession(session, pSession)) {
         return status;
+    }
+
+    boost::shared_ptr<T2> pItem = getItem(pSession, itemHandle);
+    if (!pItem) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pItem->getInfo(info);
@@ -127,11 +101,16 @@ SSI_Status SsiGetInfo(SSI_Handle session, SSI_Handle itemHandle, T *info,
 
 template <class T, class T2>
 SSI_Status SsiGetInfo(SSI_Handle itemHandle, T *info,
-    T2 * (*getItem)(Session *, SSI_Handle))
+    boost::shared_ptr<T2>  (*getItem)(const boost::shared_ptr<Session> &, SSI_Handle))
 {
-    T2 *pItem = NULL;
-    if (SSI_Status status = SsiGetItem(itemHandle, &pItem, getItem)) {
+    boost::shared_ptr<Session> session;
+    if (SSI_Status status = getTempSession(session)) {
         return status;
+    }
+
+    boost::shared_ptr<T2> pItem = getItem(session, itemHandle);
+    if (!pItem) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pItem->getInfo(info);

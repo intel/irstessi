@@ -15,13 +15,11 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __SESSION_H__INCLUDED__
 
 #include "scope_object.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
-
-// Forward declarations
-class SessionManager;
 
 // Forward declarations
 class StorageDevice;
@@ -37,7 +35,7 @@ class RaidInfo;
 class StorageObject;
 
 /* */
-class Session : public ScopeObject {
+class Session : public ScopeObject, public boost::enable_shared_from_this<Session> {
 public:
     Session();
     virtual ~Session();
@@ -55,6 +53,8 @@ protected:
     Container<StorageObject> m_Objects;
 
 public:
+    void initialize();
+
     void getEndDevices(Container<EndDevice> &container, bool) const {
         container = m_EndDevices;
     }
@@ -91,50 +91,30 @@ private:
     void __internal_attach_imsm_device(const String &path);
 
 public:
-    ScopeObject * getObject(SSI_Handle handle);
-    StorageDevice * getDevice(SSI_Handle handle) const;
-    EndDevice * getEndDevice(SSI_Handle handle) const;
-    Array * getArray(SSI_Handle handle) const;
-    RoutingDevice * getRoutingDevice(SSI_Handle handle) const;
-    Enclosure * getEnclosure(SSI_Handle handle) const;
-    Phy * getPhy(SSI_Handle handle) const;
-    Volume * getVolume(SSI_Handle handle) const;
-    Port * getPort(SSI_Handle handle) const;
-    Controller * getController(SSI_Handle handle) const;
-    RaidInfo * getRaidInfo(SSI_Handle handle) const;
+    boost::shared_ptr<ScopeObject> getObject(SSI_Handle handle);
+    boost::shared_ptr<StorageDevice> getDevice(SSI_Handle handle) const;
+    boost::shared_ptr<EndDevice> getEndDevice(SSI_Handle handle) const;
+    boost::shared_ptr<Array> getArray(SSI_Handle handle) const;
+    boost::shared_ptr<RoutingDevice> getRoutingDevice(SSI_Handle handle) const;
+    boost::shared_ptr<Enclosure> getEnclosure(SSI_Handle handle) const;
+    boost::shared_ptr<Phy> getPhy(SSI_Handle handle) const;
+    boost::shared_ptr<Volume> getVolume(SSI_Handle handle) const;
+    boost::shared_ptr<Port> getPort(SSI_Handle handle) const;
+    boost::shared_ptr<Controller> getController(SSI_Handle handle) const;
+    boost::shared_ptr<RaidInfo> getRaidInfo(SSI_Handle handle) const;
 
 public:
     bool operator ==(const Object &object) const;
 
-    void addEndDevice(EndDevice *pEndDevice);
-    void addArray(Array *pArray);
-    void addRoutingDevice(RoutingDevice *pRoutingDevice);
-    void addEnclosure(Enclosure *pEnclosure);
-    void addPhy(Phy *pPhy);
-    void addVolume(Volume *pVolume);
-    void addPort(Port *pPort);
-    void addController(Controller *pController);
-    void addRaidInfo(RaidInfo *pRaidInfo);
-};
-
-class TemporarySession
-{
-public:
-    TemporarySession();
-    ~TemporarySession();
-
-    bool isValid() const { return m_session != NULL; }
-    Session* get() { return m_session; }
-    const Session* get() const { return m_session; }
-
-    Session* operator->() { return get(); }
-    const Session* operator->() const { return get(); }
-
-private:
-    TemporarySession(const TemporarySession&) {}
-    void operator=(const TemporarySession&) {}
-
-    Session* m_session;
+    void addEndDevice(const boost::shared_ptr<EndDevice>& pEndDevice);
+    void addArray(const boost::shared_ptr<Array>& pArray);
+    void addRoutingDevice(const boost::shared_ptr<RoutingDevice>& pRoutingDevice);
+    void addEnclosure(const boost::shared_ptr<Enclosure>& pEnclosure);
+    void addPhy(const boost::shared_ptr<Phy>& pPhy);
+    void addVolume(const boost::shared_ptr<Volume>& pVolume);
+    void addPort(const boost::shared_ptr<Port>& pPort);
+    void addController(const boost::shared_ptr<Controller>& pController);
+    void addRaidInfo(const boost::shared_ptr<RaidInfo>& pRaidInfo);
 };
 
 #endif /* __SESSION_H__INCLUDED__ */

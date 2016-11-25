@@ -18,12 +18,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/routing_device.h>
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<RoutingDevice> &container)
+using boost::shared_ptr;
+
+static void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType scopeType, Container<RoutingDevice> &container)
 {
     pScopeObject->getRoutingDevices(container, scopeType == SSI_ScopeTypeControllerAll);
 }
 
-static RoutingDevice * getItem(Session *pSession, SSI_Handle handle)
+static shared_ptr<RoutingDevice> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
 {
     return pSession->getRoutingDevice(handle);
 }

@@ -15,6 +15,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define __ENCLOSURE_H__INCLUDED__
 
 #include "storage_object.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
@@ -26,29 +27,28 @@ typedef struct __Slot {
 } Slot;
 
 /* */
-class Enclosure : public StorageObject {
+class Enclosure : public StorageObject, public boost::enable_shared_from_this<Enclosure> {
 public:
     Enclosure(const String &path);
-    ~Enclosure();
 
 public:
-    void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
     SSI_Status getInfo(SSI_EnclosureInfo *pInfo) const;
-    void getEndDevices(Container<EndDevice> &, bool all) const;
-    void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
+    virtual void getEndDevices(Container<EndDevice> &, bool all) const;
+    virtual void getRoutingDevices(Container<RoutingDevice> &, bool all) const;
     String getLogicalId() const;
-    bool operator ==(const Object &object) const;
+    virtual bool operator ==(const Object &object) const;
     virtual String getId() const;
-    void attachEndDevice(EndDevice *);
-    void attachEndDevices(Container<EndDevice> &EndDevices);
-    void attachRoutingDevice(RoutingDevice *);
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>& endDevice);
+    virtual void attachEndDevices(Container<EndDevice> &EndDevices);
+    virtual void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>& routingDevice);
     unsigned int getSlotNumber(unsigned long long sasAddress) const;
     void getSlotAddress(SSI_Address &address, unsigned int number);
 
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeEnclosure;
     }
-    bool attachedTo(StorageObject *pObject) const;
+    bool attachedTo(const boost::shared_ptr<StorageObject>& pObject) const;
 
 protected:
     Container<EndDevice> m_EndDevices;

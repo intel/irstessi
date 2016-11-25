@@ -18,14 +18,17 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/end_device.h>
 #include <engine/array.h>
+#include <engine/controller.h>
+
+using boost::shared_ptr;
 
 namespace {
-    void getItems(ScopeObject *pScopeObject, SSI_ScopeType scopeType, Container<EndDevice> &container)
+    void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType scopeType, Container<EndDevice> &container)
     {
         pScopeObject->getEndDevices(container, scopeType == SSI_ScopeTypeControllerAll);
     }
 
-    EndDevice * getItem(Session *pSession, SSI_Handle handle)
+    shared_ptr<EndDevice> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
     {
         return pSession->getEndDevice(handle);
     }
@@ -48,9 +51,14 @@ SSI_Status SsiGetEndDeviceInfo(SSI_Handle session, SSI_Handle endDeviceHandle,
 /* */
 SSI_Status SsiDiskClearMetadata(SSI_Handle diskHandle)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pEndDevice->clearMetadata();
@@ -59,13 +67,13 @@ SSI_Status SsiDiskClearMetadata(SSI_Handle diskHandle)
 /* */
 SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 {
-    TemporarySession session;
-    if (!session.isValid()) {
-        return SSI_StatusNotInitialized;
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
     }
 
-    EndDevice *pEndDevice = getItem(session.get(), diskHandle);
-    if (pEndDevice == NULL) {
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -73,12 +81,20 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
         return SSI_StatusNotSupported;
     }
 
+    if (shared_ptr<Controller> pController = pEndDevice->getController()) {
+        if (pEndDevice->getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
+            return SSI_StatusNotSupported;
+        }
+    } else {
+        return SSI_StatusInvalidState;
+    }
+
     if (arrayHandle == SSI_NULL_HANDLE) {
         return pEndDevice->makeSpare();
     }
 
-    Array *pArray = session->getArray(arrayHandle);
-    if (pArray == NULL) {
+    shared_ptr<Array> pArray = pSession->getArray(arrayHandle);
+    if (!pArray) {
         return SSI_StatusInvalidHandle;
     }
 
@@ -92,17 +108,30 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
 /* */
 SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
     }
 
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
+    }
+
     if (pEndDevice->isFultondalex8()) {
+        return SSI_StatusNotSupported;
+    }
+
+    if (shared_ptr<Controller> pController = pEndDevice->getController()) {
+        if (pEndDevice->getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
+            return SSI_StatusNotSupported;
+        }
+    } else {
         return SSI_StatusInvalidState;
     }
 
-    Array *pArray = pEndDevice->getArray();
-    if (pArray == NULL) {
+    shared_ptr<Array> pArray = pEndDevice->getArray();
+    if (!pArray) {
         return SSI_StatusInvalidState;
     }
 
@@ -112,9 +141,14 @@ SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
 /* */
 SSI_Status SsiDiskMarkAsNormal(SSI_Handle diskHandle)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pEndDevice->markAsNormal();
@@ -123,9 +157,14 @@ SSI_Status SsiDiskMarkAsNormal(SSI_Handle diskHandle)
 /* */
 SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlockInfo)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pEndDevice->unlock(unlockInfo);
@@ -134,9 +173,14 @@ SSI_Status SsiDiskUnlock(SSI_Handle diskHandle, SSI_DiskUnlockInfo *unlockInfo)
 /* */
 SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 poolId)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pEndDevice->assignPoolId(poolId);
@@ -145,21 +189,31 @@ SSI_Status SsiDiskAssignStoragePool(SSI_Handle diskHandle, SSI_Uint8 poolId)
 /* */
 SSI_Status SsiDiskResetSmartEvent(SSI_Handle diskHandle)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(diskHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, diskHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pEndDevice->resetSmartEvent();
 }
 
 /* */
-SSI_Status SsiPassthroughCommand(SSI_Handle deviceHandle, void *cmdInfoUnit,
-    void *dataBuffer, SSI_Uint32 dataBufferLen, SSI_DataDirection dataDirection)
+SSI_Status SsiPassthroughCommand(SSI_Handle deviceHandle, void *cmdInfoUnit, void *dataBuffer, SSI_Uint32 dataBufferLen,
+                                 SSI_DataDirection dataDirection)
 {
-    EndDevice *pEndDevice = NULL;
-    if (SSI_Status status = SsiGetItem(deviceHandle, &pEndDevice, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<EndDevice> pEndDevice = getItem(pSession, deviceHandle);
+    if (!pEndDevice) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pEndDevice->passthroughCmd(cmdInfoUnit, dataBuffer, dataBufferLen, dataDirection);

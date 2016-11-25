@@ -29,7 +29,7 @@ public:
 
     // Object
 public:
-    bool operator ==(const Object &object) const {
+    virtual bool operator ==(const Object &object) const {
         return typeid(*this) == typeid(object) &&
                static_cast<const RoutingDevice *>(&object)->getRoutingDeviceType() == getRoutingDeviceType() &&
                static_cast<const ISCI_Expander *>(&object)->getSasAddress() == m_SASAddress;
@@ -38,14 +38,14 @@ public:
     // StorageObject
 
 public:
-    void discover();
-    Port * getPortByPath(const String &) const;
-    void getAddress(SSI_Address &) const;
+    virtual void discover();
+    virtual boost::shared_ptr<Port> getPortByPath(const String &) const;
+    virtual void getAddress(SSI_Address &) const;
 
     // RoutingDevice
 
 public:
-    SSI_RoutingDeviceType getRoutingDeviceType() const {
+    virtual SSI_RoutingDeviceType getRoutingDeviceType() const {
         return SSI_RoutingDeviceTypeExpander;
     }
 

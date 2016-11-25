@@ -28,18 +28,18 @@ public:
     // StorageObject
 
 public:
-    void discover();
-    void getAddress(SSI_Address &address) const;
-    void setAddress(SSI_Address &);
-    Port * getPortByPath(const String &) const;
+    virtual void discover();
+    virtual void getAddress(SSI_Address &address) const;
+    virtual void setAddress(SSI_Address &);
+    virtual boost::shared_ptr<Port> getPortByPath(const String &path) const;
 
     // Controller
 
 protected:
-    SSI_ControllerType getControllerType() const {
+    virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeSCU;
     }
-    RaidInfo *findRaidInfo(Container <RaidInfo> &RaidInfos);
+    virtual boost::shared_ptr<RaidInfo> findRaidInfo(Container <RaidInfo> &RaidInfos);
 
     // ISCI
     SSI_Address m_Address;

@@ -23,13 +23,13 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class NVME_Phy : public Phy {
 public:
-    NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, StorageObject *pParent = NULL);
-    void discover();
+    NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, const Parent& pParent = Parent());
+    virtual void discover();
 
 private:
     String m_PhyPath;
     unsigned int m_VmdDomain;
-    EndDevice * __internal_attach_end_device(String path, unsigned int vmdDomain);
+    boost::shared_ptr<EndDevice> __internal_attach_end_device(const String& path, unsigned int vmdDomain);
 };
 
 #endif /* __NVME_PHY_H__INCLUDED__ */

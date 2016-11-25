@@ -99,8 +99,15 @@ void NVME_Disk::identify()
 NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
     : BlockDevice(path)
 {
+    m_vmdDomain = vmdDomain;
+}
+
+/* */
+void NVME_Disk::discover()
+{
     const String IntelVendorTag = "8086";
 
+    BlockDevice::discover();
     Directory dir("/sys/class/nvme");
     CanonicalPath temp;
     std::list<Directory *> dirs = dir.dirs();
@@ -172,7 +179,6 @@ NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
 
     m_BlocksFree = m_BlocksTotal;
     m_FDx8Disk = whichFultondalex8Disk(m_SerialNum);
-    m_vmdDomain = vmdDomain;
 
     if (m_VendorId == IntelVendorTag) {
         m_isIntelNvme = true;

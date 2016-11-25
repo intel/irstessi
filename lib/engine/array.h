@@ -24,13 +24,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 /* */
-class Array : public RaidDevice {
+class Array : public RaidDevice, public boost::enable_shared_from_this<Array> {
 public:
-    Array()
-        : RaidDevice() {
-    }
+    Array();
     Array(const String &path);
-    ~Array();
 
     // Object
 
@@ -41,25 +38,27 @@ public:
     // ScopeObject
 
 public:
-    void getEndDevices(Container<EndDevice> &, bool all) const;
-    void getVolumes(Container<Volume> &) const;
+    virtual void getEndDevices(Container<EndDevice> &, bool all) const;
+    virtual void getVolumes(Container<Volume> &) const;
 
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeArray;
     }
 
     // StorageObject
 
 public:
-    void attachVolume(Volume *pVolume);
-    void attachEndDevice(EndDevice *pEndDevice);
-    void addToSession(Session *pSession);
+    virtual void attachVolume(const boost::shared_ptr<Volume>& pVolume);
+    virtual void attachEndDevice(const boost::shared_ptr<EndDevice>& pEndDevice);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
+
+    virtual void discover();
 
     // RaidDevice
 
 public:
-    SSI_Status remove();
-    void create();
+    virtual SSI_Status remove();
+    virtual void create();
 
     // Array
 
@@ -70,12 +69,12 @@ protected:
     unsigned long long m_FreeSize;
 
 public:
-    SSI_Status addSpare(EndDevice *pEndDevice);
+    SSI_Status addSpare(const boost::shared_ptr<EndDevice>& pEndDevice);
     SSI_Status addSpare(const Container<EndDevice> &endDevices);
     SSI_Status grow(const Container<EndDevice> &endDevices);
     SSI_Status setWriteCacheState(bool enable);
-    void setEndDevices(const Container<EndDevice> &endDevices);
-    SSI_Status removeSpare(const EndDevice *pEndDevice, bool force = false);
+    virtual void setEndDevices(const Container<EndDevice> &endDevices);
+    SSI_Status removeSpare(const boost::shared_ptr<EndDevice>& pEndDevice, bool force = false);
     SSI_Status removeSpare(const Container<EndDevice>& endDevices, bool force = false);
     SSI_Status removeVolume(const unsigned int ordinal);
     SSI_Status renameVolume(const unsigned int ordinal, String newName);
@@ -86,7 +85,7 @@ public:
 private:
     void __internal_determine_total_and_free_size();
     void __internal_determine_array_name();
-    void __internal_attach_end_device(Session *pSession, const String &path);
+    void __internal_attach_end_device(const boost::shared_ptr<Session>& pSession, const String &path);
     void __wait_for_container();
 };
 

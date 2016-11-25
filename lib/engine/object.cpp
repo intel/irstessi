@@ -19,10 +19,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 Object::Object() : m_handle(SSI_NULL_HANDLE)
 {
+
 }
 
 Object::~Object()
 {
+
 }
 
 SSI_Handle Object::getHandle() const {

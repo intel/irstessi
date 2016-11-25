@@ -18,12 +18,14 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "templates.h"
 #include <engine/controller.h>
 
-static void getItems(ScopeObject *pScopeObject, SSI_ScopeType, Container<Controller> &container)
+using boost::shared_ptr;
+
+static void getItems(const shared_ptr<ScopeObject>& pScopeObject, SSI_ScopeType, Container<Controller> &container)
 {
     pScopeObject->getControllers(container);
 }
 
-static Controller * getItem(Session *pSession, SSI_Handle handle)
+static shared_ptr<Controller> getItem(const shared_ptr<Session>& pSession, SSI_Handle handle)
 {
     return pSession->getController(handle);
 }
@@ -45,9 +47,14 @@ SSI_Status SsiGetControllerInfo(SSI_Handle session, SSI_Handle controllerHandle,
 /* */
 SSI_Status SsiReadPatrolSetState(SSI_Handle controllerHandle, SSI_Bool enable)
 {
-    Controller *pController = NULL;
-    if (SSI_Status status = SsiGetItem(controllerHandle, &pController, getItem)) {
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
         return status;
+    }
+
+    shared_ptr<Controller> pController = getItem(pSession, controllerHandle);
+    if (!pController) {
+        return SSI_StatusInvalidHandle;
     }
 
     return pController->readPatrolSetState(enable == SSI_TRUE);

@@ -24,18 +24,18 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class SessionManager {
 public:
+    typedef HandleManager<Session> Manager;
+
     SessionManager();
-    ~SessionManager();
+
+    boost::shared_ptr<Session> getSession(SSI_Handle handle) const;
+    SSI_Handle openSession();
+    SSI_Status closeSession(SSI_Handle handle);
 
 private:
     SessionManager(const SessionManager&) { /* do not create copies */ }
-    HandleManager m_sessions;
+    Manager m_sessions;
     void operator = (const SessionManager&) {}
-
-public:
-    Session* getSession(SSI_Handle handle) const;
-    SSI_Handle openSession();
-    SSI_Status closeSession(SSI_Handle handle);
 };
 
 #endif /* __SESSION_MANAGER_H__INCLUDED__ */

@@ -30,7 +30,7 @@ public:
     // EndDevice
 
 protected:
-    SSI_EndDeviceType getDeviceType() const {
+    virtual SSI_EndDeviceType getDeviceType() const {
         return SSI_EndDeviceTypeNonDiskStorage;
     }
 };

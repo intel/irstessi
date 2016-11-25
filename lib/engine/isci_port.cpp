@@ -25,6 +25,9 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "isci_tape.h"
 #include "enclosure.h"
 
+using boost::shared_ptr;
+using boost::dynamic_pointer_cast;
+
 /* */
 ISCI_Port::ISCI_Port(const String &path)
     : Port(path)
@@ -37,29 +40,31 @@ void ISCI_Port::discover()
     Directory dir(m_Path, "expander");
     std::list<Directory *> dirs = dir.dirs();
     if (dirs.begin() != dirs.end()) {
-        ISCI_Expander *pExpander = new ISCI_Expander(**dirs.begin());
-        pExpander->setParent(m_pParent);
+        shared_ptr<ISCI_Expander> pExpander = shared_ptr<ISCI_Expander>(new ISCI_Expander(**dirs.begin()));
+        pExpander->setParent(m_pParent.lock());
         pExpander->discover();
         attachPort(pExpander->getSubtractivePort());
         return;
     }
+
     dir.setFilter("end_device");
     dirs = dir.dirs();
     if (dirs.begin() != dirs.end()) {
         Directory target(**dirs.begin(), "target");
-        StorageObject *pStorageObject = __internal_create_storage_object(target.dirs());
-        if (pStorageObject != NULL) {
-            pStorageObject->setParent(m_pParent);
+        shared_ptr<StorageObject> pStorageObject = __internal_create_storage_object(target.dirs());
+        if (pStorageObject) {
+            pStorageObject->setParent(m_pParent.lock());
 
-            if (dynamic_cast<EndDevice *>(pStorageObject))
+            if (dynamic_cast<EndDevice *>(pStorageObject.get())) {
                 attachPort(pStorageObject->getPort());
-            else if (Enclosure * tmp = dynamic_cast<Enclosure *>(pStorageObject))
+            } else if (shared_ptr<Enclosure> tmp = dynamic_pointer_cast<Enclosure>(pStorageObject)) {
                 attachEnclosure(tmp);
-            else
-                delete pStorageObject;
+            }
         }
+
         return;
     }
+
     dir.setFilter("host");
     dirs = dir.dirs();
     if (dirs.begin() == dirs.end()) {
@@ -68,31 +73,32 @@ void ISCI_Port::discover()
 }
 
 /* */
-StorageObject * ISCI_Port::__internal_create_storage_object(std::list<Directory *> &dirs)
+shared_ptr<StorageObject> ISCI_Port::__internal_create_storage_object(std::list<Directory *> &dirs)
 {
-    StorageObject *pStorageObject = NULL;
+    shared_ptr<StorageObject> pStorageObject;
     if (dirs.begin() != dirs.end()) {
         foreach (i, dirs) {
             CanonicalPath temp = *(*i) + "driver";
             if (temp == "/sys/bus/scsi/drivers/sd") {
-                pStorageObject = new ISCI_Disk(*(*i));
+                pStorageObject = shared_ptr<StorageObject>(new ISCI_Disk(*(*i)));
                 break;
-            } else
-            if (temp == "/sys/bus/scsi/drivers/sr") {
-                pStorageObject = new ISCI_CDROM(*(*i));
+            } else if (temp == "/sys/bus/scsi/drivers/sr") {
+                pStorageObject = shared_ptr<StorageObject>(new ISCI_CDROM(*(*i)));
                 break;
-            } else
-            if (temp == "/sys/bus/scsi/drivers/st") {
-                pStorageObject = new ISCI_Tape(*(*i));
+            } else if (temp == "/sys/bus/scsi/drivers/st") {
+                pStorageObject = shared_ptr<StorageObject>(new ISCI_Tape(*(*i)));
                 break;
-            }
-            if (temp == "/sys/bus/scsi/drivers/ses") {
-                pStorageObject = new Enclosure(*(*i));
-
+            } else if (temp == "/sys/bus/scsi/drivers/ses") {
+                pStorageObject = shared_ptr<StorageObject>(new Enclosure(*(*i)));
                 break;
             }
         }
     }
+
+    if (shared_ptr<EndDevice> endDevice = dynamic_pointer_cast<EndDevice>(pStorageObject)) {
+        endDevice->discover();
+    }
+
     return pStorageObject;
 }
 

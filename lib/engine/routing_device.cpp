@@ -24,39 +24,55 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "enclosure.h"
 #include "session.h"
 
+using boost::shared_ptr;
+using boost::const_pointer_cast;
+using boost::dynamic_pointer_cast;
+
 /* */
 RoutingDevice::RoutingDevice(const String &path)
-    : StorageObject(path), m_pSubtractivePort(NULL)
+    : StorageObject(path), m_pSubtractivePort()
 {
+
 }
 
 /* */
-RoutingDevice::~RoutingDevice()
-{
-}
-
 String RoutingDevice::getId() const
 {
     return "ro:" + getPartId();
 }
 
+/* */
 String RoutingDevice::getPartId() const
 {
     return m_ComponentId;
 }
 
 /* */
-void RoutingDevice::addToSession(Session *pSession)
+void RoutingDevice::discover()
 {
-    pSession->addRoutingDevice(this);
-    foreach (i, m_EndDevices_Direct)
+
+}
+
+/* */
+void RoutingDevice::addToSession(const shared_ptr<Session>& pSession)
+{
+    pSession->addRoutingDevice(shared_from_this());
+    foreach (i, m_EndDevices_Direct) {
         (*i)->addToSession(pSession);
-    foreach (i, m_Phys)
+    }
+
+    foreach (i, m_Phys) {
         (*i)->addToSession(pSession);
-    foreach (i, m_Ports)
+    }
+
+    foreach (i, m_Ports) {
         (*i)->addToSession(pSession);
-    foreach (i, m_RoutingDevices_Direct)
+    }
+
+    foreach (i, m_RoutingDevices_Direct) {
         (*i)->addToSession(pSession);
+    }
+
     pSession->addPort(m_pSubtractivePort);
 }
 
@@ -92,16 +108,15 @@ void RoutingDevice::getRoutingDevices(Container<RoutingDevice> &container, bool 
 }
 
 /* */
-void RoutingDevice::getEnclosures(Container<Enclosure> &container, bool all) const
+void RoutingDevice::getEnclosures(Container<Enclosure> &container, bool) const
 {
-    Controller *pController = getController();
-    if (pController) {
-        pController->getEnclosures(const_cast<RoutingDevice *>(this), container);
+    if (shared_ptr<Controller> pController = getController()) {
+        pController->getEnclosures(const_pointer_cast<RoutingDevice>(shared_from_this()), container);
     }
 }
 
 /* */
-RaidInfo * RoutingDevice::getRaidInfo() const
+shared_ptr<RaidInfo> RoutingDevice::getRaidInfo() const
 {
     return m_pSubtractivePort->getRaidInfo();
 }
@@ -117,8 +132,7 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
     pInfo->routingDeviceType = getRoutingDeviceType();
     getAddress(pInfo->routingDeviceAddress);
 
-    Enclosure *pEnclosure = getEnclosure();
-    if (pEnclosure != NULL) {
+    if (shared_ptr<Enclosure> pEnclosure = getEnclosure()) {
         pInfo->enclosureHandle = pEnclosure->getHandle();
     } else {
         pInfo->enclosureHandle = SSI_NULL_HANDLE;
@@ -140,52 +154,55 @@ SSI_Status RoutingDevice::getInfo(SSI_RoutingDeviceInfo *pInfo) const
 }
 
 /* */
-void RoutingDevice::attachArray(Array *pArray)
+void RoutingDevice::attachArray(const shared_ptr<Array>& pArray)
 {
     m_pSubtractivePort->attachArray(pArray);
 }
 
 /* */
-void RoutingDevice::attachVolume(Volume *pVolume)
+void RoutingDevice::attachVolume(const shared_ptr<Volume>& pVolume)
 {
     m_pSubtractivePort->attachVolume(pVolume);
 }
 
 /* */
-void RoutingDevice::attachPhy(Phy *pPhy)
+void RoutingDevice::attachPhy(const shared_ptr<Phy>& pPhy)
 {
     m_Phys.add(pPhy);
 }
 
 /* */
-void RoutingDevice::attachEndDevice(EndDevice *pEndDevice)
+void RoutingDevice::attachEndDevice(const shared_ptr<EndDevice>& pEndDevice)
 {
     m_EndDevices_Direct.add(pEndDevice);
 }
 
 /* */
-void RoutingDevice::attachPort(Port *pPort)
+void RoutingDevice::attachPort(const shared_ptr<Port>& pPort)
 {
     m_Ports.add(pPort);
 }
 
 /* */
-void RoutingDevice::attachRoutingDevice(RoutingDevice *pRoutingDevice)
+void RoutingDevice::attachRoutingDevice(const shared_ptr<RoutingDevice>& pRoutingDevice)
 {
     m_RoutingDevices_Direct.add(pRoutingDevice);
-    ScopeObject *pScopeObject = dynamic_cast<ScopeObject *>(pRoutingDevice);
-    Container<EndDevice> endDevices;
-    pScopeObject->getEndDevices(endDevices, true);
-    m_EndDevices.add(endDevices);
-    Container<RoutingDevice> routingDevices;
-    pScopeObject->getRoutingDevices(routingDevices, true);
-    m_RoutingDevices.add(routingDevices);
+    if (shared_ptr<ScopeObject> pScopeObject = dynamic_pointer_cast<ScopeObject>(pRoutingDevice)) {
+        Container<EndDevice> endDevices;
+        pScopeObject->getEndDevices(endDevices, true);
+        m_EndDevices.add(endDevices);
+        Container<RoutingDevice> routingDevices;
+        pScopeObject->getRoutingDevices(routingDevices, true);
+        m_RoutingDevices.add(routingDevices);
+    }
 }
 
 /* */
-void RoutingDevice::attachEnclosure(Enclosure *pEnclosure)
+void RoutingDevice::attachEnclosure(const shared_ptr<Enclosure>& pEnclosure)
 {
-    m_pParent->attachEnclosure(pEnclosure);
+    if (Parent parent = m_pParent.lock()) {
+        parent->attachEnclosure(pEnclosure);
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

@@ -26,17 +26,19 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class EventManager {
 public:
+    typedef HandleManager<Event> Manager;
+
     EventManager();
     ~EventManager();
 
     SSI_Handle registerEvent();
     SSI_Status unregisterEvent(SSI_Handle handle);
-    Event * getEvent(SSI_Handle handle) const;
+    boost::shared_ptr<Event> getEvent(SSI_Handle handle) const;
 
 private:
     void startEventMonitor();
     void stopEventMonitor();
-    HandleManager m_events;
+    Manager m_events;
     bool m_notInitialized;
 };
 

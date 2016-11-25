@@ -23,6 +23,8 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "isci_expander_phy.h"
 
+using boost::shared_ptr;
+
 /* */
 ISCI_Expander::ISCI_Expander(const String &path)
     : RoutingDevice(path),
@@ -77,19 +79,21 @@ ISCI_Expander::ISCI_Expander(const String &path)
 }
 
 /* */
-Port * ISCI_Expander::getPortByPath(const String &path) const
+shared_ptr<Port> ISCI_Expander::getPortByPath(const String &path) const
 {
     foreach (i, m_Ports) {
         if ((*i)->getPath() == path) {
             return (*i);
         }
     }
+
     if (m_pSubtractivePort) {
         if (m_pSubtractivePort->getPath() == path) {
             return m_pSubtractivePort;
         }
     }
-    return NULL;
+
+    return shared_ptr<Port>();
 }
 
 /* */
@@ -99,7 +103,7 @@ void ISCI_Expander::getAddress(SSI_Address &address) const
     address.scsiAddress.bus = 0;
     address.scsiAddress.target = 0;
     address.scsiAddress.lun = 0;
-    address.sasAddressPresent = m_SASAddress?SSI_TRUE:SSI_FALSE;
+    address.sasAddressPresent = m_SASAddress ? SSI_TRUE : SSI_FALSE;
     address.sasAddress = m_SASAddress;
 }
 
@@ -110,13 +114,16 @@ void ISCI_Expander::discover()
     unsigned int number = 0;
     std::list<Directory *> dirs = dir.dirs();
     foreach (i, dirs) {
-        Phy *pPhy = new ISCI_Expander_Phy(*(*i), number++, this);
-        attachPhy(pPhy);
+        attachPhy(shared_ptr<Phy>(new ISCI_Expander_Phy(*(*i), number++, shared_from_this())));
     }
-    foreach (i, m_Phys)
+
+    foreach (i, m_Phys) {
         (*i)->discover();
-    foreach (i, m_Ports)
+    }
+
+    foreach (i, m_Ports) {
         (*i)->discover();
+    }
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */

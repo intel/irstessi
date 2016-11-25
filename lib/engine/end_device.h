@@ -18,16 +18,16 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #define KILOBYTE 1024
 
 #include "storage_device.h"
+#include <boost/enable_shared_from_this.hpp>
 
 #ifdef SSI_HAS_PRAGMA_ONCE
 #pragma once
 #endif
 
 /* */
-class EndDevice : public StorageDevice {
+class EndDevice : public StorageDevice, public boost::enable_shared_from_this<EndDevice> {
 public:
     EndDevice(const String &path);
-    virtual ~EndDevice();
 
     // Object
 private:
@@ -42,32 +42,35 @@ public:
     // ScopeObject
 
 public:
-    void getPhys(Container<Phy> &container) const;
-    void getPorts(Container<Port> &container) const;
+    virtual void getPhys(Container<Phy> &container) const;
+    virtual void getPorts(Container<Port> &container) const;
 
-    bool scopeTypeMatches(SSI_ScopeType scopeType) const {
+    virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {
         return scopeType == SSI_ScopeTypeEndDevice;
     }
 
     // StorageObject
 
 public:
-    void getAddress(SSI_Address &address) const;
+    virtual void getAddress(SSI_Address &address) const;
 
-    void attachPhy(Phy *pPhy);
-    void attachPort(Port *pPort);
+    virtual void attachPhy(const boost::shared_ptr<Phy>& pPhy);
+    virtual void attachPort(const boost::shared_ptr<Port>& pPort);
 
-    virtual void addToSession(Session *pSession);
+    virtual void addToSession(const boost::shared_ptr<Session>& pSession);
 
     // EndDevice
+
+public:
+    virtual void discover();
 
 protected:
     String m_VendorId;
     String m_SerialNum;
     String m_SgName;
-    Phy *m_pPhy;
-    Port *m_pPort;
-    Enclosure *m_pEnclosure;
+    boost::shared_ptr<Phy> m_pPhy;
+    boost::shared_ptr<Port> m_pPort;
+    boost::shared_ptr<Enclosure> m_pEnclosure;
     String m_Model;
     String m_Firmware;
     unsigned long long m_TotalSize;
@@ -88,9 +91,13 @@ protected:
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
-    RaidInfo * getRaidInfo() const;
-    Controller * getController() const {
-        return m_pParent ? m_pParent->getController() : NULL;
+    boost::shared_ptr<RaidInfo> getRaidInfo() const;
+    boost::shared_ptr<Controller> getController() const {
+        if (Parent parent = m_pParent.lock()) {
+            return parent->getController();
+        } else {
+            return boost::shared_ptr<Controller>();
+        }
     }
     SSI_Status locate(bool mode) const;
 
@@ -114,11 +121,11 @@ public:
         return m_SerialNum;
     }
 
-    Phy * getPhy() const {
+    virtual boost::shared_ptr<Phy> getPhy() const {
         return m_pPhy;
     }
 
-    Port * getPort() const {
+    virtual boost::shared_ptr<Port> getPort() const {
         return m_pPort;
     }
 
@@ -137,13 +144,13 @@ public:
     virtual unsigned char getStoragePoolId() const {
         return 0xff;
     }
-    virtual Array * getArray() const {
-        return NULL;
+    virtual boost::shared_ptr<Array> getArray() const {
+        return boost::shared_ptr<Array>();
     }
-    virtual Enclosure * getEnclosure() const {
+    virtual boost::shared_ptr<Enclosure> getEnclosure() const {
         return m_pEnclosure;
     }
-    virtual void setEnclosure(Enclosure *pEnclosure) {
+    virtual void setEnclosure(const boost::shared_ptr<Enclosure>& pEnclosure) {
         m_pEnclosure = pEnclosure;
     }
     virtual bool isSystemDisk() const {
@@ -183,7 +190,7 @@ public:
         return SSI_StatusNotSupported;
     }
 
-    void determineBlocksFree(Array *pArray);
+    void determineBlocksFree(const boost::shared_ptr<Array>& pArray);
 };
 
 #endif /* __END_DEVICE_H__INCLUDED__ */

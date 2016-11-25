@@ -26,10 +26,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 class ISCI_Port : public Port {
 public:
     ISCI_Port(const String &path);
-    void discover();
+    virtual void discover();
 
 private:
-    StorageObject * __internal_create_storage_object(std::list<Directory *> &dirs);
+    boost::shared_ptr<StorageObject> __internal_create_storage_object(std::list<Directory *> &dirs);
 };
 
 #endif /* __ISCI_PORT_H__INCLUDED__ */
