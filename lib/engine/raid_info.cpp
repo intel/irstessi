@@ -91,8 +91,33 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             pInfo->supported = m_pInfo->rlc0 ? SSI_TRUE : SSI_FALSE;
             pInfo->minDisks = ssi_min(1, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
-            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid10 | SSI_Raid5);
-            pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid10 | SSI_Raid5);
+            if (shared_ptr<Controller> controller = m_Controller.lock()) {
+                if (controller->getControllerType() == SSI_ControllerTypeVMD) {
+                    switch (controller->getHardwareMode()) {
+                        case SSI_HardwareKeyVROCPremium:
+                            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid10 | SSI_Raid5);
+                            pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid10 | SSI_Raid5);
+                            break;
+
+                        case SSI_HardwareKeyVROCStandard:
+                            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid10);
+                            pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid10);
+                            break;
+
+                        case SSI_HardwareKey3story:
+                        default:
+                            pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0);
+                            pInfo->migrDiskAdd = SSI_RaidInvalid;
+                            break;
+                    }
+                } else {
+                    pInfo->migrSupport = static_cast<SSI_RaidLevel>(SSI_Raid0 | SSI_Raid10 | SSI_Raid5);
+                    pInfo->migrDiskAdd = static_cast<SSI_RaidLevel>(SSI_Raid10 | SSI_Raid5);
+                }
+            } else {
+                pInfo->migrSupport = SSI_RaidInvalid;
+                pInfo->migrDiskAdd = SSI_RaidInvalid;
+            }
             pInfo->evenDiskCount = SSI_FALSE;
             pInfo->oddDiskCount = SSI_FALSE;
             break;

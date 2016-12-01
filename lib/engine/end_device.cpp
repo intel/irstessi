@@ -120,7 +120,14 @@ EndDevice::EndDevice(const String &path)
       m_vmdDomain(0),
       m_isIntelNvme(false)
 {
-
+    m_SCSIAddress.bus = 0;
+    m_SCSIAddress.host = 0;
+    m_SCSIAddress.lun = 0;
+    m_SCSIAddress.target = 0;
+    m_BDFAddress.bus = 0;
+    m_BDFAddress.device = 0;
+    m_BDFAddress.domain = 0;
+    m_BDFAddress.function = 0;
 }
 
 /* */
@@ -496,6 +503,7 @@ void EndDevice::determineBlocksFree(const shared_ptr<Array>& pArray)
             raidSectorSize = DEFAULT_SECTOR_SIZE;
         }
     }
+
     foreach (volume, volumes) {
         Container<EndDevice> endDevices;
         (*volume)->getEndDevices(endDevices, true);

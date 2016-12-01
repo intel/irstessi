@@ -34,6 +34,13 @@ ISCI::ISCI(const String &path)
     : Controller(path)
 {
     m_Name = "ISCI at " + m_Path.reverse_right("0000:");
+    m_Address.sasAddress = 0;
+    m_Address.sasAddressPresent = SSI_FALSE;
+    m_Address.bdfAddress.bus = 0;
+    m_Address.bdfAddress.device = 0;
+    m_Address.bdfAddress.domain = 0;
+    m_Address.bdfAddress.function = 0;
+    m_Address.bdfAddressPresent = SSI_FALSE;
 }
 
 /* */

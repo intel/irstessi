@@ -705,7 +705,7 @@ String Volume::rwhPolicyToString(SSI_RwhPolicy policy) const
     if (policy == SSI_RwhOff) {
         return "off";
     } else if (policy == SSI_RwhDistributed) {
-        return "ppl-distributed";
+        return "ppl";
     } else if (policy == SSI_RwhJournalingDrive) {
         return "ppl-journal";
     } else {

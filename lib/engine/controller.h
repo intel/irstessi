@@ -105,11 +105,11 @@ protected:
     SSI_HardwareKeyType m_hardwareMode;
     bool m_supportsTpv;
 
+public:
     virtual SSI_ControllerType getControllerType() const {
         return SSI_ControllerTypeUnknown;
     }
 
-public:
     virtual boost::shared_ptr<RaidInfo> findRaidInfo(Container <RaidInfo> &container);
     SSI_Status readPatrolSetState(bool enable);
     SSI_Status getInfo(SSI_ControllerInfo *pInfo) const;

@@ -44,7 +44,10 @@ namespace {
 
 /* */
 Array::Array()
-    : RaidDevice()
+    : RaidDevice(),
+      m_Busy(false),
+      m_TotalSize(0),
+      m_FreeSize(0)
 {
 
 }
