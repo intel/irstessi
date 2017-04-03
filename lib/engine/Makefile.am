@@ -125,5 +125,4 @@ libengine_la_SOURCES =          \
 libengine_la_CPPFLAGS =         \
         -I$(top_srcdir)         \
         -I$(top_srcdir)/include \
-        -I$(top_srcdir)/lib     \
-        -DBOOST_NO_USER_CONFIG
+        -I$(top_srcdir)/lib
