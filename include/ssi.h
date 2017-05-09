@@ -514,7 +514,9 @@ typedef enum _SSI_HardwareKeyType
     /** VROC Standard SKU */
     SSI_HardwareKeyVROCStandard = 2,
     /** VROC Premium SKU */
-    SSI_HardwareKeyVROCPremium = 3
+    SSI_HardwareKeyVROCPremium = 3,
+    /** VROC Intel-SSD-only */
+    SSI_HardwareKeyVROCIntelSSDonly = 4
 } SSI_HardwareKeyType;
 
 /**

@@ -47,6 +47,7 @@ VMD::VMD(const String &path)
         const u_int32_t NoKey = 0;
         const u_int32_t StandardKey = 1;
         const u_int32_t PremiumKey = 2;
+        const u_int32_t IntelOnlyKey = 3;
 
         switch (pInfo->f_sku_mode) {
             case NoKey:
@@ -62,6 +63,11 @@ VMD::VMD(const String &path)
             case PremiumKey:
                 m_hardwareMode = SSI_HardwareKeyVROCPremium;
                 m_Name += " (Premium)";
+                break;
+
+            case IntelOnlyKey:
+                m_hardwareMode = SSI_HardwareKeyVROCIntelSSDonly;
+                m_Name += " (Intel-SSD-only)";
                 break;
         }
 
