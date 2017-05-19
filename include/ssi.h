@@ -1,6 +1,6 @@
 
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -653,6 +653,8 @@ typedef struct _SSI_ControllerInfo
 
     /** If true, #SSI_PhyLocate function supports phys attached to this controller */
     SSI_Bool phyLocateSupport;
+    /** If true, #SSI_PhyRemove function supports phys attached to this controller */
+    SSI_Bool phyRemoveDiskSupport;
     /** If true, #SSI_DiskUnlock function supports disks attached to this controller */
     SSI_Bool diskUnlockSupport;
     /** If true, #SSI_AssignStoragePool function supports devices attached to this controller */
@@ -1005,6 +1007,8 @@ typedef struct _SSI_EndDeviceInfo
     SSI_Uint32 slotNumber;
     /** If true, disk is blinkable via SGPIO */
     SSI_Bool locateLEDSupport;
+    /** If true, disk is removable */
+    SSI_Bool removeDiskSupport;
     /** If true, disk is visible to PreBoot OROM or EFI */
     SSI_Bool isPreBootVisible;
     /** Led state */
@@ -2029,6 +2033,18 @@ SSI_API SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode);
  * @return  #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusNotSupported, #SSI_StatusFailed.
 **/
 SSI_API SSI_Status SsiPortLocate(SSI_Handle portHandle, SSI_Bool mode);
+
+/**
+* @fn    SSI_API SSI_Status SsiPhyRemove(SSI_Handle phyHandle, SSI_Bool mode)
+*
+* @brief    Triggers removing a given phy.
+*
+* @param    phyHandle    Handle of the phy to remove.
+* @param    mode         If SSI_True, device is removed, else is not removed.
+*
+* @return    #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusNotSupported, #SSI_StatusFailed.
+**/
+SSI_API SSI_Status SsiPhyRemove(SSI_Handle phyHandle, SSI_Bool mode);
 
 /**
  * @fn  SSI_API SSI_Status SsiSetVolCacheSize(SSI_VolCacheSize cacheSize)

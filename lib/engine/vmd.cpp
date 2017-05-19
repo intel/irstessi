@@ -39,6 +39,7 @@ VMD::VMD(const String &path)
     m_Name = "Intel(R) VROC";
     m_DomainCount = 0;
     m_EndDevicesCount = 0;
+    m_PhyRemoveDisk = true;
 
     struct orom_info_ext *pInfo_ext = efi_get(getControllerType(), m_PciDeviceId);
     if (pInfo_ext != NULL) {

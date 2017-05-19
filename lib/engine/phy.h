@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -63,6 +63,7 @@ public:
         return m_Protocol;
     }
     virtual SSI_Status locate(bool mode) const;
+    virtual SSI_Status remove() const;
     virtual void setProperties();
     SSI_Status getInfo(SSI_PhyInfo *pInfo) const;
     void fetchSpeeds(SSI_PhyInfo *pInfo) const;

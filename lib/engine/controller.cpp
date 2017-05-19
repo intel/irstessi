@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -53,6 +53,7 @@ Controller::Controller(const String &path)
       m_NVSRAMSupported(false),
       m_HWXORSupported(false),
       m_PhyLocate(false),
+      m_PhyRemoveDisk(false),
       m_DiskUnlock(false),
       m_PatrolReadSupport(false),
       m_ROHISupport(false),
@@ -159,6 +160,7 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     pInfo->xorSupported = m_HWXORSupported ? SSI_TRUE : SSI_FALSE;
     pInfo->nvsramSupported = m_NVSRAMSupported ? SSI_FALSE : SSI_FALSE;
     pInfo->phyLocateSupport = m_PhyLocate ? SSI_TRUE : SSI_FALSE;
+    pInfo->phyRemoveDiskSupport = m_PhyRemoveDisk ? SSI_TRUE : SSI_FALSE;
     pInfo->diskUnlockSupport = m_DiskUnlock ? SSI_TRUE : SSI_FALSE;
     pInfo->assignStoragePoolSupport = SSI_FALSE;
     pInfo->markAsNormalSupport = SSI_FALSE;

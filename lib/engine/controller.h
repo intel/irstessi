@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -98,6 +98,7 @@ protected:
     bool m_NVSRAMSupported;
     bool m_HWXORSupported;
     bool m_PhyLocate;
+    bool m_PhyRemoveDisk;
     bool m_DiskUnlock;
     bool m_PatrolReadSupport;
     bool m_ROHISupport;

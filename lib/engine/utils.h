@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -64,6 +64,9 @@ int shell_cap(const String &s, void *buf, size_t &size);
 
 /* */
 int shell_output(const String &command, String &output, bool errorOutput = false);
+
+/* */
+int sysfs_write(const String &message, const String &file);
 
 /* */
 int shell(const String &s);

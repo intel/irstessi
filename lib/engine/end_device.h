@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -88,7 +88,12 @@ protected:
     unsigned int m_FDx8Disk;
     unsigned int m_vmdDomain;
     bool m_isIntelNvme;
+    bool m_locateLedSupport;
     int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
+    virtual SSI_Status removeDevice() {
+        return SSI_StatusNotSupported;
+    }
+
 public:
     SSI_Status getInfo(SSI_EndDeviceInfo *info) const;
     boost::shared_ptr<RaidInfo> getRaidInfo() const;
@@ -99,7 +104,8 @@ public:
             return boost::shared_ptr<Controller>();
         }
     }
-    SSI_Status locate(bool mode) const;
+    virtual SSI_Status locate(bool mode) const;
+    virtual SSI_Status removeDisk();
 
     unsigned long long getTotalSize() const {
         return m_TotalSize;
@@ -135,6 +141,10 @@ public:
 
     bool isFultondalex8() const {
         return m_FDx8Disk != 0;
+    }
+
+    virtual bool canRemoveDisk() const {
+        return false;
     }
 
     unsigned int getVmdDomain() const {

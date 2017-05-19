@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -118,7 +118,9 @@ EndDevice::EndDevice(const String &path)
       m_PCISlotNumber(0),
       m_FDx8Disk(0),
       m_vmdDomain(0),
-      m_isIntelNvme(false)
+      m_isIntelNvme(false),
+      m_locateLedSupport(true) /* Like in Windows SSI - if disk is connected to Intel controller, it should be true.
+                                  In Linux SSI, all detected controllers are Intel's. */
 {
     m_SCSIAddress.bus = 0;
     m_SCSIAddress.host = 0;
@@ -148,7 +150,7 @@ void EndDevice::discover()
     scsiAddress = scsiAddress.after(":");
     m_SCSIAddress.lun = scsiAddress;
 
-    // BDF address is currently used only for NVMe/VMD
+    /* BDF address is currently used only for NVMe/VMD */
     m_BDFAddress.domain = 0;
     m_BDFAddress.bus = 0;
     m_BDFAddress.device = 0;
@@ -272,7 +274,7 @@ int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &seri
     const unsigned int SerialIndex = 1;
     const unsigned int FirmwareIndex = 2;
 
-    // SSI sometimes uses m_devName as handler and for some cases (like VMD) '/dev/' + m_devName points to nothing
+    /* SSI sometimes uses m_devName as handler and for some cases (like VMD) '/dev/' + m_devName points to nothing */
     if (!ifstream(devName)) {
         return -1;
     }
@@ -378,7 +380,8 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->writeCachePolicy = m_WriteCachePolicy;
     pInfo->systemDisk = isSystemDisk() ? SSI_TRUE : SSI_FALSE;
     pInfo->slotNumber = getSlotNumber();
-    pInfo->locateLEDSupport = SSI_TRUE;     /* Like in Windows SSI. If disk is connected to Intel controller it should be true and all detected controllers are Intel's. */
+    pInfo->locateLEDSupport = m_locateLedSupport ? SSI_TRUE : SSI_FALSE;
+    pInfo->removeDiskSupport = canRemoveDisk() ? SSI_TRUE : SSI_FALSE;
     pInfo->isPreBootVisible = pEnclosure ? SSI_FALSE : SSI_TRUE;
     pInfo->ledState = m_ledState;
     pInfo->systemIoBusNumber = m_systemIoBusNumer;
@@ -410,6 +413,20 @@ SSI_Status EndDevice::locate(bool mode) const
     } else {
         return SSI_StatusFailed;
     }
+}
+
+/* */
+SSI_Status EndDevice::removeDisk()
+{
+    if (!canRemoveDisk()) {
+        return SSI_StatusNotSupported;
+    }
+
+    if (SSI_Status status = locate(true)) {
+        return status;
+    }
+
+    return removeDevice();
 }
 
 /* */

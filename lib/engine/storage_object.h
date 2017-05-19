@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -90,6 +90,10 @@ public:
     }
 
     virtual SSI_Status locate(bool mode) const {
+        return SSI_StatusNotSupported;
+    }
+
+    virtual SSI_Status removeDisk() {
         return SSI_StatusNotSupported;
     }
 

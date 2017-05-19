@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -28,6 +28,10 @@ extern "C" {
 
 #include "nvme_disk.h"
 #include "filesystem.h"
+#include "controller.h"
+#include "volume.h"
+
+using boost::shared_ptr;
 
 namespace {
     /**
@@ -186,7 +190,53 @@ void NVME_Disk::discover()
 
     __internal_determine_disk_state();
     __internal_determine_disk_usage();
-    __internal_determine_disk_is_system();
+}
+
+bool NVME_Disk::canRemoveDisk() const {
+    Container<Volume> controllerVolumes;
+    if (shared_ptr<Controller> controller = getController()) {
+        controller->getVolumes(controllerVolumes);
+        Container<Volume> volumes;
+        Container<EndDevice> devices;
+        foreach (iter, controllerVolumes) {
+            Volume& volume = *(*iter);
+
+            volume.getEndDevices(devices, false);
+            foreach (d, devices) {
+                EndDevice& device = *(*d);
+
+                if (device.getId() == getId()) {
+                    volumes.add(*iter);
+                    break;
+                }
+            }
+        }
+
+        if (!volumes.empty()) {
+            foreach (iter, volumes) {
+                Volume& volume = *(*iter);
+
+                if (volume.isSystemVolume() &&
+                    (volume.getSsiRaidLevel() == SSI_Raid0 ||
+                     volume.getState() != SSI_VolumeStateNormal)) {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+    }
+
+    return !isSystemDisk();
+}
+
+SSI_Status NVME_Disk::removeDevice()
+{
+    if (sysfs_write("1", "/sys/class/block/" + m_DevName + "/device/device/remove") == 0) {
+        return SSI_StatusOk;
+    }
+
+    return SSI_StatusFailed;
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=80 expandtab: */

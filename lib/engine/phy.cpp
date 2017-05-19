@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -95,6 +95,16 @@ SSI_Status Phy::locate(bool mode) const
 {
     if (Parent parent = m_pParent.lock()) {
         return parent->locate(mode);
+    } else {
+        return SSI_StatusInvalidState;
+    }
+}
+
+/* */
+SSI_Status Phy::remove() const
+{
+    if (Parent parent = m_pParent.lock()) {
+        return parent->removeDisk();
     } else {
         return SSI_StatusInvalidState;
     }

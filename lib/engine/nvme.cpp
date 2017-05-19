@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -38,6 +38,7 @@ NVME::NVME(const String &path)
 {
     /* TODO: read the name of controller from PCI bar */
     m_Name = "NVME at " + m_Path.reverse_right("0000:");
+    m_PhyRemoveDisk = true;
 }
 
 /* */

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -234,6 +234,19 @@ int shell_output(const String &command, String &output, bool errorOutput)
     return Success;
 }
 
+/* */
+int sysfs_write(const String &message, const String &file)
+{
+    int fd = open(file, O_WRONLY);
+    if (fd != -1) {
+        size_t wcount = write(fd, static_cast<const char*>(message), message.size());
+        close(fd);
+
+        return wcount == message.size() ? 0 : 1;
+    }
+
+    return 1;
+}
 
 static void close_parent_fds(void)
 {

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -58,6 +58,26 @@ SSI_Status SsiPhyLocate(SSI_Handle phyHandle, SSI_Bool mode)
     }
 
     return pPhy->locate(mode == SSI_TRUE);
+}
+
+/* */
+SSI_Status SsiPhyRemove(SSI_Handle phyHandle, SSI_Bool mode)
+{
+    if (mode == SSI_FALSE) {
+        return SSI_StatusOk;
+    }
+
+    shared_ptr<Session> pSession;
+    if (SSI_Status status = getTempSession(pSession)) {
+        return status;
+    }
+
+    shared_ptr<Phy> pPhy = getItem(pSession, phyHandle);
+    if (!pPhy) {
+        return SSI_StatusInvalidHandle;
+    }
+
+    return pPhy->remove();
 }
 
 /* ex: set tabstop=4 softtabstop=4 shiftwidth=4 textwidth=98 expandtab: */
