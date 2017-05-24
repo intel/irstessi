@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -31,11 +31,10 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 using boost::shared_ptr;
 
 /* */
-NVME_Phy::NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, const Parent& pParent)
+NVME_Phy::NVME_Phy(const String &path, unsigned int number, const Parent& pParent)
     : Phy(path, number, pParent)
 {
     m_Protocol = SSI_PhyProtocolNVME;
-    m_VmdDomain = vmdDomain;
 }
 
 /* */
@@ -46,7 +45,7 @@ void NVME_Phy::discover()
     port->setParent(m_pParent.lock());
     port->attachPhy(shared_from_this());
 
-    shared_ptr<EndDevice> pEndDevice = __internal_attach_end_device(m_Path, m_VmdDomain);
+    shared_ptr<EndDevice> pEndDevice = __internal_attach_end_device(m_Path);
     if (pEndDevice) {
         pEndDevice->setParent(m_pParent.lock());
         shared_ptr<Phy> pPhy = pEndDevice->getPhy();
@@ -60,9 +59,9 @@ void NVME_Phy::discover()
 }
 
 /* */
-shared_ptr<EndDevice> NVME_Phy::__internal_attach_end_device(const String& path, unsigned int vmdDomain)
+shared_ptr<EndDevice> NVME_Phy::__internal_attach_end_device(const String& path)
 {
-    shared_ptr<EndDevice> pEndDevice = shared_ptr<EndDevice>(new NVME_Disk(path, vmdDomain));
+    shared_ptr<EndDevice> pEndDevice = shared_ptr<EndDevice>(new NVME_Disk(path));
     pEndDevice->discover();
     return pEndDevice;
 }

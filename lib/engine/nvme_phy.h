@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -23,13 +23,12 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 /* */
 class NVME_Phy : public Phy {
 public:
-    NVME_Phy(const String &path, unsigned int vmdDomain, unsigned int number, const Parent& pParent = Parent());
+    NVME_Phy(const String &path, unsigned int number, const Parent& pParent = Parent());
     virtual void discover();
 
 private:
     String m_PhyPath;
-    unsigned int m_VmdDomain;
-    boost::shared_ptr<EndDevice> __internal_attach_end_device(const String& path, unsigned int vmdDomain);
+    boost::shared_ptr<EndDevice> __internal_attach_end_device(const String& path);
 };
 
 #endif /* __NVME_PHY_H__INCLUDED__ */

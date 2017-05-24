@@ -100,10 +100,9 @@ void NVME_Disk::identify()
 }
 
 /* */
-NVME_Disk::NVME_Disk(const String &path, unsigned int vmdDomain)
+NVME_Disk::NVME_Disk(const String &path)
     : BlockDevice(path)
 {
-    m_vmdDomain = vmdDomain;
 }
 
 /* */
@@ -132,6 +131,7 @@ void NVME_Disk::discover()
 
     String bdfAddress = m_Path.reverse_after("/");
     from_hex(bdfAddress.left(":"), m_BDFAddress.domain);
+    m_vmdDomain = m_BDFAddress.domain & 0x0000F;
 
     bdfAddress = bdfAddress.after(":");
     from_hex(bdfAddress.left(":"), m_BDFAddress.bus);

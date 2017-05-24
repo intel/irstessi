@@ -45,7 +45,7 @@ NVME::NVME(const String &path)
 void NVME::discover()
 {
     unsigned int number = 0;
-    shared_ptr<NVME_Phy> pPhy = shared_ptr<NVME_Phy>(new NVME_Phy(CanonicalPath(m_Path), 0, number++, shared_from_this()));
+    shared_ptr<NVME_Phy> pPhy = shared_ptr<NVME_Phy>(new NVME_Phy(CanonicalPath(m_Path), number++, shared_from_this()));
     attachPhy(pPhy);
     pPhy->discover();
 }

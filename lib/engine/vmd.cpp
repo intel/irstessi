@@ -37,7 +37,6 @@ VMD::VMD(const String &path)
     : Controller(path)
 {
     m_Name = "Intel(R) VROC";
-    m_DomainCount = 0;
     m_EndDevicesCount = 0;
     m_PhyRemoveDisk = true;
 
@@ -80,7 +79,6 @@ VMD::VMD(const String &path)
 void VMD::discover(const String &path)
 {
     CanonicalPath vmdPath(path);
-    m_DomainCount++;
 
     Directory dir("/sys/bus/pci/drivers/nvme");
     std::list<Directory *> dirs = dir.dirs();
@@ -90,7 +88,7 @@ void VMD::discover(const String &path)
         CanonicalPath nvmePath = *(*i);
         if (nvmeDriverPath == dir) {
             if ((unsigned int)nvmePath.compare(vmdPath) == nvmePath.length() - vmdPath.length()) {
-                shared_ptr<NVME_Phy> pPhy = shared_ptr<NVME_Phy>(new NVME_Phy(nvmePath, m_DomainCount, m_EndDevicesCount++, shared_from_this()));
+                shared_ptr<NVME_Phy> pPhy = shared_ptr<NVME_Phy>(new NVME_Phy(nvmePath, m_EndDevicesCount++, shared_from_this()));
                 attachPhy(pPhy);
                 pPhy->discover();
             }

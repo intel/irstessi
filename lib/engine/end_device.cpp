@@ -27,6 +27,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <typeinfo>
 #include <vector>
 #include <fstream>
+#include <limits>
 #include <scsi/sg_lib.h>
 #include <scsi/sg_cmds_basic.h>
 
@@ -47,6 +48,7 @@ extern "C" {
 
 using std::vector;
 using std::ifstream;
+using std::numeric_limits;
 using boost::shared_ptr;
 
 /* */
@@ -117,7 +119,7 @@ EndDevice::EndDevice(const String &path)
       m_systemIoBusNumer(0),
       m_PCISlotNumber(0),
       m_FDx8Disk(0),
-      m_vmdDomain(0),
+      m_vmdDomain(numeric_limits<unsigned int>::max()), /* -1 by default because 0 is a valid value */
       m_isIntelNvme(false),
       m_locateLedSupport(true) /* Like in Windows SSI - if disk is connected to Intel controller, it should be true.
                                   In Linux SSI, all detected controllers are Intel's. */
