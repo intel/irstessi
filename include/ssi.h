@@ -265,7 +265,9 @@ typedef enum _SSI_Status
     /** Too many items (disks, etc) have been specified */
     SSI_StatusBufferTooLarge         = 24,
     /** Disable on-device cache failed */
-    SSI_StatusDisableCacheFailed     = 25
+    SSI_StatusDisableCacheFailed     = 25,
+    /** Unsupported action during trial */
+    SSI_TrialLimitation              = 26
 } SSI_Status;
 
 /**
@@ -590,6 +592,14 @@ typedef enum _SSI_ControllerType
     SSI_ControllerTypeVMD     = 4
 } SSI_ControllerType;
 
+typedef enum _SSI_TrialState
+{
+    SSI_Trial_State_Unknown = 0,
+    SSI_Trial_State_Not_Started = 1,
+    SSI_Trial_State_Started = 2,
+    SSI_Trial_State_Expired = 3
+} SSI_TrialState;
+
 /**
  * @struct  SSI_HardwareVersion
  *
@@ -691,6 +701,10 @@ typedef struct _SSI_ControllerInfo
     SSI_HardwareKeyType hardwareSkuMode;
     /** If true, 3rd Party Vendor disks are supported */
     SSI_Bool supportsTPV;
+    /** Trial state Information */
+    SSI_TrialState trialState;
+    /** Count of days to expired trial */
+    SSI_Int32 remainingDays;
 } SSI_ControllerInfo;
 
 /**
@@ -1248,6 +1262,8 @@ typedef struct _SSI_RaidLevelInfo
     SSI_Bool oddDiskCount;
     /** Or'd stripe sizes supported by this RAID level */
     SSI_StripSize stripSizesSupported;
+    /** If true, this RAID level is created */
+    SSI_Bool created;
 } SSI_RaidLevelInfo;
 
 /**

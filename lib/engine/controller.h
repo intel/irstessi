@@ -105,6 +105,8 @@ protected:
 
     SSI_HardwareKeyType m_hardwareMode;
     bool m_supportsTpv;
+    SSI_TrialState m_trialState;
+    SSI_Int32 m_remainingDays;
 
 public:
     virtual SSI_ControllerType getControllerType() const {

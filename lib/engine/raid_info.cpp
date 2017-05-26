@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -20,6 +20,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 
 #include "raid_info.h"
 #include "controller.h"
+#include "volume.h"
 #include "session.h"
 
 using boost::shared_ptr;
@@ -164,6 +165,21 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
 
         default:
             return SSI_StatusInvalidRaidLevel;
+    }
+
+    pInfo->created = SSI_FALSE;
+    if (shared_ptr<Controller> controller = m_Controller.lock()) {
+        Container<Volume> volumes;
+        controller->getVolumes(volumes);
+
+        foreach (iter, volumes) {
+            Volume& volume = *(*iter);
+
+            if (volume.getSsiRaidLevel() == raidLevel) {
+                pInfo->created = SSI_TRUE;
+                break;
+            }
+        }
     }
 
     return SSI_StatusOk;

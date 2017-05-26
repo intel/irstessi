@@ -58,7 +58,9 @@ Controller::Controller(const String &path)
       m_PatrolReadSupport(false),
       m_ROHISupport(false),
       m_hardwareMode(SSI_Unknown_SKU),
-      m_supportsTpv(false)
+      m_supportsTpv(false),
+      m_trialState(SSI_Trial_State_Unknown),
+      m_remainingDays(0)
 {
     File attr;
     struct PCIHeader pciInfo;
@@ -178,6 +180,9 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
 
     pInfo->hardwareSkuMode = m_hardwareMode;
     pInfo->supportsTPV = m_supportsTpv ? SSI_TRUE : SSI_FALSE;
+
+    pInfo->trialState = m_trialState;
+    pInfo->remainingDays = m_remainingDays;
 
     return SSI_StatusOk;
 }
