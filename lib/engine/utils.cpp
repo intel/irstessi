@@ -77,30 +77,16 @@ void clearLastErrorMessage()
 }
 
 /* */
-void mdadmErrorLines(const String& output, vector<String>& lines)
+void splitStringToLines(const String& output, vector<String>& lines, const String& newlines)
 {
-    const char NewLines[] = "\n";
-    const unsigned int WordsToRemoveLength = 2;
-    const String WordsToRemove[WordsToRemoveLength] = {
-        "mdadm: ",
-        "mdmon: "
-    };
+    lines.clear();
 
     unsigned int pos = 0;
     unsigned int next = 0;
-
     String line;
-    while (isFound(output, pos, NewLines, next)) {
+    while (isFound(output, pos, newlines, next)) {
         line = String(output.get(pos), next - pos);
         line.trim();
-
-        for (unsigned int i = 0; i < WordsToRemoveLength; ++i) {
-            unsigned int found = 0;
-
-            while (isFound(line, 0, WordsToRemove[i], found)) {
-                line = line.reverse_mid(line.get(found), line.get(found + WordsToRemove[i].length()));
-            }
-        }
 
         if (line != "") {
             lines.push_back(line);
@@ -108,6 +94,37 @@ void mdadmErrorLines(const String& output, vector<String>& lines)
 
         pos = next + 1;
         line.clear();
+    }
+}
+
+/* */
+void mdadmErrorLines(const String& output, vector<String>& lines)
+{
+    const String WordsToRemove[] = {
+        "mdadm: ",
+        "mdmon: "
+    };
+    const size_t WordsToRemoveNumber = sizeof(WordsToRemove) / sizeof(String);
+
+    splitStringToLines(output, lines);
+
+    vector<String>::iterator iter = lines.begin();
+    while (iter != lines.end()) {
+        String& line = *iter;
+
+        for (unsigned int i = 0; i < WordsToRemoveNumber; ++i) {
+            unsigned int found = 0;
+
+            while (isFound(line, 0, WordsToRemove[i], found)) {
+                line = line.reverse_mid(line.get(found), line.get(found + WordsToRemove[i].length()));
+            }
+        }
+
+        if (line == "") {
+            iter = lines.erase(iter);
+        } else {
+            ++iter;
+        }
     }
 }
 

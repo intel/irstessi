@@ -42,6 +42,9 @@ String getLastErrorMessage();
 void clearLastErrorMessage();
 
 /* */
+void splitStringToLines(const String& output, std::vector<String>& lines, const String& newlines = "\n");
+
+/* */
 void mdadmErrorLines(const String& output, std::vector<String>& lines);
 
 /* */

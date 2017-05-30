@@ -19,6 +19,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include <cstddef>
 #include <typeinfo>
 #include <orom/orom.h>
+#include <vector>
 
 #include "controller.h"
 #include "filesystem.h"
@@ -31,9 +32,37 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #include "port.h"
 #include "phy.h"
 
+using std::vector;
+
 using boost::shared_ptr;
 using boost::dynamic_pointer_cast;
 using boost::const_pointer_cast;
+
+namespace
+{
+    String getVersionFromMdadm()
+    {
+        String version = "";
+        String output;
+        if (shell_output("mdadm --misc --detail-platform", output) == 0) {
+            vector<String> lines;
+            splitStringToLines(output, lines);
+
+            size_t size = lines.size();
+            for (size_t i = 0; i < size; ++i) {
+                try {
+                    lines[i].find("Version");
+                    version = lines[i].after(":");
+                    version.trim();
+                    break;
+                } catch (...) {
+                    /* not found */
+                }
+            }
+        }
+        return version;
+    }
+} // <<anonymous>>
 
 /* */
 Controller::Controller(const String &path)
@@ -65,14 +94,17 @@ Controller::Controller(const String &path)
     File attr;
     struct PCIHeader pciInfo;
 
+    const String UnknownDriver = "UNKNOWN";
     try {
-        attr = m_Path + "/driver/module/version";
-        attr >> m_DriverVersion;
-        check_dots(m_DriverVersion);
+        m_DriverVersion = getVersionFromMdadm();
+
+        if (m_DriverVersion == "") {
+            m_DriverVersion = UnknownDriver;
+        }
     } catch (...) {
-        /* TODO: log that version of the driver cannot be determined. */
-        m_DriverVersion = "0.0.0.1";
+        m_DriverVersion = UnknownDriver;
     }
+
     try {
         attr = m_Path + "/config";
         attr.read(&pciInfo, sizeof(struct PCIHeader));
