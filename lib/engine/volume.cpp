@@ -1156,7 +1156,7 @@ SSI_Status Volume::__toRaid5(SSI_StripSize stripSize, unsigned long long, const 
                 status = pArray->addSpare(disks);
                 if (status != SSI_StatusOk) {
                     return status;
-                } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch, 3, 2) == 0) {
+                } else if (shellEx("mdadm '/dev/" + m_DevName + "' --grow -l5 --layout=left-asymmetric" + ch, 1, 0) == 0) {
                     return SSI_StatusOk;
                 }
 

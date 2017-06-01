@@ -373,9 +373,12 @@ public:
 
     String reverse_mid(unsigned int start, unsigned int end) const {
         try {
-            if (start < end) {
+            if (start <= end) {
                 String leftPart(get(), start);
-                leftPart.append(String(get(end)));
+                if (end < m_length) {
+                    String rightPart(get(end));
+                    leftPart.append(rightPart);
+                }
                 return leftPart;
             }
         } catch (...) {

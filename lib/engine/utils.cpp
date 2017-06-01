@@ -102,7 +102,8 @@ void mdadmErrorLines(const String& output, vector<String>& lines)
 {
     const String WordsToRemove[] = {
         "mdadm: ",
-        "mdmon: "
+        "mdmon: ",
+        " Aborting..."
     };
     const size_t WordsToRemoveNumber = sizeof(WordsToRemove) / sizeof(String);
 
@@ -116,7 +117,7 @@ void mdadmErrorLines(const String& output, vector<String>& lines)
             unsigned int found = 0;
 
             while (isFound(line, 0, WordsToRemove[i], found)) {
-                line = line.reverse_mid(line.get(found), line.get(found + WordsToRemove[i].length()));
+                line = line.reverse_mid(found, found + WordsToRemove[i].length());
             }
         }
 
