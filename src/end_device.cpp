@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -123,8 +123,17 @@ SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
     }
 
     if (shared_ptr<Controller> pController = pEndDevice->getController()) {
-        if (pEndDevice->getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
-            return SSI_StatusNotSupported;
+        if (pEndDevice->getDiskType() == SSI_DiskTypeVMD) {
+            switch (pController->getHardwareMode()) {
+                case SSI_HardwareKeyVROCIntelSSDonly:
+                    if (pEndDevice->isIntelNvme()) {
+                        break;
+                    }
+                case SSI_HardwareKey3story:
+                    return SSI_StatusNotSupported;
+                default:
+                    /* continue */;
+            }
         }
     } else {
         return SSI_StatusInvalidState;

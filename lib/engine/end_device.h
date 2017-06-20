@@ -135,6 +135,10 @@ public:
         return m_pPort;
     }
 
+    bool isIntelNvme() const {
+        return m_isIntelNvme;
+    }
+
     unsigned int getSectors() const {
         return m_BlocksTotal;
     }
