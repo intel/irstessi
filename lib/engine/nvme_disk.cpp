@@ -195,6 +195,12 @@ void NVME_Disk::discover()
 bool NVME_Disk::canRemoveDisk() const {
     Container<Volume> controllerVolumes;
     if (shared_ptr<Controller> controller = getController()) {
+        if (controller->getHardwareMode() != SSI_HardwareKeyVROCStandard &&
+            controller->getHardwareMode() != SSI_HardwareKeyVROCPremium &&
+            !isIntelNvme()) {
+            return false;
+        }
+
         controller->getVolumes(controllerVolumes);
         Container<Volume> volumes;
         Container<EndDevice> devices;
