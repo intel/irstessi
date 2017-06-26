@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -37,6 +37,7 @@ namespace {
     SSI_RaidLevel ui2raidlevel(unsigned int level);
     SSI_StripSize ui2stripsize(unsigned int chunk);
     unsigned int stripsize2ui(SSI_StripSize chunk);
+    void createVolume(const String& command);
 }
 
 /* */
@@ -202,7 +203,14 @@ void Volume::discover()
         attr >> temp;
         m_RwhPolicy = parseRwhPolicy(temp);
     } catch (...) {
-        // Intentionaly left blank
+        /* For RHEL 7.4 and SLES 12 SP3 */
+        try {
+            attr = m_Path + "/md/consistency_policy";
+            attr >> temp;
+            m_RwhPolicy = parseNewRwhPolicy(temp);
+        } catch (...) {
+            // Intentionaly left blank
+        }
     }
 }
 
@@ -479,10 +487,18 @@ SSI_Status Volume::changeRwhPolicy(SSI_RwhPolicy policy)
     if (m_RwhPolicy == policy)
         return SSI_StatusOk;
 
+    /* For RHEL 7.3 and SLES 12 SP1 */
     if (shellEx("mdadm --rwh-policy=" + rwhPolicyToString(policy) + " '/dev/" + m_DevName + "'") == 0) {
         m_RwhPolicy = policy;
         return SSI_StatusOk;
     }
+
+    /* For RHEL 7.4 and SLES 12 SP3 */
+    if (shellEx("mdadm -G '/dev/" + m_DevName + "' --consistency-policy=" + newRwhPolicyToString(policy)) == 0) {
+        m_RwhPolicy = policy;
+        return SSI_StatusOk;
+    }
+
     return SSI_StatusFailed;
 }
 
@@ -700,6 +716,19 @@ SSI_RwhPolicy Volume::parseRwhPolicy(const String& policy) const
     }
 }
 
+SSI_RwhPolicy Volume::parseNewRwhPolicy(const String& policy) const
+{
+    if (policy == newRwhPolicyToString(SSI_RwhOff)) {
+        return SSI_RwhOff;
+    } else if (policy == newRwhPolicyToString(SSI_RwhDistributed)) {
+        return SSI_RwhDistributed;
+    } else if (policy == newRwhPolicyToString(SSI_RwhJournalingDrive)) {
+        return SSI_RwhJournalingDrive;
+    } else {
+        return SSI_RwhInvalid;
+    }
+}
+
 String Volume::rwhPolicyToString(SSI_RwhPolicy policy) const
 {
     if (policy == SSI_RwhOff) {
@@ -711,6 +740,17 @@ String Volume::rwhPolicyToString(SSI_RwhPolicy policy) const
     } else {
         throw E_NOT_SUPPORTED;
     }
+}
+
+String Volume::newRwhPolicyToString(SSI_RwhPolicy policy) const
+{
+    if (policy == SSI_RwhOff) {
+        return "resync";
+    } else if (policy == SSI_RwhDistributed) {
+        return "ppl";
+    }
+
+    return rwhPolicyToString(policy);
 }
 
 /* Convert total Volume size to component size and set it */
@@ -820,35 +860,19 @@ void Volume::create()
         String command = "mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
                 chunk + rwhPolicy + " -n" + String(m_BlockDevices.size()) + devices;
 
-        /*
-         * Two cases:
-         *     a) mdadm returns only message about insufficient size (contains "not enough space")
-         *     b) mdadm returns message about insufficient size + line about why device doesn't fit + "create aborted"
-         *
-         * Workaround: We get all error output lines from mdadm and we find the line we need.
-         *
-         * Used this workaround because we don't have better tools to get mdadm errors.
-         */
-        String output;
-        if (shell_output(command, output, true) != 0) {
-            vector<String> lines;
-            mdadmErrorLines(output, lines);
-
-            if (!lines.empty()) {
-
-                vector<String>::const_iterator found = findErrorMessage(lines, "not enough space");
-
-                if (found != lines.end()) {
-                    setLastErrorMessage(*found);
-                } else {
-                    /* We've got different error message (invalid name etc.) */
-                    setLastErrorMessage(lines.back());
-                }
+        try {
+            createVolume(command);
+        } catch (Exception e) {
+            if (e == E_VOLUME_CREATE_FAILED) {
+                /* For RHEL 7.4 & SLES 12 SP3 */
+                rwhPolicy = m_RwhPolicy == SSI_RwhDistributed ?
+                                " --consistency-policy=" + newRwhPolicyToString(m_RwhPolicy) : "";
+                command = "mdadm -CR '" + m_Name + "' -amd -l" + String(m_RaidLevel) + " --size=" + componentSize +
+                                chunk + rwhPolicy + " -n" + String(m_BlockDevices.size()) + devices;
+                createVolume(command);
             } else {
-                setLastErrorMessage("");
+                throw e;
             }
-
-            throw E_VOLUME_CREATE_FAILED;
         }
     } else {
         throw E_NOT_SUPPORTED;
@@ -973,6 +997,39 @@ namespace {
         }
 
         return iter;
+    }
+
+    void createVolume(const String &command) {
+        /*
+         * Two cases:
+         *     a) mdadm returns only message about insufficient size (contains "not enough space")
+         *     b) mdadm returns message about insufficient size + line about why device doesn't fit + "create aborted"
+         *
+         * Workaround: We get all error output lines from mdadm and we find the line we need.
+         *
+         * Used this workaround because we don't have better tools to get mdadm errors.
+         */
+        String output;
+        if (shell_output(command, output, true) != 0) {
+            vector<String> lines;
+            mdadmErrorLines(output, lines);
+
+            if (!lines.empty()) {
+
+                vector<String>::const_iterator found = findErrorMessage(lines, "not enough space");
+
+                if (found != lines.end()) {
+                    setLastErrorMessage(*found);
+                } else {
+                    /* We've got different error message (invalid name etc.) */
+                    setLastErrorMessage(lines.back());
+                }
+            } else {
+                setLastErrorMessage("");
+            }
+
+            throw E_VOLUME_CREATE_FAILED;
+        }
     }
 }
 

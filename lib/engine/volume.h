@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -127,7 +127,9 @@ private:
     unsigned int getVerificationProgress();
 
     SSI_RwhPolicy parseRwhPolicy(const String& policy) const;
+    SSI_RwhPolicy parseNewRwhPolicy(const String& policy) const;
     String rwhPolicyToString(SSI_RwhPolicy policy) const;
+    String newRwhPolicyToString(SSI_RwhPolicy policy) const;
 };
 
 #endif /* __VOLUME_H__INCLUDED__ */
