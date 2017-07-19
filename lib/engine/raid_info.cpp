@@ -84,11 +84,11 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
         return SSI_StatusInvalidParameter;
     }
 
-    pInfo->defaultStripSize = SSI_StripSize64kB;
     pInfo->stripSizesSupported = static_cast<SSI_StripSize>(m_pInfo->chk);
 
     switch (raidLevel) {
         case SSI_Raid0:
+            pInfo->defaultStripSize = SSI_StripSize128kB;
             pInfo->supported = m_pInfo->rlc0 ? SSI_TRUE : SSI_FALSE;
             pInfo->minDisks = ssi_min(1, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
@@ -124,6 +124,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
 
         case SSI_Raid1:
+            pInfo->defaultStripSize = SSI_StripSize64kB;
             pInfo->supported = m_pInfo->rlc1 ? SSI_TRUE : SSI_FALSE;
             pInfo->minDisks = ssi_min(2, m_pInfo->tds);
             pInfo->maxDisks = ssi_min(2, m_pInfo->tds);
@@ -134,6 +135,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
 
         case SSI_Raid10:
+            pInfo->defaultStripSize = SSI_StripSize64kB;
             pInfo->supported = m_pInfo->rlc10 ? SSI_TRUE : SSI_FALSE;
             pInfo->minDisks = ssi_min(4, m_pInfo->tds);
             pInfo->maxDisks = ssi_min(4, m_pInfo->tds);
@@ -144,6 +146,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
 
         case SSI_Raid5:
+            pInfo->defaultStripSize = SSI_StripSize64kB;
             pInfo->supported = m_pInfo->rlc5 ? SSI_TRUE : SSI_FALSE;
             pInfo->minDisks = ssi_min(3, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
@@ -154,6 +157,7 @@ SSI_Status RaidInfo::getRaidLevelInfo(SSI_RaidLevel raidLevel, SSI_RaidLevelInfo
             break;
 
         case SSI_Raid6:
+            pInfo->defaultStripSize = SSI_StripSize64kB;
             pInfo->supported = m_pInfo->rlc6 ? SSI_TRUE : SSI_FALSE;
             pInfo->minDisks = ssi_min(4, m_pInfo->tds);
             pInfo->maxDisks = m_pInfo->tds;
