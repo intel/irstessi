@@ -32,6 +32,28 @@ namespace {
     {
         return pSession->getEndDevice(handle);
     }
+
+    SSI_Status checkNvmeOperationSupport(const EndDevice& device)
+    {
+        if (shared_ptr<Controller> pController = device.getController()) {
+            if (device.getDiskType() == SSI_DiskTypeVMD) {
+                switch (pController->getHardwareMode()) {
+                    case SSI_HardwareKeyVROCIntelSSDonly:
+                        if (device.isIntelNvme()) {
+                            break;
+                        }
+                    case SSI_HardwareKey3story:
+                        return SSI_StatusNotSupported;
+                    default:
+                        /* continue */;
+                }
+            }
+        } else {
+            return SSI_StatusInvalidState;
+        }
+
+        return SSI_StatusOk;
+    }
 }
 
 /* */
@@ -81,12 +103,8 @@ SSI_Status SsiDiskMarkAsSpare(SSI_Handle diskHandle, SSI_Handle arrayHandle)
         return SSI_StatusNotSupported;
     }
 
-    if (shared_ptr<Controller> pController = pEndDevice->getController()) {
-        if (pEndDevice->getDiskType() == SSI_DiskTypeVMD && pController->getHardwareMode() == SSI_HardwareKey3story) {
-            return SSI_StatusNotSupported;
-        }
-    } else {
-        return SSI_StatusInvalidState;
+    if (SSI_Status status = checkNvmeOperationSupport(*pEndDevice)) {
+        return status;
     }
 
     if (arrayHandle == SSI_NULL_HANDLE) {
@@ -122,21 +140,8 @@ SSI_Status SsiDiskUnmarkAsSpare(SSI_Handle diskHandle)
         return SSI_StatusNotSupported;
     }
 
-    if (shared_ptr<Controller> pController = pEndDevice->getController()) {
-        if (pEndDevice->getDiskType() == SSI_DiskTypeVMD) {
-            switch (pController->getHardwareMode()) {
-                case SSI_HardwareKeyVROCIntelSSDonly:
-                    if (pEndDevice->isIntelNvme()) {
-                        break;
-                    }
-                case SSI_HardwareKey3story:
-                    return SSI_StatusNotSupported;
-                default:
-                    /* continue */;
-            }
-        }
-    } else {
-        return SSI_StatusInvalidState;
+    if (SSI_Status status = checkNvmeOperationSupport(*pEndDevice)) {
+        return status;
     }
 
     shared_ptr<Array> pArray = pEndDevice->getArray();
