@@ -205,8 +205,8 @@ SSI_Status Controller::getInfo(SSI_ControllerInfo *pInfo) const
     pInfo->addDisksToArraySupport = SSI_TRUE;
     pInfo->volumeCancelVerifySupport = SSI_TRUE;
     pInfo->markAsSpareSupport = SSI_TRUE;
-    pInfo->readPatrolEnabled = SSI_TRUE;
     pInfo->readPatrolSupport = m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
+    pInfo->readPatrolEnabled = m_PatrolReadSupport ? SSI_TRUE : SSI_FALSE;
     pInfo->rohiEnabled = SSI_FALSE;
     pInfo->rohiSupport = m_ROHISupport ? SSI_TRUE : SSI_FALSE;
 
