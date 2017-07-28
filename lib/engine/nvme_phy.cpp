@@ -61,8 +61,14 @@ void NVME_Phy::discover()
 /* */
 shared_ptr<EndDevice> NVME_Phy::__internal_attach_end_device(const String& path)
 {
-    shared_ptr<EndDevice> pEndDevice = shared_ptr<EndDevice>(new NVME_Disk(path));
-    pEndDevice->discover();
+    shared_ptr<EndDevice> pEndDevice;
+    try {
+        pEndDevice = shared_ptr<EndDevice>(new NVME_Disk(path));
+        pEndDevice->discover();
+    } catch (...) {
+        pEndDevice = shared_ptr<EndDevice>();
+    }
+
     return pEndDevice;
 }
 

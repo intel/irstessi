@@ -69,28 +69,29 @@ using boost::shared_ptr;
 #define SCSI_SENSE_DISK_SETTING_PAGE    8
 #define HD_DATA_BUFFER_SIZE             24
 
+/* */
+#define ATA_CMD_ID_ATA 0xEC
+
+struct AtaCommand
+{
+    __uint8_t command;
+    __uint8_t obsolete1;
+    __uint8_t obsolete2;
+    __uint8_t transportDependent;
+};
+
+struct AtaIdentifyCall
+{
+    AtaCommand command;
+    __uint16_t data[256];
+};
+
 namespace {
-    vector<String> split(const String& string, const String& delimiter)
+    __uint16_t swap(__uint16_t value)
     {
-        bool found = true;
-        vector<String> splitted;
-        unsigned int offset = 0;
-        while (found) {
-            unsigned int pos;
-            try {
-                pos = string.find(delimiter, offset);
-            } catch (...) {
-                found = false;
-                continue;
-            }
-
-            splitted.push_back(string.mid(offset, pos));
-            offset = pos + 1;
-        }
-
-        return splitted;
+        return (value >> 8) | (value << 8);
     }
-} // <<anonymous>>
+} /* <<anonymous>> */
 
 EndDevice::EndDevice(const EndDevice &endDevice)
     : StorageDevice(endDevice.getPath())
@@ -264,48 +265,46 @@ void EndDevice::discover()
     }
 }
 
-/**
- * @brief Fills model, vendor and firmware properties for ATA drives using smartctl
- *
- * @return  0 for success, -1 if popen fails and status of smartctl otherwise
- */
-int EndDevice::getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware)
+int EndDevice::getAtaDiskInfo(const String &devPath, String &model, String &serial, String &firmware)
 {
-    const char Delimiter[] = "\n";
-    const unsigned int ModelIndex = 0;
-    const unsigned int SerialIndex = 1;
-    const unsigned int FirmwareIndex = 2;
+    int fd = open(devPath, O_RDONLY | O_DIRECT | O_NONBLOCK);
 
-    /* SSI sometimes uses m_devName as handler and for some cases (like VMD) '/dev/' + m_devName points to nothing */
-    if (!ifstream(devName)) {
+    if (fd < 0) {
         return -1;
     }
 
-    String data;
+    AtaIdentifyCall call = {};
+    call.command.command = ATA_CMD_ID_ATA;
+    call.command.transportDependent = 1;
 
-    /* We use smartctl to get info about device,
-     * then grep only leaves model, revision and serial lines (in such order) and
-     * then cut edits "[KEY]:   [VALUE]" to "   [VALUE]" for each line (trim is required) */
-    const String command = "smartctl -i " + devName + " | grep -E 'Device Model|Serial Number|Firmware Version' | cut -d : -f 2-";
-    int status = shell_output(command, data);
-    if (status != 0) {
-        return status;
+    int ret = ioctl(fd, HDIO_DRIVE_CMD, &call);
+    if (ret < 0) {
+        close(fd);
+        return -1;
     }
 
-    vector<String> values = split(data, Delimiter);
-
-    if (values.size() == 3) {
-        foreach (value, values) {
-            (*value).trim();
-        }
-        model = values[ModelIndex];
-        serial = values[SerialIndex];
-        firmware = values[FirmwareIndex];
-    } else {
-        status = -1;
+    for (size_t i = 0; i < sizeof(call.data) / sizeof(call.data[0]); ++i) {
+        call.data[i] = swap(call.data[i]);
     }
 
-    return status;
+    /* Values taken from ATA/ATAPI Command Set - 2 (ACS-2), chapter 7.18.7 */
+    const size_t SerialFirstWord = 10;
+    const size_t SerialLength = 10;
+    const size_t FirmwareFirstWord = 23;
+    const size_t FirmwareLength = 4;
+    const size_t ModelFirstWord = 27;
+    const size_t ModelLength = 20;
+
+    serial = String(reinterpret_cast<char*>(call.data + SerialFirstWord), SerialLength * sizeof(call.data[0]));
+    firmware = String(reinterpret_cast<char*>(call.data + FirmwareFirstWord), FirmwareLength * sizeof(call.data[0]));
+    model = String(reinterpret_cast<char*>(call.data + ModelFirstWord), ModelLength * sizeof(call.data[0]));
+
+    serial.trim();
+    firmware.trim();
+    model.trim();
+
+    close(fd);
+    return 0;
 }
 
 String EndDevice::getId() const

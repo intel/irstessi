@@ -96,6 +96,7 @@ void NVME_Disk::identify()
         m_Model = mn;
         m_Firmware = fr;
     }
+
     close(fd);
 }
 
@@ -143,7 +144,18 @@ void NVME_Disk::discover()
     from_hex(bdfAddress, m_BDFAddress.function);
 
     __internal_determine_disk_is_system();
+    m_SerialNum = "";
+    m_Model = "";
+    m_Firmware = "";
     identify();
+
+    m_SerialNum.trim();
+    m_Model.trim();
+    m_Firmware.trim();
+    if (m_SerialNum.isEmpty() || m_Model.isEmpty() || m_Firmware.isEmpty()) {
+        throw E_INVALID_OBJECT;
+    }
+
     File attr;
 
     try {
@@ -166,7 +178,6 @@ void NVME_Disk::discover()
     } catch (...) {
     }
 
-    /* TODO: Requires testing on non-intel devices */
     String vendorId;
     try {
         attr = "/sys/class/block/" + m_DevName + "/device/device/vendor";

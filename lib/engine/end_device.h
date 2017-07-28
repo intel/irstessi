@@ -89,7 +89,7 @@ protected:
     unsigned int m_vmdDomain;
     bool m_isIntelNvme;
     bool m_locateLedSupport;
-    int getAtaDiskInfo(const String &devName, String &model, String &serial, String &firmware);
+    int getAtaDiskInfo(const String &devPath, String &model, String &serial, String &firmware);
     virtual SSI_Status removeDevice() {
         return SSI_StatusNotSupported;
     }
