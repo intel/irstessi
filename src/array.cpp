@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -44,7 +44,7 @@ SSI_Status SsiGetArrayInfo(SSI_Handle session, SSI_Handle arrayHandle, SSI_Array
 }
 
 /* */
-SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, SSI_Uint32 diskHandleCount)
+SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, SSI_Uint32 diskHandleCount, SSI_StripSize)
 {
     shared_ptr<Session> pSession;
     if (SSI_Status status = getTempSession(pSession)) {

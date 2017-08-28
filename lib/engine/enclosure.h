@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2011 - 2016, Intel Corporation
+Copyright (c) 2011 - 2017, Intel Corporation
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
@@ -22,7 +22,7 @@ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND 
 #endif
 
 typedef struct __Slot {
-    unsigned int slotNumber;
+    unsigned long long slotNumber;
     unsigned long long sasAddress;
 } Slot;
 
@@ -42,7 +42,7 @@ public:
     virtual void attachEndDevice(const boost::shared_ptr<EndDevice>& endDevice);
     virtual void attachEndDevices(Container<EndDevice> &EndDevices);
     virtual void attachRoutingDevice(const boost::shared_ptr<RoutingDevice>& routingDevice);
-    unsigned int getSlotNumber(unsigned long long sasAddress) const;
+    unsigned long long getSlotNumber(unsigned long long sasAddress) const;
     void getSlotAddress(SSI_Address &address, unsigned int number);
 
     virtual bool scopeTypeMatches(SSI_ScopeType scopeType) const {

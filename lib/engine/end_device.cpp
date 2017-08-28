@@ -380,7 +380,7 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
 
     pInfo->writeCachePolicy = m_WriteCachePolicy;
     pInfo->systemDisk = isSystemDisk() ? SSI_TRUE : SSI_FALSE;
-    pInfo->slotNumber = getSlotNumber();
+    pInfo->physicalSlotNumber = getSlotNumber();
     pInfo->locateLEDSupport = m_locateLedSupport ? SSI_TRUE : SSI_FALSE;
     pInfo->removeDiskSupport = canRemoveDisk() ? SSI_TRUE : SSI_FALSE;
     pInfo->isPreBootVisible = pEnclosure ? SSI_FALSE : SSI_TRUE;
@@ -389,18 +389,23 @@ SSI_Status EndDevice::getInfo(SSI_EndDeviceInfo *pInfo) const
     pInfo->PCISlotNumber = m_PCISlotNumber;
 
     /* FDx8 */
-    pInfo->Isx8A = SSI_FALSE;
-    pInfo->Isx8B = SSI_FALSE;
+    pInfo->isx8A = SSI_FALSE;
+    pInfo->isx8B = SSI_FALSE;
     if (m_FDx8Disk == 1) {
-        pInfo->Isx8A = SSI_TRUE;
+        pInfo->isx8A = SSI_TRUE;
     } else if (m_FDx8Disk == 2) {
-        pInfo->Isx8B = SSI_TRUE;
+        pInfo->isx8B = SSI_TRUE;
     }
 
     /* VMD domain */
-    pInfo->vmdDomain = getVmdDomain();
+    pInfo->vmdDomainIndex = getVmdDomain();
 
-    pInfo->IsIntelNVMe = m_isIntelNvme ? SSI_TRUE : SSI_FALSE;
+    pInfo->isIntelNVMe = m_isIntelNvme ? SSI_TRUE : SSI_FALSE;
+
+    /* RSTe Windows Only */
+    pInfo->socketNumber = 0;
+    pInfo->vmdControllerNumber = 0;
+    pInfo->rootPortOffset = 0;
 
     return SSI_StatusOk;
 }
@@ -436,10 +441,10 @@ shared_ptr<RaidInfo> EndDevice::getRaidInfo() const
     return m_pPort ? m_pPort->getRaidInfo() : shared_ptr<RaidInfo>();
 }
 
-unsigned int EndDevice::getSlotNumber() const
+unsigned long long EndDevice::getSlotNumber() const
 {
     if (!m_pEnclosure) {
-        return -1U;
+        return -1ULL;
     }
 
     return m_pEnclosure->getSlotNumber(m_SASAddress);

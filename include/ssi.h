@@ -267,7 +267,41 @@ typedef enum _SSI_Status
     /** Disable on-device cache failed */
     SSI_StatusDisableCacheFailed     = 25,
     /** Unsupported action during trial */
-    SSI_TrialLimitation              = 26
+    SSI_TrialLimitation              = 26,
+    /** Raid Level not supported */
+    SSI_UnsupportedRAIDLevel         = 27,
+    /** Invalid RWH Mode */
+    SSI_InvalidRWHMode               = 28,
+    /** Unsupported Disk */
+    SSI_UnsupportedDisk              = 29,
+    /** Mark as normal failed */
+    SSI_MarkAsNormalFailed           = 30,
+    /** Invalid number of disks */
+    SSI_InvalidNumberOfDisks         = 31,
+    /** Invalid logical sector size */
+    SSI_InvalidLogicalSectorSize     = 34,
+    /** Non-intel drive not supported */
+    SSI_NonIntelDriveNotSupported    = 35,
+    /** Uncheck journaling drive failed */
+    SSI_UncheckJournalingDriveFailed = 36,
+    /** Disk too small */
+    SSI_DiskTooSmall                 = 37,
+    /** Disk on wrong controller */
+    SSI_DiskOnWrongController        = 38,
+    /** Volume over 2 Tb not allowed */
+    SSI_VolumeOver2TbNotAllowed      = 39,
+    /** Duplicated volume name */
+    SSI_DuplicatedVolumeName         = 40,
+    /** Invalid Cache Mode */
+    SSI_InvalidCacheMode             = 41,
+    /** Invalid Controller Mode */
+    SSI_InvalidControllerMode        = 42,
+    /** Invalid Disk */
+    SSI_InvalidDisk                  = 43,
+    /** Invalid Cache Policy */
+    SSI_InvalidCachePolicy           = 44,
+    /** Invalid Volume */
+    SSI_InvalidVolume                = 45
 } SSI_Status;
 
 /**
@@ -1032,13 +1066,21 @@ typedef struct _SSI_EndDeviceInfo
     /** PCI Slot number */
     SSI_Uint64 PCISlotNumber;
     /** Fultondale x8 disk */
-    SSI_Bool Isx8A;
+    SSI_Bool isx8A;
     /** Fultondale x8 disk */
-    SSI_Bool Isx8B;
+    SSI_Bool isx8B;
     /** VMD Domains Number */
-    SSI_Uint32 vmdDomain;
+    SSI_Uint32 vmdDomainIndex;
     /** Intel NVMe drive */
-    SSI_Bool IsIntelNVMe;
+    SSI_Bool isIntelNVMe;
+    /** Socket number */
+    SSI_Uint16 socketNumber;
+    /** VMD Controller Number */
+    SSI_Uint16 vmdControllerNumber;
+    /** Root Port Offset */
+    SSI_Uint16 rootPortOffset;
+    /** Slot number */
+    SSI_Uint64 physicalSlotNumber;
 } SSI_EndDeviceInfo;
 
 /**
@@ -1922,18 +1964,19 @@ SSI_API SSI_Status SsiVolumeRename(SSI_Handle volumeHandle, const SSI_Char volum
 
 /**
  * @fn  SSI_API SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles,
- *      SSI_Uint32 diskHandleCount)
+ *      SSI_Uint32 diskHandleCount, SSI_StripSize stripSize)
  *
  * @brief   Add one or more disks to an existing array.
  *
  * @param   arrayHandle         Handle of the array.
  * @param   diskHandles         The disk handles.
  * @param   diskHandleCount     Number of disk handles.
+ * @param   stripSize           New stripe size of volume (ignored - compatibility with Windows).
  *
  * @return  #SSI_StatusOk, #SSI_StatusNotInitialized, #SSI_StatusInvalidHandle, #SSI_StatusInvalidParameter,
  * @return  #SSI_StatusBufferTooSmall, #SSI_StatusInvalidSize, #SSI_StatusDataExceedsLimits, #SSI_StatusFailed.
 **/
-SSI_API SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, SSI_Uint32 diskHandleCount);
+SSI_API SSI_Status SsiAddDisksToArray(SSI_Handle arrayHandle, SSI_Handle *diskHandles, SSI_Uint32 diskHandleCount, SSI_StripSize stripSize);
 
 /**
  * @fn  SSI_API SSI_Status SsiExpandVolume(SSI_Handle volumeHandle, SSI_Uint64 newSizeMB)
