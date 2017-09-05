@@ -1,5 +1,5 @@
-Installing Intel® RSTe with Linux OS* SSI API library on RHEL 6.2 and
-SLES 11 SP2 from source code.
+Installing Intel® RSTe with Linux OS* SSI API library on RHEL 7.3+ and
+SLES 12 SP3 from source code.
 
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
 Table of Contents
@@ -12,7 +12,7 @@ Table of Contents
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
 
 1. Overview
- 
+
 The RAID Management API allows complete management of the Intel Storage
 systems based on a RAID controller included in the Intel chipset.
 This API allows end user to manage these systems from their proprietary
@@ -31,33 +31,33 @@ when library is loaded. Previous version is saved as /etc/mdadm.conf.original
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
 
 2. License
-Copyright (c) 2012, Intel Corporation
-All rights reserved.
 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+Copyright 2011 - 2017 Intel Corporation
 
-  * Redistributions of source code must retain the above copyright notice,
-    this list of conditions and the following disclaimer.
-  * Redistributions in binary form must reproduce the above copyright
-    notice, this list of conditions and the following disclaimer in the
-    documentation and/or other materials provided with the distribution.
-  * Neither the name of Intel Corporation nor the names of its
-    contributors may be used to endorse or promote products derived
-    from this software without specific prior written permission.
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS 
-"AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING,
-BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
-FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
-OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+1. Redistributions of source code must retain the above copyright notice,
+   this list of conditions and the following disclaimer.
 
+2. Redistributions in binary form must reproduce the above copyright notice,
+   this list of conditions and the following disclaimer in the documentation
+   and/or other materials provided with the distribution.
+
+3. Neither the name of the copyright holder nor the names of its contributors
+   may be used to endorse or promote products derived from this software
+   without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
 3. Dependences
@@ -65,15 +65,9 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 To build SSI API library from source code the package sg3_utils-devel
 is required.
 
-For correct functioning mdadm version 3.2.3 minimum is required.
+For correct functioning mdadm version 4.0 minimum is required.
 The mdadm source code is available to download from
-http://neil.brown.name/git?p=mdadm;a=shortlog;h=refs/tags/mdadm-3.2.3
-
-However dedicated update for mdadm can be downloaded from SourceForge.net:
-1. RHEL 6.2
-    https://sourceforge.net/projects/intel-sas/files/RHEL6.2%20mdadm%20Update%20v1.0.0/
-2. SLES 11 SP2
-    https://sourceforge.net/projects/intel-sas/files/SLES%2011%20SP2%20mdadm%20Update%20v1.0.0/
+http://git.neil.brown.name/?p=mdadm.git;a=shortlog;h=refs/tags/mdadm-4.0
 
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
 4. Installing Intel® RSTe with Linux OS* SSI Library API
@@ -85,4 +79,3 @@ Unpack SSI sources, go to the created directory and run commands:
 Run "make" and then "make install"
 
 **** **** **** **** **** **** **** **** **** **** **** **** **** **** ****
-
