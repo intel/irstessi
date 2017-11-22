@@ -221,13 +221,13 @@ void EndDevice::discover()
     }
 
     try {
-        SysfsAttr attr = "/sys/class/block/" + m_DevName + "/queue/logical_block_size";
+        attr = "/sys/class/block/" + m_DevName + "/queue/logical_block_size";
         attr >> m_LogicalSectorSize;
     } catch (...) {
     }
 
     try {
-        SysfsAttr attr = "/sys/class/block/" + m_DevName + "/queue/physical_block_size";
+        attr = "/sys/class/block/" + m_DevName + "/queue/physical_block_size";
         attr >> m_PhysicalSectorSize;
     } catch (...) {
     }
