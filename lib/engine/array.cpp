@@ -553,7 +553,7 @@ void Array::__internal_determine_total_and_free_size()
             totalSize = ssi_min(totalSize, tmp->getTotalSize());
         }
     }
-    m_TotalSize = (totalSize * m_BlockDevices);
+    m_TotalSize = (totalSize * m_BlockDevices.size());
     unsigned long long occupiedSize = 0;
     unsigned int stripSize = 0;
     int volumeCount = 0;

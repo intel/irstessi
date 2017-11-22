@@ -171,7 +171,7 @@ void Volume::discover()
     }
 
     try {
-        SysfsAttr attr = m_Path + "/md/chunk_size";
+        attr = m_Path + "/md/chunk_size";
         attr >> m_StripSize;
     } catch (...) {
         // Intentionaly left blank
